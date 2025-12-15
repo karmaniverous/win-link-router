@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "github.vscode-github-actions",
+    "gruntfuggly.todo-tree",
+    "redhat.vscode-yaml",
+    "vitest.explorer"
+  ]
+}

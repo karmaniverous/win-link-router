@@ -4,7 +4,7 @@
     "baseUrl": ".",
     "esModuleInterop": true,
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noEmit": true,
     "noImplicitAny": true,
     "outDir": "dist",
