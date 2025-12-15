@@ -9,4 +9,8 @@ Project-specific assistant guidance for this repo.
 
 - ESLint configuration:
   - Use ESLint v9 flat config in `eslint.config.ts` with strict, type-aware `typescript-eslint` rules.
-  - Run lint via `tsx ...eslint.js --config eslint.config.ts` so the TS config file can be loaded.
+  - Run lint via `tsx ...eslint.js --config eslint.config.ts` so the TS config file can be loaded.
+  - Integrate Prettier and import sorting through ESLint:
+    - `eslint-config-prettier` disables conflicting formatting rules (kept last in config).
+    - `eslint-plugin-prettier` enforces formatting via `prettier/prettier`.
+    - `eslint-plugin-simple-import-sort` enforces deterministic import ordering.

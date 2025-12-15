@@ -1,6 +1,6 @@
 stan-core:
   stanPath: .stan
-  excludes: 
+  excludes:
     - '**/.tsbuild/**'
     - '**/*.tsbuildinfo'
     - CHANGELOG.md
@@ -14,5 +14,10 @@ stan-cli:
   patchOpenCommand: code -g {file}
   scripts:
     typecheck: npm run typecheck
-    lint: npm run lint
+    lint:
+      script: npm run lint:fix
+      warnPattern: \\d+:\\d+\\s+warning
+    knip:
+      script: npm run knip
+      warnPattern: Configuration hints
     package: npm run package

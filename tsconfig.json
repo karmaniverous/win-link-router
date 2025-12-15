@@ -3,7 +3,7 @@
     "allowJs": true,
     "baseUrl": ".",
     "esModuleInterop": true,
-    "module": "commonjs",
+    "module": "ESNext",
     "moduleResolution": "bundler",
     "noEmit": true,
     "noImplicitAny": true,
@@ -11,6 +11,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
+    "strictNullChecks": true,
     "target": "ESNext"
   }
 }

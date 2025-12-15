@@ -1,11 +1,12 @@
-import type { ForgeConfig } from '@electron-forge/shared-types';
-import { MakerSquirrel } from '@electron-forge/maker-squirrel';
-import { MakerZIP } from '@electron-forge/maker-zip';
+import path from 'node:path';
+
+import { flipFuses, FuseV1Options, FuseVersion } from '@electron/fuses';
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerRpm } from '@electron-forge/maker-rpm';
+import { MakerSquirrel } from '@electron-forge/maker-squirrel';
+import { MakerZIP } from '@electron-forge/maker-zip';
 import { VitePlugin } from '@electron-forge/plugin-vite';
-import path from 'node:path';
-import { flipFuses, FuseV1Options, FuseVersion } from '@electron/fuses';
+import type { ForgeConfig } from '@electron-forge/shared-types';
 
 const fuseConfig = {
   version: FuseVersion.V1,
@@ -20,7 +21,13 @@ const fuseConfig = {
 function getExtractedElectronBinaryPath(buildPath: string, platform: string) {
   if (platform === 'win32') return path.join(buildPath, 'electron.exe');
   if (platform === 'darwin')
-    return path.join(buildPath, 'Electron.app', 'Contents', 'MacOS', 'Electron');
+    return path.join(
+      buildPath,
+      'Electron.app',
+      'Contents',
+      'MacOS',
+      'Electron',
+    );
   return path.join(buildPath, 'electron');
 }
 
