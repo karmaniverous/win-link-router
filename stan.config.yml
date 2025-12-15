@@ -1,0 +1,8 @@
+stan-core:
+  stanPath: .stan
+  includes: []
+  excludes: []
+stan-cli:
+  scripts:
+    lint: npm run lint
+  patchOpenCommand: code -g {file}
