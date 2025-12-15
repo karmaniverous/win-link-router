@@ -1,8 +1,16 @@
 stan-core:
   stanPath: .stan
-  includes: []
-  excludes: []
+  excludes: 
+    - '**/.tsbuild/**'
+    - '**/*.tsbuildinfo'
+    - CHANGELOG.md
+    - package-lock.json
 stan-cli:
+  cliDefaults:
+    run:
+      facets: false
+      plan: false
+      sequential: true
+  patchOpenCommand: code -g {file}
   scripts:
     lint: npm run lint
-  patchOpenCommand: code -g {file}
