@@ -44,9 +44,8 @@ export default defineConfig([
       'simple-import-sort/exports': 'error',
     },
   },
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
   {
+    // Enable type-aware linting for TS files (required by strictTypeChecked).
     files: ['**/*.{ts,tsx,cts,mts}'],
     languageOptions: {
       parserOptions: {
@@ -54,21 +53,39 @@ export default defineConfig([
         tsconfigRootDir: process.cwd(),
       },
     },
+  },
+  ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  {
+    files: ['**/*.{ts,tsx,cts,mts}'],
     rules: {
       // TypeScript owns undefined-variable checks.
       'no-undef': 'off',
 
-      // House rules: prefer underscore for intentionally-unused vars/args.
+      // Use TS equivalents instead of core rules for TS files.
+      'no-restricted-imports': 'off',
+      'no-unused-vars': 'off',
+
+      'prettier/prettier': 'error',
+      'simple-import-sort/exports': 'error',
+      'simple-import-sort/imports': 'error',
+
+      '@typescript-eslint/consistent-type-imports': 'error',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-restricted-imports': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+        {
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^_',
+        },
       ],
 
-      // Keep type-only imports explicit and consistent.
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
-      ],
       '@typescript-eslint/no-import-type-side-effects': 'error',
     },
   },

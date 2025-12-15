@@ -11,4 +11,6 @@
 ## Completed (recent)
 
 - Upgraded `@electron/fuses` to v2 and flipped fuses via a Forge hook to avoid the `@electron-forge/plugin-fuses` peerDependency constraint.
-- Migrated ESLint to `eslint.config.ts` with strict, type-aware TypeScript rules.- Integrated Prettier and simple-import-sort into ESLint.
+- Migrated ESLint to `eslint.config.ts` with strict, type-aware TypeScript rules.
+- Integrated Prettier and simple-import-sort into ESLint.
+- Explicitly enforce strict type-checked TS rules and requested overrides.
