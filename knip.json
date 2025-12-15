@@ -9,9 +9,9 @@
     "vitest.config.ts",
     "src/main.ts",
     "src/preload.ts",
-    "src/renderer.ts",
+    "src/renderer.tsx",
     "src/**/*.test.{ts,tsx}"
   ],
   "ignore": ["out/**", "dist/**", ".vite/**", ".stan/**", "coverage/**"],
-  "ignoreDependencies": ["auto-changelog", "release-it"]
+  "ignoreDependencies": ["release-it"]
 }

@@ -19,4 +19,8 @@ Project-specific assistant guidance for this repo.
 
 - Testing:
   - Use Vitest with a repo-root TypeScript config file: `vitest.config.ts`.
-  - ESLint should apply `@vitest/eslint-plugin` recommended rules to test files (`*.test.*` / `*.spec.*`).
+  - ESLint should apply `@vitest/eslint-plugin` recommended rules to test files (`*.test.*` / `*.spec.*`).
+
+- Renderer UI:
+  - The Electron renderer is a React app bootstrapped from `index.html` via `src/renderer.tsx`.
+  - Keep OS/Electron side effects in the main/preload layers; the React renderer should remain UI-focused.

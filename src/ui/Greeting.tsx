@@ -1,4 +1,4 @@
-export interface GreetingProps {
+interface GreetingProps {
   name: string;
 }
 
