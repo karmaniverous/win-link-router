@@ -4,14 +4,50 @@ import { MakerZIP } from '@electron-forge/maker-zip';
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerRpm } from '@electron-forge/maker-rpm';
 import { VitePlugin } from '@electron-forge/plugin-vite';
-import { FusesPlugin } from '@electron-forge/plugin-fuses';
-import { FuseV1Options, FuseVersion } from '@electron/fuses';
+import path from 'node:path';
+import { flipFuses, FuseV1Options, FuseVersion } from '@electron/fuses';
+
+const fuseConfig = {
+  version: FuseVersion.V1,
+  [FuseV1Options.RunAsNode]: false,
+  [FuseV1Options.EnableCookieEncryption]: true,
+  [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+  [FuseV1Options.EnableNodeCliInspectArguments]: false,
+  [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
+  [FuseV1Options.OnlyLoadAppFromAsar]: true,
+} as const;
+
+function getExtractedElectronBinaryPath(buildPath: string, platform: string) {
+  if (platform === 'win32') return path.join(buildPath, 'electron.exe');
+  if (platform === 'darwin')
+    return path.join(buildPath, 'Electron.app', 'Contents', 'MacOS', 'Electron');
+  return path.join(buildPath, 'electron');
+}
 
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
   },
   rebuildConfig: {},
+  hooks: {
+    // Fuses must be flipped at package time (before any code signing). Doing this
+    // in `packageAfterExtract` lets us patch the extracted Electron binary
+    // without depending on `@electron-forge/plugin-fuses` (which currently pins
+    // `@electron/fuses` to v1 via peerDependencies).
+    packageAfterExtract: async (
+      _forgeConfig,
+      buildPath,
+      _electronVersion,
+      platform,
+      _arch,
+    ) => {
+      const electronBinaryPath = getExtractedElectronBinaryPath(
+        buildPath,
+        platform,
+      );
+      await flipFuses(electronBinaryPath, fuseConfig);
+    },
+  },
   makers: [
     new MakerSquirrel({}),
     new MakerZIP({}, ['darwin']),
@@ -41,17 +77,6 @@ const config: ForgeConfig = {
           config: 'vite.renderer.config.ts',
         },
       ],
-    }),
-    // Fuses are used to enable/disable various Electron functionality
-    // at package time, before code signing the application
-    new FusesPlugin({
-      version: FuseVersion.V1,
-      [FuseV1Options.RunAsNode]: false,
-      [FuseV1Options.EnableCookieEncryption]: true,
-      [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
-      [FuseV1Options.EnableNodeCliInspectArguments]: false,
-      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
-      [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
 };

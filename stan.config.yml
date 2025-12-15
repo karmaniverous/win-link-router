@@ -13,4 +13,6 @@ stan-cli:
       sequential: true
   patchOpenCommand: code -g {file}
   scripts:
+    typecheck: npm run typecheck
     lint: npm run lint
+    package: npm run package

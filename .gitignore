@@ -90,6 +90,8 @@ typings/
 
 # Electron-Forge
 out/
+
+# STAN
 .stan/output/
 .stan/diff/
 .stan/dist/
