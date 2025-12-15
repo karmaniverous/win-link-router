@@ -13,4 +13,6 @@ Project-specific assistant guidance for this repo.
   - Integrate Prettier and import sorting through ESLint:
     - `eslint-config-prettier` disables conflicting formatting rules (kept last in config).
     - `eslint-plugin-prettier` enforces formatting via `prettier/prettier`.
-    - `eslint-plugin-simple-import-sort` enforces deterministic import ordering.
+    - `eslint-plugin-simple-import-sort` enforces deterministic import ordering.
+  - Lint scope:
+    - ESLint should lint all JS/TS files in the repo (including config/tooling files), not just `src/`.

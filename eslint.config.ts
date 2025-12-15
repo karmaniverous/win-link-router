@@ -20,16 +20,10 @@ export default defineConfig([
     ],
   },
   eslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
   {
-    files: ['**/*.{ts,tsx,cts,mts}'],
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: process.cwd(),
-      },
-    },
+    // Formatting + import ordering for all JS/TS files in the repo (not just
+    // src/). This covers config/tooling code as well.
+    files: ['**/*.{js,jsx,cjs,mjs,ts,tsx,cts,mts}'],
     plugins: {
       import: importPlugin,
       prettier: prettierPlugin,
@@ -42,15 +36,27 @@ export default defineConfig([
       },
     },
     rules: {
-      // TypeScript owns undefined-variable checks.
-      'no-undef': 'off',
-
       // Enforce Prettier formatting via ESLint.
       'prettier/prettier': 'error',
 
       // Deterministic import ordering.
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
+    },
+  },
+  ...tseslint.configs.strictTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  {
+    files: ['**/*.{ts,tsx,cts,mts}'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: process.cwd(),
+      },
+    },
+    rules: {
+      // TypeScript owns undefined-variable checks.
+      'no-undef': 'off',
 
       // House rules: prefer underscore for intentionally-unused vars/args.
       '@typescript-eslint/no-unused-vars': [
@@ -68,8 +74,10 @@ export default defineConfig([
   },
   {
     files: [
+      'eslint.config.ts',
       'forge.config.ts',
       'vite.*.config.ts',
+      '**/*.{config,conf}.{js,cjs,mjs,ts,cts,mts}',
       'src/main.ts',
       'src/preload.ts',
     ],
