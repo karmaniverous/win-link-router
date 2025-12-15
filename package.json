@@ -1,7 +1,9 @@
 {
   "author": "jscro",
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1"
+    "-": "^0.0.1",
+    "electron-squirrel-startup": "^1.0.1",
+    "react": "^19.2.3"
   },
   "description": "My Electron application description",
   "devDependencies": {
@@ -15,6 +17,7 @@
     "@electron/fuses": "^2.0.0",
     "@eslint/js": "^9.39.2",
     "@types/electron-squirrel-startup": "^1.0.2",
+    "@types/react": "^19.2.7",
     "@vitest/eslint-plugin": "^1.5.2",
     "auto-changelog": "^2.5.0",
     "electron": "39.2.7",
@@ -75,6 +78,7 @@
     "package": "electron-forge package",
     "publish": "electron-forge publish",
     "start": "electron-forge start",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "version": "0.0.0"

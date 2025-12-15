@@ -1,4 +1,5 @@
 import eslint from '@eslint/js';
+import vitest from '@vitest/eslint-plugin';
 import { defineConfig } from 'eslint/config';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
@@ -107,6 +108,10 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+  },
+  {
+    ...vitest.configs.recommended,
+    files: ['**/*.{test,spec}.{js,jsx,cjs,mjs,ts,tsx,cts,mts}'],
   },
   // Must be last: disables ESLint rules that conflict with Prettier.
   eslintConfigPrettier,

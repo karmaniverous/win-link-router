@@ -15,4 +15,8 @@ Project-specific assistant guidance for this repo.
     - `eslint-plugin-prettier` enforces formatting via `prettier/prettier`.
     - `eslint-plugin-simple-import-sort` enforces deterministic import ordering.
   - Lint scope:
-    - ESLint should lint all JS/TS files in the repo (including config/tooling files), not just `src/`.
+    - ESLint should lint all JS/TS files in the repo (including config/tooling files), not just `src/`.
+
+- Testing:
+  - Use Vitest with a repo-root TypeScript config file: `vitest.config.ts`.
+  - ESLint should apply `@vitest/eslint-plugin` recommended rules to test files (`*.test.*` / `*.spec.*`).

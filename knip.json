@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/knip@5.73.4/schema.json",
+  "entry": [
+    "eslint.config.ts",
+    "forge.config.ts",
+    "vite.main.config.ts",
+    "vite.preload.config.ts",
+    "vite.renderer.config.ts",
+    "vitest.config.ts",
+    "src/main.ts",
+    "src/preload.ts",
+    "src/renderer.ts",
+    "src/**/*.test.{ts,tsx}"
+  ],
+  "ignore": ["out/**", "dist/**", ".vite/**", ".stan/**", "coverage/**"],
+  "ignoreDependencies": ["auto-changelog", "release-it"]
+}

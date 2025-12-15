@@ -17,6 +17,7 @@ stan-cli:
     lint:
       script: npm run lint:fix
       warnPattern: \\d+:\\d+\\s+warning
+    test: npm run test -- --no-color
     knip:
       script: npm run knip
       warnPattern: Configuration hints
