@@ -14,8 +14,7 @@ import {
 
 function assertValidRegex(pattern: string, flags: string) {
   // Throws if invalid; used by zod refinements.
-
-  new RegExp(pattern, flags);
+  RegExp(pattern, flags);
 }
 
 const extractorConfigSchema = z
@@ -26,7 +25,7 @@ const extractorConfigSchema = z
   .superRefine(({ pattern, flags }, ctx) => {
     if (flags.includes('g')) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: 'Extractor flags must not include "g" (global matching).',
         path: ['flags'],
       });
@@ -37,7 +36,7 @@ const extractorConfigSchema = z
       assertValidRegex(pattern, flags);
     } catch (err) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: `Invalid extractor regex: ${(err as Error).message}`,
         path: ['pattern'],
       });

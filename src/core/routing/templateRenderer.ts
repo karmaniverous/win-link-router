@@ -11,18 +11,31 @@ export interface TemplateRenderer {
   render(template: string, context: Record<string, unknown>): string;
 }
 
-function requireValue(value: unknown, name: string): string {
+type HandlebarsScalar = string | number | boolean | bigint;
+
+function requireScalar(value: unknown, name: string): HandlebarsScalar {
   if (value === null || value === undefined) {
     throw new Error(`Missing value for ${name}.`);
   }
-  return String(value);
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'bigint'
+  ) {
+    return value;
+  }
+
+  throw new Error(
+    `Invalid value type for ${name}. Expected a scalar, got ${typeof value}.`,
+  );
 }
 
 export function createTemplateRenderer(): TemplateRenderer {
   const hb = Handlebars.create();
 
   hb.registerHelper('digits', (value: unknown) => {
-    const raw = requireValue(value, 'digits(value)');
+    const raw = String(requireScalar(value, 'digits(value)'));
     const out = raw.replace(/\D+/g, '');
     if (!out) {
       throw new Error('digits(value) produced an empty string.');
@@ -31,22 +44,22 @@ export function createTemplateRenderer(): TemplateRenderer {
   });
 
   hb.registerHelper('trim', (value: unknown) => {
-    const raw = requireValue(value, 'trim(value)');
+    const raw = String(requireScalar(value, 'trim(value)'));
     return raw.trim();
   });
 
   hb.registerHelper('lower', (value: unknown) => {
-    const raw = requireValue(value, 'lower(value)');
+    const raw = String(requireScalar(value, 'lower(value)'));
     return raw.toLowerCase();
   });
 
   hb.registerHelper('upper', (value: unknown) => {
-    const raw = requireValue(value, 'upper(value)');
+    const raw = String(requireScalar(value, 'upper(value)'));
     return raw.toUpperCase();
   });
 
   hb.registerHelper('urlEncode', (value: unknown) => {
-    const raw = requireValue(value, 'urlEncode(value)');
+    const raw = String(requireScalar(value, 'urlEncode(value)'));
     return encodeURIComponent(raw);
   });
 

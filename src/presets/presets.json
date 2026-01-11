@@ -1,6 +1,5 @@
 {
   "schemaVersion": 1,
-  "appVersion": "0.0.0",
   "presets": [
     {
       "presetId": "tel.whatsapp",

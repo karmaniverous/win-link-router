@@ -22,7 +22,7 @@ describe('routeUriWithSchemeConfig', () => {
     const schemeConfig = {
       scheme: 'TEL',
       enabled: true,
-      extractor: { pattern: '^(?<number>[\\d\\s]+)$' },
+      extractor: { pattern: '^tel:(?<number>.*)$', flags: 'i' },
       templates: [
         {
           id: 't1',
@@ -42,7 +42,7 @@ describe('routeUriWithSchemeConfig', () => {
     const result = await routeUriWithSchemeConfig(
       renderer,
       { openExternal: openExternal as OpenExternalPort['openExternal'] },
-      '1 (773) 750-0338',
+      'tel:1 (773) 750-0338',
       schemeConfig,
     );
 
@@ -128,7 +128,7 @@ describe('routeUriWithSchemeConfig', () => {
     const schemeConfig = {
       scheme: 'TEL',
       enabled: true,
-      extractor: { pattern: '^(?<number>[\\d\\s]+)$' },
+      extractor: { pattern: '^tel:(?<number>.*)$', flags: 'i' },
       templates: [
         {
           id: 't1',
@@ -142,7 +142,7 @@ describe('routeUriWithSchemeConfig', () => {
     const result = await routeUriWithSchemeConfig(
       renderer,
       { openExternal: openExternal as OpenExternalPort['openExternal'] },
-      '1 (773) 750-0338',
+      'tel:1 (773) 750-0338',
       schemeConfig,
     );
 

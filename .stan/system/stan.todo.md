@@ -34,4 +34,6 @@
 - Added v1 requirements doc and updated the implementation plan.
 - Added v1 config/preset schemas and normalization helpers.
 - Added bundled TEL→WhatsApp presets (desktop-first + web fallback).
-- Added routing core (extractor + Handlebars rendering + fallback) with tests.
+- Added routing core (extractor + Handlebars rendering + fallback) with tests.- Fixed lint errors in Zod schema validation and Handlebars helpers.
+- Fixed routing unit tests to validate fallback behavior (not extractor mismatch).
+- Removed hard-coded bundled preset appVersion (provided at load time).
