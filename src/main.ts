@@ -9,6 +9,8 @@ import { registerIpcHandlers } from './main/ipc/registerIpcHandlers';
 import { loadBundledPresets } from './main/presets/loadBundledPresets';
 import { routeIncomingUri } from './main/routing/routeIncomingUri';
 import { applyRunAtLoginSetting } from './main/settings/applyRunAtLogin';
+import { createTrayController } from './main/tray/trayController';
+import { maybePromptDefaultHandlerMismatch } from './main/windows/maybePromptDefaultHandlerMismatch';
 import { ensureCandidateRegistration } from './main/windows/protocolRegistration';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -27,6 +29,8 @@ function findUriArg(argv: string[]): string | null {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let trayActive = false;
+let isQuitting = false;
 
 const createWindow = () => {
   if (mainWindow) return mainWindow;
@@ -52,7 +56,16 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    mainWindow.webContents.openDevTools();
+  }
+
+  mainWindow.on('close', (event) => {
+    if (!isQuitting && trayActive) {
+      event.preventDefault();
+      mainWindow?.hide();
+    }
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -60,6 +73,16 @@ const createWindow = () => {
 
   return mainWindow;
 };
+
+function toggleMainWindow() {
+  const win = createWindow();
+  if (win.isVisible()) {
+    win.hide();
+  } else {
+    win.show();
+    win.focus();
+  }
+}
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -101,7 +124,7 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
       .getLoadedConfig()
       .schemes.filter((s) => s.enabled)
       .map((s) => s.scheme),
-  });
+  }).catch(() => undefined);
 
   return configStore;
 }
@@ -124,19 +147,34 @@ async function handleUri(uri: string): Promise<boolean> {
 app.on('second-instance', (_event, argv) => {
   const uri = findUriArg(argv);
   if (!uri) return;
-  void handleUri(uri);
+  void handleUri(uri).catch(() => undefined);
 });
 
 void app.whenReady().then(async () => {
   const uri = findUriArg(process.argv);
   await ensureStoresReady();
 
+  const tray = await createTrayController({
+    onToggleMainWindow: toggleMainWindow,
+    onQuit: () => {
+      isQuitting = true;
+      app.quit();
+    },
+  });
+  trayActive = tray !== null;
+
   if (uri) {
     await handleUri(uri);
     return;
   }
 
-  createWindow();
+  const win = createWindow();
+  win.show();
+  win.focus();
+
+  void maybePromptDefaultHandlerMismatch(
+    (configStore ?? (await ensureStoresReady())).getLoadedConfig(),
+  ).catch(() => undefined);
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -144,7 +182,9 @@ void app.whenReady().then(async () => {
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    app.quit();
+    if (!trayActive) {
+      app.quit();
+    }
   }
 });
 

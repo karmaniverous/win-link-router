@@ -7,10 +7,6 @@
   - Run `npm run typecheck`, `npm run lint`, `npm run test`, `npm run knip`.
   - Run `npm run package` to confirm Forge packaging still works.
 - Implement Windows integration (HKCU; no admin):
-  - Register as a candidate handler per configured scheme (Capabilities +
-    URLAssociations + ProgIds).
-  - Detect default handler status robustly (UserChoice ProgId compare) and show
-    “Default / Not default / Unknown”.
   - Provide “Open Default Apps” shortcut.
   - On app startup and UI open, warn/prompt when configured schemes are not
     currently defaulting to this app.
@@ -42,4 +38,6 @@
 - Added portable schemes-only import/export (settings preserved locally).
 - Added settings persistence that can recover from broken shared config paths.
 - Documented import/export semantics in requirements.
-- Started Windows integration (HKCU registration + status) and applied run-at-login setting.- Fixed reg.exe adapter linting and trimmed unused Windows exports.
+- Started Windows integration (HKCU registration + status) and applied run-at-login setting.
+- Fixed reg.exe adapter linting and trimmed unused Windows exports.
+- Added tray controller, Default Apps opener, and default-handler mismatch prompt.

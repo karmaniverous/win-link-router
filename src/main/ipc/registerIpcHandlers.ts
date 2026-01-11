@@ -27,6 +27,7 @@ import {
   importSchemesSnapshotFromFile,
 } from '../config/configImportExport';
 import { applyRunAtLoginSetting } from '../settings/applyRunAtLogin';
+import { openWindowsDefaultApps } from '../windows/openDefaultApps';
 import {
   ensureCandidateRegistration,
   getAllSchemeStatusesFromConfig,
@@ -142,6 +143,11 @@ export function registerIpcHandlers(opts: {
   ipcMain.handle('windows:getSchemeStatuses', async () => {
     const config = opts.configStore.getLoadedConfig();
     return getAllSchemeStatusesFromConfig(config);
+  });
+
+  ipcMain.handle('windows:openDefaultApps', async () => {
+    await openWindowsDefaultApps();
+    return { ok: true };
   });
 
   ipcMain.handle(

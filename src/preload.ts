@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('winLinkRouter', {
   windows: {
     ensureRegistration: () => ipcRenderer.invoke('windows:ensureRegistration'),
     getSchemeStatuses: () => ipcRenderer.invoke('windows:getSchemeStatuses'),
+    openDefaultApps: () => ipcRenderer.invoke('windows:openDefaultApps'),
   },
   test: {
     evaluate: (scheme: string, uri: string) =>
