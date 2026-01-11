@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "0.0.0",
+  "presets": [
+    {
+      "presetId": "tel.whatsapp",
+      "scheme": "TEL",
+      "enabled": true,
+      "extractor": {
+        "pattern": "^tel:(?<number>.*)$",
+        "flags": "i"
+      },
+      "templates": [
+        {
+          "id": "whatsapp.desktop",
+          "label": "WhatsApp Desktop",
+          "template": "whatsapp://send?phone={{digits number}}",
+          "enabled": true
+        },
+        {
+          "id": "whatsapp.web",
+          "label": "WhatsApp Web",
+          "template": "https://wa.me/{{digits number}}",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

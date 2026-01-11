@@ -6,24 +6,6 @@
   - Run `npm install` and confirm dependency tree is clean.
   - Run `npm run typecheck`, `npm run lint`, `npm run test`, `npm run knip`.
   - Run `npm run package` to confirm Forge packaging still works.
-- Define v1 data model + validation (JSON + Zod):
-  - Define a single `SchemeConfig` shape used by both presets and user config.
-  - Define config-level settings (tray/run-at-login, shared config file mode,
-    etc.).
-  - Define schema versioning and package-version traceability fields.
-- Add presets:
-  - Create bundled `presets.json` (read-only) containing at least TEL →
-    WhatsApp (desktop-first + optional web fallback).
-  - Add preset selection and reset-to-preset behavior (store `presetId` in user
-    scheme config).
-- Implement routing core (pure services-first):
-  - Single-regex extractor per scheme using named capture groups.
-  - Handlebars rendering with strict missing-data detection.
-  - Generic helpers (`digits`, `trim`, `lower`, `upper`, `urlEncode`, etc.).
-  - Routing semantics:
-    - Render failures open UI (no fallback).
-    - openExternal failures try next template (best-effort).
-  - Add unit tests for extractor/rendering/routing decisions.
 - Implement config persistence:
   - Per-user JSON config under `userData`.
   - Import/export JSON.
@@ -50,3 +32,6 @@
 ## Completed (recent)
 
 - Added v1 requirements doc and updated the implementation plan.
+- Added v1 config/preset schemas and normalization helpers.
+- Added bundled TEL→WhatsApp presets (desktop-first + web fallback).
+- Added routing core (extractor + Handlebars rendering + fallback) with tests.
