@@ -15,7 +15,7 @@ function swap<T>(arr: T[], i: number, j: number): T[] {
 
 function newId(prefix: string): string {
   // Browser-safe id generation; stable enough for local config usage.
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return `${prefix}-${String(Date.now())}-${Math.random().toString(16).slice(2)}`;
 }
 
 function findPresetForScheme(
@@ -94,7 +94,6 @@ export function SchemeEditor(props: {
               type="button"
               disabled={readOnly}
               onClick={() => {
-                if (!preset) return;
                 const ok = window.confirm(
                   `Reset ${scheme.scheme} to preset? This will overwrite extractor and templates.`,
                 );

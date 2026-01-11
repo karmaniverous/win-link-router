@@ -274,14 +274,17 @@ export function App() {
                   }
 
                   const preset = findPresetForScheme(presets, scheme);
-                  const usePreset = preset
-                    ? window.confirm(
-                        `Preset found for ${scheme}. Initialize from preset?`,
-                      )
-                    : false;
-                  const schemeConfig = usePreset
-                    ? cloneFromPreset(preset!)
-                    : createBlankScheme(scheme);
+                  let schemeConfig: SchemeConfig;
+                  if (preset) {
+                    const usePreset = window.confirm(
+                      `Preset found for ${scheme}. Initialize from preset?`,
+                    );
+                    schemeConfig = usePreset
+                      ? cloneFromPreset(preset)
+                      : createBlankScheme(scheme);
+                  } else {
+                    schemeConfig = createBlankScheme(scheme);
+                  }
 
                   const next: AppConfig = {
                     ...config,

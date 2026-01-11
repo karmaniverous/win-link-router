@@ -39,3 +39,4 @@
 - Fixed renderer lint issues and trimmed unused exported types.
 - Fixed App.tsx async cancellation and reload wiring.
 - Added scheme editor UI, settings panel, and aligned registration to enabled schemes.
+- Fixed lint issues in scheme add/reset and template id generation.
