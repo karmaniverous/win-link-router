@@ -6,7 +6,11 @@
  */
 import { ipcMain } from 'electron';
 
-import { findSchemeConfig, normalizeScheme } from '../../core/config/appConfig';
+import {
+  findSchemeConfig,
+  normalizeScheme,
+  type PresetsFile,
+} from '../../core/config/appConfig';
 import { parseAppConfig } from '../../core/config/appConfig.schema';
 import {
   evaluateTemplatesForTest,
@@ -14,7 +18,6 @@ import {
 } from '../../core/routing/routeUri';
 import type { TemplateRenderer } from '../../core/routing/templateRenderer';
 import type { AppConfigStore } from '../config/appConfigStore';
-import type { PresetsFile } from '../presets/loadBundledPresets';
 
 export interface TestEvaluateResponse {
   matchGroups?: Record<string, string>;
@@ -38,13 +41,11 @@ export function registerIpcHandlers(opts: {
     return { ok: true };
   });
 
-  ipcMain.handle('presets:get', async () => {
-    return opts.getPresets();
-  });
+  ipcMain.handle('presets:get', () => opts.getPresets());
 
   ipcMain.handle(
     'test:evaluate',
-    async (
+    (
       _event,
       req: { scheme: string; uri: string },
     ): Promise<TestEvaluateResponse> => {

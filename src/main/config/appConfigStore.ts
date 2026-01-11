@@ -47,7 +47,7 @@ async function writeJsonFile(filePath: string, value: unknown): Promise<void> {
   const dir = path.dirname(filePath);
   await fs.mkdir(dir, { recursive: true });
 
-  const tmpPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
+  const tmpPath = `${filePath}.tmp-${String(process.pid)}-${String(Date.now())}`;
   const text = `${JSON.stringify(value, null, 2)}\n`;
   await fs.writeFile(tmpPath, text, 'utf8');
 

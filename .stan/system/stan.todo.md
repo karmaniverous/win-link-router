@@ -36,8 +36,11 @@
 - Added v1 requirements doc and updated the implementation plan.
 - Added v1 config/preset schemas and normalization helpers.
 - Added bundled TEL→WhatsApp presets (desktop-first + web fallback).
-- Added routing core (extractor + Handlebars rendering + fallback) with tests.- Fixed lint errors in Zod schema validation and Handlebars helpers.
+- Added routing core (extractor + Handlebars rendering + fallback) with tests.
+- Fixed lint errors in Zod schema validation and Handlebars helpers.
 - Fixed routing unit tests to validate fallback behavior (not extractor mismatch).
-- Removed hard-coded bundled preset appVersion (provided at load time).- Added main-process AppConfigStore (local + optional shared file) with Zod validation.
+- Removed hard-coded bundled preset appVersion (provided at load time).
+- Added main-process AppConfigStore (local + optional shared file) with Zod validation.
 - Added bundled presets loader and IPC endpoints for config/presets/test evaluation.
-- Wired main process to route incoming URI args without opening the window by default.
+- Wired main process to route incoming URI args without opening the window by default.
+- Fixed typecheck/lint issues in main IPC and config store.
