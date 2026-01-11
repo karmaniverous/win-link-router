@@ -15,7 +15,7 @@ export interface OpenExternalPort {
   openExternal(url: string): Promise<void>;
 }
 
-export interface TemplateAttempt {
+interface TemplateAttempt {
   templateId: string;
   label: string;
   renderedTarget?: string;

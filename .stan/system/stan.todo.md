@@ -7,9 +7,6 @@
   - Run `npm run typecheck`, `npm run lint`, `npm run test`, `npm run knip`.
   - Run `npm run package` to confirm Forge packaging still works.
 - Implement config persistence:
-  - Per-user JSON config under `userData`.
-  - IPC plumbing to load/save config and surface read-only mode.
-  - Load bundled presets in main process and expose via IPC.
   - Import/export JSON.
   - Shared-config-file mode (single source of truth; UI read-only on shared file
     errors).
@@ -44,4 +41,4 @@
 - Added bundled presets loader and IPC endpoints for config/presets/test evaluation.
 - Wired main process to route incoming URI args without opening the window by default.
 - Fixed typecheck/lint issues in main IPC and config store.
-- Fixed IPC handler return typing and trimmed unused exports.
+- Fixed IPC handler return typing and trimmed unused exports.- Cleaned up remaining Knip unused export in routing core.
