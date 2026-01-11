@@ -176,8 +176,11 @@ Durable project requirements (desired end-state).
     user.
 - Import/export:
   - User can export config to a JSON file.
+  - Exported files are portable and must not encode per-user settings (e.g.
+    run-at-login or a machine-specific shared-config path).
   - User can import config from a JSON file (with validation and clear error
-    feedback).
+    feedback). Import replaces schemes/templates but preserves the current
+    user’s per-user settings.
 - Shared config file mode:
   - User may opt into using a shared JSON config file path instead of the local
     per-user config file.

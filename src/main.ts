@@ -81,6 +81,7 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
     configStore,
     getPresets: presets,
     renderer,
+    appVersion: app.getVersion(),
   });
 
   return configStore;

@@ -5,8 +5,9 @@
  *   on shared file errors).
  * - Validate loaded configuration (Zod) and fall back to a safe default.
  * - Schemes are canonicalized and duplicates are prevented at load time.
+ * - Even when shared config is broken (read-only), settings must be editable so
+ *   users can fix/disable shared mode.
  */
-import { constants as fsConstants } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -17,47 +18,17 @@ import {
 } from '../../core/config/appConfig';
 import { parseAppConfig } from '../../core/config/appConfig.schema';
 import { createDefaultAppConfig } from '../../core/config/createDefaultAppConfig';
+import {
+  fileExists,
+  readJsonFile,
+  toErrorMessage,
+  writeJsonFileAtomic,
+} from './jsonFile';
 
 interface AppConfigLoadResult {
   config: AppConfig;
   readOnly: boolean;
   warnings: string[];
-}
-
-function toErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  return String(err);
-}
-
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await fs.access(filePath, fsConstants.F_OK);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function readJsonFile(filePath: string): Promise<unknown> {
-  const text = await fs.readFile(filePath, 'utf8');
-  return JSON.parse(text) as unknown;
-}
-
-async function writeJsonFile(filePath: string, value: unknown): Promise<void> {
-  const dir = path.dirname(filePath);
-  await fs.mkdir(dir, { recursive: true });
-
-  const tmpPath = `${filePath}.tmp-${String(process.pid)}-${String(Date.now())}`;
-  const text = `${JSON.stringify(value, null, 2)}\n`;
-  await fs.writeFile(tmpPath, text, 'utf8');
-
-  try {
-    await fs.rename(tmpPath, filePath);
-  } catch {
-    // Best-effort fallback for Windows rename semantics.
-    await fs.copyFile(tmpPath, filePath);
-    await fs.rm(tmpPath, { force: true });
-  }
 }
 
 function canonicalizeSchemes(config: AppConfig, warnings: string[]): AppConfig {
@@ -113,6 +84,36 @@ export class AppConfigStore {
     return this.cachedReadOnly;
   }
 
+  /**
+   * Save per-user settings even if the config is currently read-only due to a
+   * broken shared config path. This enables recovery (disable or repoint shared
+   * mode) without allowing edits to schemes/templates while read-only.
+   */
+  async saveSettings(nextSettings: AppConfig['settings']): Promise<void> {
+    const current = this.cached ?? createDefaultAppConfig(this.opts.appVersion);
+    const appVersion = this.opts.appVersion ?? current.appVersion;
+
+    const localToWrite: AppConfig = {
+      ...current,
+      appVersion,
+      settings: nextSettings,
+    };
+
+    // If disabling shared mode, preserve the currently effective schemes into
+    // the local config file (so turning off shared mode doesn't wipe rules).
+    if (!nextSettings.sharedConfigPath) {
+      localToWrite.schemes = current.schemes;
+    }
+
+    await writeJsonFileAtomic(this.localPath, localToWrite);
+
+    // Refresh cache and readOnly state.
+    this.cached = null;
+    this.cachedWarnings = [];
+    this.cachedReadOnly = false;
+    await this.load();
+  }
+
   async load(): Promise<AppConfigLoadResult> {
     const warnings: string[] = [];
 
@@ -122,14 +123,14 @@ export class AppConfigStore {
         localConfig = parseAppConfig(await readJsonFile(this.localPath));
       } else {
         localConfig = createDefaultAppConfig(this.opts.appVersion);
-        await writeJsonFile(this.localPath, localConfig);
+        await writeJsonFileAtomic(this.localPath, localConfig);
       }
     } catch (err) {
       warnings.push(
         `Failed to load local config; using defaults: ${toErrorMessage(err)}`,
       );
       localConfig = createDefaultAppConfig(this.opts.appVersion);
-      await writeJsonFile(this.localPath, localConfig);
+      await writeJsonFileAtomic(this.localPath, localConfig);
     }
 
     localConfig = canonicalizeSchemes(localConfig, warnings);
@@ -150,7 +151,7 @@ export class AppConfigStore {
       const sharedExists = await fileExists(sharedPath);
       if (!sharedExists) {
         // Seed the shared file from the local config (schemes only).
-        await writeJsonFile(sharedPath, {
+        await writeJsonFileAtomic(sharedPath, {
           ...createDefaultAppConfig(this.opts.appVersion),
           schemes: localConfig.schemes,
         });
@@ -162,7 +163,7 @@ export class AppConfigStore {
       );
 
       // Check write access for the shared file. If this fails, UI must be read-only.
-      await fs.access(sharedPath, fsConstants.W_OK);
+      await fs.access(sharedPath, fs.constants.W_OK);
 
       this.cached = {
         ...sharedConfig,
@@ -200,7 +201,7 @@ export class AppConfigStore {
         ...canonicalNext,
         appVersion: this.opts.appVersion ?? canonicalNext.appVersion,
       };
-      await writeJsonFile(this.localPath, toWrite);
+      await writeJsonFileAtomic(this.localPath, toWrite);
       this.cached = toWrite;
       this.cachedWarnings = warnings;
       this.cachedReadOnly = false;
@@ -212,13 +213,13 @@ export class AppConfigStore {
       ...createDefaultAppConfig(this.opts.appVersion),
       settings: canonicalNext.settings,
     };
-    await writeJsonFile(this.localPath, localToWrite);
+    await writeJsonFileAtomic(this.localPath, localToWrite);
 
     const sharedToWrite: AppConfig = {
       ...createDefaultAppConfig(this.opts.appVersion),
       schemes: canonicalNext.schemes,
     };
-    await writeJsonFile(sharedPath, sharedToWrite);
+    await writeJsonFileAtomic(sharedPath, sharedToWrite);
 
     // Refresh cache from a load to re-check permissions/warnings.
     await this.load();

@@ -7,9 +7,6 @@
   - Run `npm run typecheck`, `npm run lint`, `npm run test`, `npm run knip`.
   - Run `npm run package` to confirm Forge packaging still works.
 - Implement config persistence:
-  - Import/export JSON.
-  - Shared-config-file mode (single source of truth; UI read-only on shared file
-    errors).
 - Implement Windows integration (HKCU; no admin):
   - Register as a candidate handler per configured scheme (Capabilities +
     URLAssociations + ProgIds).
@@ -41,4 +38,8 @@
 - Added bundled presets loader and IPC endpoints for config/presets/test evaluation.
 - Wired main process to route incoming URI args without opening the window by default.
 - Fixed typecheck/lint issues in main IPC and config store.
-- Fixed IPC handler return typing and trimmed unused exports.- Cleaned up remaining Knip unused export in routing core.
+- Fixed IPC handler return typing and trimmed unused exports.
+- Cleaned up remaining Knip unused export in routing core.
+- Added portable schemes-only import/export (settings preserved locally).
+- Added settings persistence that can recover from broken shared config paths.
+- Documented import/export semantics in requirements.

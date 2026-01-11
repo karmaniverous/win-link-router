@@ -3,8 +3,11 @@
  * - UI must autosave config changes (via IPC in main/preload; renderer stays UI-only).
  * - Shared config file errors force read-only UI.
  * - UI test panel needs per-template rendered output / render errors.
+ * - Support import/export of schemes via JSON files (portable; settings preserved).
  */
-import { ipcMain } from 'electron';
+import path from 'node:path';
+
+import { dialog, ipcMain } from 'electron';
 
 import {
   findSchemeConfig,
@@ -18,6 +21,10 @@ import {
 } from '../../core/routing/routeUri';
 import type { TemplateRenderer } from '../../core/routing/templateRenderer';
 import type { AppConfigStore } from '../config/appConfigStore';
+import {
+  exportSchemesSnapshotToFile,
+  importSchemesSnapshotFromFile,
+} from '../config/configImportExport';
 
 interface TestEvaluateResponse {
   matchGroups?: Record<string, string>;
@@ -29,6 +36,7 @@ export function registerIpcHandlers(opts: {
   configStore: AppConfigStore;
   getPresets: () => PresetsFile;
   renderer: TemplateRenderer;
+  appVersion: string;
 }) {
   ipcMain.handle('appConfig:get', async () => {
     const { config, readOnly, warnings } = await opts.configStore.load();
@@ -42,6 +50,69 @@ export function registerIpcHandlers(opts: {
   });
 
   ipcMain.handle('presets:get', () => opts.getPresets());
+
+  ipcMain.handle('appConfig:exportSchemes', async () => {
+    const config = opts.configStore.getLoadedConfig();
+    const defaultPath = path.join(
+      process.cwd(),
+      `win-link-router-config-${opts.appVersion}.json`,
+    );
+
+    const res = await dialog.showSaveDialog({
+      title: 'Export win-link-router config',
+      defaultPath,
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    });
+
+    if (res.canceled || !res.filePath) {
+      return { cancelled: true as const };
+    }
+
+    await exportSchemesSnapshotToFile({
+      appVersion: opts.appVersion,
+      config,
+      filePath: res.filePath,
+    });
+
+    return { cancelled: false as const, filePath: res.filePath };
+  });
+
+  ipcMain.handle('appConfig:importSchemes', async () => {
+    const res = await dialog.showOpenDialog({
+      title: 'Import win-link-router config',
+      properties: ['openFile'],
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    });
+
+    if (res.canceled || res.filePaths.length === 0) {
+      return { cancelled: true as const };
+    }
+
+    const filePath = res.filePaths[0];
+    const current = opts.configStore.getLoadedConfig();
+    const next = await importSchemesSnapshotFromFile({
+      appVersion: opts.appVersion,
+      currentConfig: current,
+      filePath,
+    });
+    await opts.configStore.save(next);
+
+    return {
+      cancelled: false as const,
+      filePath,
+      importedSchemes: next.schemes.length,
+    };
+  });
+
+  ipcMain.handle('settings:set', async (_event, patch: unknown) => {
+    const current = opts.configStore.getLoadedConfig();
+    const parsed = parseAppConfig({
+      ...current,
+      settings: { ...current.settings, ...(patch as object) },
+    });
+    await opts.configStore.saveSettings(parsed.settings);
+    return { ok: true };
+  });
 
   ipcMain.handle(
     'test:evaluate',
