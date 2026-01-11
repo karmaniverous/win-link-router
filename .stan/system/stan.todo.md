@@ -6,7 +6,6 @@
   - Run `npm install` and confirm dependency tree is clean.
   - Run `npm run typecheck`, `npm run lint`, `npm run test`, `npm run knip`.
   - Run `npm run package` to confirm Forge packaging still works.
-- Implement config persistence:
 - Implement Windows integration (HKCU; no admin):
   - Register as a candidate handler per configured scheme (Capabilities +
     URLAssociations + ProgIds).
@@ -43,3 +42,4 @@
 - Added portable schemes-only import/export (settings preserved locally).
 - Added settings persistence that can recover from broken shared config paths.
 - Documented import/export semantics in requirements.
+- Started Windows integration (HKCU registration + status) and applied run-at-login setting.

@@ -8,6 +8,8 @@ import { AppConfigStore } from './main/config/appConfigStore';
 import { registerIpcHandlers } from './main/ipc/registerIpcHandlers';
 import { loadBundledPresets } from './main/presets/loadBundledPresets';
 import { routeIncomingUri } from './main/routing/routeIncomingUri';
+import { applyRunAtLoginSetting } from './main/settings/applyRunAtLogin';
+import { ensureCandidateRegistration } from './main/windows/protocolRegistration';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -82,6 +84,23 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
     getPresets: presets,
     renderer,
     appVersion: app.getVersion(),
+    isPackaged: app.isPackaged,
+    exePath: process.execPath,
+  });
+
+  applyRunAtLoginSetting(configStore.getLoadedConfig());
+
+  // Best-effort: ensure we're registered as a candidate handler for enabled schemes.
+  // This does not set defaults; it only makes the app available in Default Apps.
+  void ensureCandidateRegistration({
+    isPackaged: app.isPackaged,
+    exePath: process.execPath,
+    appDisplayName: 'win-link-router',
+    appDescription: 'Routes protocol links to configured targets',
+    enabledSchemes: configStore
+      .getLoadedConfig()
+      .schemes.filter((s) => s.enabled)
+      .map((s) => s.scheme),
   });
 
   return configStore;

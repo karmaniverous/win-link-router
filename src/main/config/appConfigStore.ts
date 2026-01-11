@@ -8,6 +8,7 @@
  * - Even when shared config is broken (read-only), settings must be editable so
  *   users can fix/disable shared mode.
  */
+import { constants as fsConstants } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -163,7 +164,7 @@ export class AppConfigStore {
       );
 
       // Check write access for the shared file. If this fails, UI must be read-only.
-      await fs.access(sharedPath, fs.constants.W_OK);
+      await fs.access(sharedPath, fsConstants.W_OK);
 
       this.cached = {
         ...sharedConfig,

@@ -4,6 +4,7 @@
  * - Shared config file errors force read-only UI.
  * - UI test panel needs per-template rendered output / render errors.
  * - Support import/export of schemes via JSON files (portable; settings preserved).
+ * - Windows integration: registration + default handler status (read-only).
  */
 import path from 'node:path';
 
@@ -25,6 +26,11 @@ import {
   exportSchemesSnapshotToFile,
   importSchemesSnapshotFromFile,
 } from '../config/configImportExport';
+import { applyRunAtLoginSetting } from '../settings/applyRunAtLogin';
+import {
+  ensureCandidateRegistration,
+  getAllSchemeStatusesFromConfig,
+} from '../windows/protocolRegistration';
 
 interface TestEvaluateResponse {
   matchGroups?: Record<string, string>;
@@ -37,6 +43,8 @@ export function registerIpcHandlers(opts: {
   getPresets: () => PresetsFile;
   renderer: TemplateRenderer;
   appVersion: string;
+  isPackaged: boolean;
+  exePath: string;
 }) {
   ipcMain.handle('appConfig:get', async () => {
     const { config, readOnly, warnings } = await opts.configStore.load();
@@ -46,6 +54,7 @@ export function registerIpcHandlers(opts: {
   ipcMain.handle('appConfig:set', async (_event, next: unknown) => {
     const parsed = parseAppConfig(next);
     await opts.configStore.save(parsed);
+    applyRunAtLoginSetting(opts.configStore.getLoadedConfig());
     return { ok: true };
   });
 
@@ -96,6 +105,7 @@ export function registerIpcHandlers(opts: {
       filePath,
     });
     await opts.configStore.save(next);
+    applyRunAtLoginSetting(opts.configStore.getLoadedConfig());
 
     return {
       cancelled: false as const,
@@ -111,7 +121,27 @@ export function registerIpcHandlers(opts: {
       settings: { ...current.settings, ...(patch as object) },
     });
     await opts.configStore.saveSettings(parsed.settings);
+    applyRunAtLoginSetting(opts.configStore.getLoadedConfig());
     return { ok: true };
+  });
+
+  ipcMain.handle('windows:ensureRegistration', async () => {
+    const config = opts.configStore.getLoadedConfig();
+    const enabledSchemes = config.schemes
+      .filter((s) => s.enabled)
+      .map((s) => s.scheme);
+    return ensureCandidateRegistration({
+      isPackaged: opts.isPackaged,
+      exePath: opts.exePath,
+      appDisplayName: 'win-link-router',
+      appDescription: 'Routes protocol links to configured targets',
+      enabledSchemes,
+    });
+  });
+
+  ipcMain.handle('windows:getSchemeStatuses', async () => {
+    const config = opts.configStore.getLoadedConfig();
+    return getAllSchemeStatusesFromConfig(config);
   });
 
   ipcMain.handle(
