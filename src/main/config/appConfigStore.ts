@@ -18,7 +18,7 @@ import {
 import { parseAppConfig } from '../../core/config/appConfig.schema';
 import { createDefaultAppConfig } from '../../core/config/createDefaultAppConfig';
 
-export interface AppConfigLoadResult {
+interface AppConfigLoadResult {
   config: AppConfig;
   readOnly: boolean;
   warnings: string[];

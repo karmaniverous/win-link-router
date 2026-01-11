@@ -64,14 +64,14 @@ const appSettingsSchema = z.object({
   sharedConfigPath: z.string().min(1).optional().nullable(),
 });
 
-export const appConfigSchema = z.object({
+const appConfigSchema = z.object({
   schemaVersion: z.literal(APP_CONFIG_SCHEMA_VERSION),
   appVersion: z.string().min(1).optional(),
   settings: appSettingsSchema,
   schemes: z.array(schemeConfigSchema),
 });
 
-export const presetsFileSchema = z.object({
+const presetsFileSchema = z.object({
   schemaVersion: z.literal(APP_CONFIG_SCHEMA_VERSION),
   appVersion: z.string().min(1).optional(),
   presets: z.array(schemeConfigSchema),

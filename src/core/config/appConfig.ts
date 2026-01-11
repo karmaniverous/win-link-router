@@ -7,11 +7,6 @@
  */
 export const APP_CONFIG_SCHEMA_VERSION = 1 as const;
 
-export interface ExtractorConfig {
-  pattern: string;
-  flags?: string;
-}
-
 export interface TemplateConfig {
   id: string;
   label: string;
@@ -25,7 +20,10 @@ export interface SchemeConfig {
    */
   scheme: string;
   enabled: boolean;
-  extractor: ExtractorConfig;
+  extractor: {
+    pattern: string;
+    flags?: string;
+  };
   templates: TemplateConfig[];
 
   /**
@@ -39,11 +37,6 @@ export interface SchemeConfig {
   derivedFromPresetId?: string;
 }
 
-export interface AppSettings {
-  runAtLogin: boolean;
-  sharedConfigPath?: string | null;
-}
-
 export interface AppConfig {
   schemaVersion: typeof APP_CONFIG_SCHEMA_VERSION;
 
@@ -53,7 +46,10 @@ export interface AppConfig {
    */
   appVersion?: string;
 
-  settings: AppSettings;
+  settings: {
+    runAtLogin: boolean;
+    sharedConfigPath?: string | null;
+  };
   schemes: SchemeConfig[];
 }
 
@@ -85,9 +81,7 @@ export function normalizeScheme(raw: string): string {
   return upper;
 }
 
-export function normalizeOptionalScheme(
-  raw: string | null | undefined,
-): string {
+function normalizeOptionalScheme(raw: string | null | undefined): string {
   if (!raw) {
     throw new Error('Missing scheme.');
   }
@@ -98,6 +92,6 @@ export function findSchemeConfig(
   config: AppConfig,
   scheme: string,
 ): SchemeConfig | undefined {
-  const normalized = normalizeScheme(scheme);
+  const normalized = normalizeOptionalScheme(scheme);
   return config.schemes.find((s) => s.scheme === normalized);
 }

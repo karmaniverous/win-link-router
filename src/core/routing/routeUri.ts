@@ -59,7 +59,7 @@ export interface TemplateEvaluation {
   renderError?: string;
 }
 
-export function parseSchemeFromUri(uri: string): string | null {
+function parseSchemeFromUri(uri: string): string | null {
   const idx = uri.indexOf(':');
   if (idx <= 0) return null;
   return uri.slice(0, idx);

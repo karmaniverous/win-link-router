@@ -44,3 +44,4 @@
 - Added bundled presets loader and IPC endpoints for config/presets/test evaluation.
 - Wired main process to route incoming URI args without opening the window by default.
 - Fixed typecheck/lint issues in main IPC and config store.
+- Fixed IPC handler return typing and trimmed unused exports.

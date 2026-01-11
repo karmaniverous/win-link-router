@@ -19,7 +19,7 @@ import {
 import type { TemplateRenderer } from '../../core/routing/templateRenderer';
 import type { AppConfigStore } from '../config/appConfigStore';
 
-export interface TestEvaluateResponse {
+interface TestEvaluateResponse {
   matchGroups?: Record<string, string>;
   evaluations: TemplateEvaluation[];
   error?: string;
@@ -45,10 +45,7 @@ export function registerIpcHandlers(opts: {
 
   ipcMain.handle(
     'test:evaluate',
-    (
-      _event,
-      req: { scheme: string; uri: string },
-    ): Promise<TestEvaluateResponse> => {
+    (_event, req: { scheme: string; uri: string }): TestEvaluateResponse => {
       const config = opts.configStore.getLoadedConfig();
 
       let schemeConfig;
