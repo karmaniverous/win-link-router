@@ -13,5 +13,5 @@
     "src/**/*.test.{ts,tsx}"
   ],
   "ignore": ["out/**", "dist/**", ".vite/**", ".stan/**", "coverage/**"],
-  "ignoreDependencies": ["release-it"]
+  "ignoreDependencies": ["@dotenvx/dotenvx", "release-it"]
 }
