@@ -36,6 +36,17 @@ export async function regSetValue(opts: {
   await execFileAsync('reg.exe', args, { windowsHide: true });
 }
 
+export async function regDeleteValue(opts: {
+  hive: RegistryHive;
+  key: string;
+  name: string;
+}): Promise<void> {
+  const fullKey = hiveKey(opts.hive, opts.key);
+  await execFileAsync('reg.exe', ['delete', fullKey, '/v', opts.name, '/f'], {
+    windowsHide: true,
+  });
+}
+
 export async function regQueryValue(opts: {
   hive: RegistryHive;
   key: string;

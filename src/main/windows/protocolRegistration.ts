@@ -4,9 +4,15 @@
  * - Do not set defaults programmatically; only detect default status.
  * - Detect default status robustly via UserChoice ProgId compare.
  * - List schemes the app is registered for from its own Capabilities.
+ * - Registration must follow enabled schemes (remove stale URLAssociations).
  */
 import { type AppConfig, normalizeScheme } from '../../core/config/appConfig';
-import { regListValues, regQueryValue, regSetValue } from './regExe';
+import {
+  regDeleteValue,
+  regListValues,
+  regQueryValue,
+  regSetValue,
+} from './regExe';
 
 const VENDOR_KEY = 'Software\\karmaniverous\\win-link-router';
 const CAPABILITIES_KEY = `${VENDOR_KEY}\\Capabilities`;
@@ -49,6 +55,32 @@ export async function ensureCandidateRegistration(opts: {
   if (!opts.isPackaged) {
     warnings.push('Protocol registration is disabled while not packaged.');
     return { ok: true, warnings };
+  }
+
+  const desiredSchemeNames = new Set(
+    opts.enabledSchemes.map((s) => normalizeScheme(s).toLowerCase()),
+  );
+
+  // Remove stale URLAssociations values so registration matches enabled schemes.
+  // This only touches our own Capabilities key.
+  const existing = await regListValues({
+    hive: 'HKCU',
+    key: URL_ASSOCIATIONS_KEY,
+  });
+  for (const existingName of Object.keys(existing)) {
+    if (!desiredSchemeNames.has(existingName)) {
+      try {
+        await regDeleteValue({
+          hive: 'HKCU',
+          key: URL_ASSOCIATIONS_KEY,
+          name: existingName,
+        });
+      } catch (err) {
+        warnings.push(
+          `Failed to remove URLAssociation "${existingName}": ${(err as Error).message}`,
+        );
+      }
+    }
   }
 
   // Register the app as a Default Apps candidate via Capabilities.

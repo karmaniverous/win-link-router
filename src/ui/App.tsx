@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import type { AppConfig } from '../core/config/appConfig';
+import type {
+  AppConfig,
+  PresetsFile,
+  SchemeConfig,
+} from '../core/config/appConfig';
+import { normalizeScheme } from '../core/config/appConfig';
 import type { RouteUriResult } from '../core/routing/routeUri';
 import type { WinLinkRouterApi } from './api/winLinkRouterApi';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
+import { SchemeEditor } from './components/SchemeEditor';
+import { SettingsPanel } from './components/SettingsPanel';
 import { TestPanel } from './components/TestPanel';
 
 function parseSchemeFromUri(uri: string): string | null {
@@ -17,10 +24,40 @@ function getSchemeFromRouteResult(result: RouteUriResult): string | null {
   return typeof maybeScheme === 'string' ? maybeScheme : null;
 }
 
+function findPresetForScheme(
+  presets: PresetsFile | null,
+  scheme: string,
+): SchemeConfig | null {
+  if (!presets) return null;
+  const p = presets.presets.find((x) => x.scheme === scheme);
+  return p ?? null;
+}
+
+function createBlankScheme(scheme: string): SchemeConfig {
+  return {
+    scheme,
+    enabled: true,
+    extractor: { pattern: '^(?<value>.*)$', flags: '' },
+    templates: [],
+  };
+}
+
+function cloneFromPreset(preset: SchemeConfig): SchemeConfig {
+  const { presetId, ...rest } = preset;
+  return {
+    ...rest,
+    presetId: undefined,
+    derivedFromPresetId: presetId ?? undefined,
+  };
+}
+
 export function App() {
   const api = getWinLinkRouterApi();
 
   const cancelledRef = useRef(false);
+  const saveTimerRef = useRef<number | null>(null);
+  const configRef = useRef<AppConfig | null>(null);
+  const ensureRegistrationRef = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +65,7 @@ export function App() {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [readOnly, setReadOnly] = useState(false);
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [presets, setPresets] = useState<PresetsFile | null>(null);
 
   const [selectedScheme, setSelectedScheme] = useState<string | null>(null);
   const [testUri, setTestUri] = useState('');
@@ -53,6 +91,10 @@ export function App() {
     setConfig(cfg.config);
     setReadOnly(cfg.readOnly);
     setWarnings(cfg.warnings);
+    configRef.current = cfg.config;
+
+    const p = await api.presets.get();
+    setPresets(p);
 
     const sts = await api.windows.getSchemeStatuses();
     setStatuses(
@@ -69,6 +111,37 @@ export function App() {
       return cfg.config.schemes[0]?.scheme ?? null;
     });
   }, []);
+
+  const scheduleSave = useCallback(
+    (opts: { ensureRegistration?: boolean } = {}) => {
+      if (!api) return;
+      if (readOnly) return;
+      ensureRegistrationRef.current =
+        ensureRegistrationRef.current || Boolean(opts.ensureRegistration);
+
+      if (saveTimerRef.current) {
+        window.clearTimeout(saveTimerRef.current);
+      }
+      saveTimerRef.current = window.setTimeout(() => {
+        const latest = configRef.current;
+        if (!latest) return;
+
+        void api.appConfig
+          .set(latest)
+          .then(async () => {
+            if (ensureRegistrationRef.current) {
+              ensureRegistrationRef.current = false;
+              await api.windows.ensureRegistration();
+            }
+          })
+          .then(() => reload(api))
+          .catch((err: unknown) => {
+            setError((err as Error).message);
+          });
+      }, 450);
+    },
+    [api, readOnly, reload],
+  );
 
   useEffect(() => {
     if (!api) {
@@ -144,9 +217,7 @@ export function App() {
           <button
             type="button"
             onClick={() =>
-              void api.windows
-                .ensureRegistration()
-                .then(() => reload(api))
+              void api.windows.ensureRegistration().then(() => reload(api))
             }
           >
             Ensure Registration
@@ -170,16 +241,72 @@ export function App() {
         </p>
       ) : null}
 
+      <SettingsPanel
+        api={api}
+        config={config}
+        readOnly={readOnly}
+        onDidChangeSettings={() => void reload(api)}
+      />
+
       <div className="layout">
         <aside className="sidebar">
-          <h2>Schemes</h2>
+          <div className="row">
+            <h2>Schemes</h2>
+            <div className="rowActions">
+              <button
+                type="button"
+                disabled={readOnly}
+                onClick={() => {
+                  const raw = window.prompt(
+                    'Scheme to add (e.g. TEL, MAILTO):',
+                  );
+                  if (!raw || !config) return;
+                  let scheme: string;
+                  try {
+                    scheme = normalizeScheme(raw);
+                  } catch (err) {
+                    setError((err as Error).message);
+                    return;
+                  }
+                  if (config.schemes.some((s) => s.scheme === scheme)) {
+                    setError(`Scheme ${scheme} already exists.`);
+                    return;
+                  }
+
+                  const preset = findPresetForScheme(presets, scheme);
+                  const usePreset = preset
+                    ? window.confirm(
+                        `Preset found for ${scheme}. Initialize from preset?`,
+                      )
+                    : false;
+                  const schemeConfig = usePreset
+                    ? cloneFromPreset(preset!)
+                    : createBlankScheme(scheme);
+
+                  const next: AppConfig = {
+                    ...config,
+                    schemes: [...config.schemes, schemeConfig],
+                  };
+                  setConfig(next);
+                  configRef.current = next;
+                  setSelectedScheme(scheme);
+                  scheduleSave({ ensureRegistration: true });
+                }}
+              >
+                +
+              </button>
+            </div>
+          </div>
           {!config ? null : (
             <ul className="list">
               {config.schemes.map((s) => {
                 const status = statusByScheme.get(s.scheme);
-                const label = `${s.scheme} ${
-                  status ? `(${status.defaultStatus})` : ''
-                }`;
+                const reg = status
+                  ? status.registered
+                    ? 'reg'
+                    : 'unreg'
+                  : 'reg?';
+                const label = `${s.scheme} (${status?.defaultStatus ?? 'unknown'}, ${reg})`;
                 return (
                   <li key={s.scheme}>
                     <button
@@ -202,6 +329,42 @@ export function App() {
         </aside>
 
         <section className="content">
+          <SchemeEditor
+            api={api}
+            presets={presets}
+            readOnly={readOnly}
+            scheme={
+              config?.schemes.find((s) => s.scheme === selectedScheme) ?? null
+            }
+            onChangeScheme={(next, opts) => {
+              if (!config) return;
+              const updated: AppConfig = {
+                ...config,
+                schemes: config.schemes.map((s) =>
+                  s.scheme === next.scheme ? next : s,
+                ),
+              };
+              setConfig(updated);
+              configRef.current = updated;
+              scheduleSave(opts);
+            }}
+            onRemoveScheme={(schemeToRemove) => {
+              if (!config) return;
+              const updated: AppConfig = {
+                ...config,
+                schemes: config.schemes.filter(
+                  (s) => s.scheme !== schemeToRemove,
+                ),
+              };
+              setConfig(updated);
+              configRef.current = updated;
+              if (selectedScheme === schemeToRemove) {
+                setSelectedScheme(updated.schemes[0]?.scheme ?? null);
+              }
+              scheduleSave({ ensureRegistration: true });
+            }}
+          />
+
           <TestPanel
             api={api}
             scheme={selectedScheme}
