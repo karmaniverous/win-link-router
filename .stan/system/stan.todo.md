@@ -7,12 +7,15 @@
   - Run `npm run typecheck`, `npm run lint`, `npm run test`, `npm run knip`.
   - Run `npm run package` to confirm Forge packaging still works.
 - Implement Windows integration (HKCU; no admin):
+  - Add UI-level “Set default” affordances per scheme (likely still opens the generic Default Apps page).
+  - Ensure registration updates after scheme enable/disable changes (not just on startup).
 - Implement UI:
   - Implement scheme CRUD + autosave (enable/disable, extractor edit, templates CRUD + reorder).
   - Add preset initialization + reset-to-preset (with confirmation).
   - Surface Windows scheme status (default/registered) in the scheme list.
   - Add settings UI for run-at-login and shared config path (recover from read-only).
 - Implement tray + run-at-login:
+  - Add UI toggle for run-at-login (call `settings:set`).
 
 ## Completed (recent)
 
@@ -35,4 +38,6 @@
 - Started Windows integration (HKCU registration + status) and applied run-at-login setting.
 - Fixed reg.exe adapter linting and trimmed unused Windows exports.
 - Added tray controller, Default Apps opener, and default-handler mismatch prompt.
-- Trimmed unused exported type in tray controller.- Added initial UI shell and routing-failure test prefill plumbing.
+- Trimmed unused exported type in tray controller.
+- Added initial UI shell and routing-failure test prefill plumbing.
+- Fixed renderer lint issues and trimmed unused exported types.

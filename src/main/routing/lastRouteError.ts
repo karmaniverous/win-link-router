@@ -10,7 +10,7 @@
  */
 import type { RouteUriResult } from '../../core/routing/routeUri';
 
-export interface LastRouteError {
+interface LastRouteError {
   when: string;
   uri: string;
   result: RouteUriResult;

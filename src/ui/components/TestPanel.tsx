@@ -78,7 +78,7 @@ export function TestPanel(props: {
         </details>
       ) : null}
 
-      {result?.evaluations?.length ? (
+      {result?.evaluations.length ? (
         <div className="stack">
           {result.evaluations.map((e) => (
             <div key={e.templateId} className="card">

@@ -6,7 +6,7 @@
 import type { AppConfig, PresetsFile } from '../../core/config/appConfig';
 import type { RouteUriResult } from '../../core/routing/routeUri';
 
-export interface SchemeWindowsStatusDto {
+interface SchemeWindowsStatusDto {
   scheme: string;
   enabled: boolean;
   registered: boolean;
@@ -15,7 +15,7 @@ export interface SchemeWindowsStatusDto {
   actualProgId?: string | null;
 }
 
-export interface LastRouteErrorDto {
+interface LastRouteErrorDto {
   when: string;
   uri: string;
   result: RouteUriResult;

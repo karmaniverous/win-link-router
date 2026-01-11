@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { AppConfig } from '../core/config/appConfig';
+import type { RouteUriResult } from '../core/routing/routeUri';
+import type { WinLinkRouterApi } from './api/winLinkRouterApi';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
 import { TestPanel } from './components/TestPanel';
 
@@ -8,6 +10,11 @@ function parseSchemeFromUri(uri: string): string | null {
   const idx = uri.indexOf(':');
   if (idx <= 0) return null;
   return uri.slice(0, idx).toUpperCase();
+}
+
+function getSchemeFromRouteResult(result: RouteUriResult): string | null {
+  const maybeScheme = (result as { scheme?: unknown }).scheme;
+  return typeof maybeScheme === 'string' ? maybeScheme : null;
 }
 
 export function App() {
@@ -39,8 +46,7 @@ export function App() {
     return map;
   }, [statuses]);
 
-  async function reload() {
-    if (!api) return;
+  const reload = useCallback(async (api: WinLinkRouterApi) => {
     const cfg = await api.appConfig.get();
     setConfig(cfg.config);
     setReadOnly(cfg.readOnly);
@@ -60,7 +66,7 @@ export function App() {
       if (prev) return prev;
       return cfg.config.schemes[0]?.scheme ?? null;
     });
-  }
+  }, []);
 
   useEffect(() => {
     if (!api) {
@@ -72,15 +78,13 @@ export function App() {
     let cancelled = false;
     void (async () => {
       try {
-        await reload();
+        await reload(api);
 
         const last = await api.routing.getLastRouteError();
         if (last) {
           const inferredScheme =
-            'scheme' in (last.result as object) &&
-            typeof (last.result as any).scheme === 'string'
-              ? String((last.result as any).scheme)
-              : parseSchemeFromUri(last.uri);
+            getSchemeFromRouteResult(last.result) ??
+            parseSchemeFromUri(last.uri);
 
           if (!cancelled) {
             if (inferredScheme) setSelectedScheme(inferredScheme.toUpperCase());
@@ -99,8 +103,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [api]);
+  }, [api, reload]);
 
   if (!api) {
     return (
@@ -118,7 +121,9 @@ export function App() {
         <div className="topbarActions">
           <button
             type="button"
-            onClick={() => void api.appConfig.importSchemes().then(reload)}
+            onClick={() =>
+              void api.appConfig.importSchemes().then(() => reload(api))
+            }
           >
             Import
           </button>
