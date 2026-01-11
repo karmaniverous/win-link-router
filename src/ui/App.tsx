@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { AppConfig } from '../core/config/appConfig';
 import type { RouteUriResult } from '../core/routing/routeUri';
@@ -19,6 +19,8 @@ function getSchemeFromRouteResult(result: RouteUriResult): string | null {
 
 export function App() {
   const api = getWinLinkRouterApi();
+
+  const cancelledRef = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +77,7 @@ export function App() {
       return;
     }
 
-    let cancelled = false;
+    cancelledRef.current = false;
     void (async () => {
       try {
         await reload(api);
@@ -86,7 +88,7 @@ export function App() {
             getSchemeFromRouteResult(last.result) ??
             parseSchemeFromUri(last.uri);
 
-          if (!cancelled) {
+          if (!cancelledRef.current) {
             if (inferredScheme) setSelectedScheme(inferredScheme.toUpperCase());
             setTestUri(last.uri);
             setRouteErrorBanner(`Routing failed: ${last.result.type}`);
@@ -94,14 +96,14 @@ export function App() {
           await api.routing.clearLastRouteError();
         }
       } catch (err) {
-        if (!cancelled) setError((err as Error).message);
+        if (!cancelledRef.current) setError((err as Error).message);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelledRef.current) setLoading(false);
       }
     })();
 
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
   }, [api, reload]);
 
@@ -141,7 +143,11 @@ export function App() {
           </button>
           <button
             type="button"
-            onClick={() => void api.windows.ensureRegistration().then(reload)}
+            onClick={() =>
+              void api.windows
+                .ensureRegistration()
+                .then(() => reload(api))
+            }
           >
             Ensure Registration
           </button>

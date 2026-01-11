@@ -41,3 +41,4 @@
 - Trimmed unused exported type in tray controller.
 - Added initial UI shell and routing-failure test prefill plumbing.
 - Fixed renderer lint issues and trimmed unused exported types.
+- Fixed App.tsx async cancellation and reload wiring.
