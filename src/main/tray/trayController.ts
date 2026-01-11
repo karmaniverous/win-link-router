@@ -8,7 +8,7 @@
  */
 import { app, Menu, nativeImage, Tray } from 'electron';
 
-export interface TrayController {
+interface TrayController {
   tray: Tray;
   destroy(): void;
 }

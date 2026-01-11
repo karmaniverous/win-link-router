@@ -41,3 +41,4 @@
 - Started Windows integration (HKCU registration + status) and applied run-at-login setting.
 - Fixed reg.exe adapter linting and trimmed unused Windows exports.
 - Added tray controller, Default Apps opener, and default-handler mismatch prompt.
+- Trimmed unused exported type in tray controller.
