@@ -8,6 +8,8 @@
   - Run `npm run package` to confirm Forge packaging still works.
 - Implement config persistence:
   - Per-user JSON config under `userData`.
+  - IPC plumbing to load/save config and surface read-only mode.
+  - Load bundled presets in main process and expose via IPC.
   - Import/export JSON.
   - Shared-config-file mode (single source of truth; UI read-only on shared file
     errors).
@@ -36,4 +38,6 @@
 - Added bundled TEL→WhatsApp presets (desktop-first + web fallback).
 - Added routing core (extractor + Handlebars rendering + fallback) with tests.- Fixed lint errors in Zod schema validation and Handlebars helpers.
 - Fixed routing unit tests to validate fallback behavior (not extractor mismatch).
-- Removed hard-coded bundled preset appVersion (provided at load time).
+- Removed hard-coded bundled preset appVersion (provided at load time).- Added main-process AppConfigStore (local + optional shared file) with Zod validation.
+- Added bundled presets loader and IPC endpoints for config/presets/test evaluation.
+- Wired main process to route incoming URI args without opening the window by default.

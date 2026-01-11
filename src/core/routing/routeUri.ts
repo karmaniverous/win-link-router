@@ -24,6 +24,7 @@ export interface TemplateAttempt {
 
 export type RouteUriResult =
   | { type: 'noScheme'; uri: string }
+  | { type: 'schemeNotConfigured'; scheme: string; uri: string }
   | { type: 'schemeDisabled'; scheme: string; uri: string }
   | { type: 'extractorNoMatch'; scheme: string; uri: string }
   | { type: 'noEnabledTemplates'; scheme: string; uri: string }
@@ -203,9 +204,7 @@ export async function routeUriOrFail(
   if (!scheme) return { type: 'noScheme', uri };
 
   if (!schemeConfig) {
-    // Selection is handled by the caller (AppConfig lookup). This is still a
-    // useful wrapper for CLI/tests.
-    return { type: 'schemeDisabled', scheme, uri };
+    return { type: 'schemeNotConfigured', scheme, uri };
   }
 
   return routeUriWithSchemeConfig(
