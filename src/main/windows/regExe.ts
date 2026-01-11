@@ -8,9 +8,8 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-export type RegistryHive = 'HKCU';
-
-export type RegistryValueType = 'REG_SZ';
+type RegistryHive = 'HKCU';
+type RegistryValueType = 'REG_SZ';
 
 function hiveKey(hive: RegistryHive, key: string): string {
   // reg.exe expects e.g. HKCU\Software\...
@@ -49,7 +48,11 @@ export async function regQueryValue(opts: {
       ['query', fullKey, '/v', opts.name],
       { windowsHide: true },
     );
-    return parseRegQuerySingleValue(stdout, opts.name);
+    try {
+      return parseRegQuerySingleValue(stdout, opts.name);
+    } catch {
+      return null;
+    }
   } catch {
     return null;
   }
@@ -80,10 +83,10 @@ function parseRegQuerySingleValue(stdout: string, valueName: string): string {
     const match = /^(.+?)\s+REG_\w+\s+(.*)$/.exec(trimmed);
     if (!match) continue;
 
-    const name = match[1]?.trim();
+    const name = match[1].trim();
     if (name !== valueName) continue;
 
-    return (match[2] ?? '').trim();
+    return match[2].trim();
   }
 
   throw new Error(`Value "${valueName}" not found in reg query output.`);
@@ -100,8 +103,8 @@ function parseRegQueryValues(stdout: string): Record<string, string> {
     const match = /^(.+?)\s+REG_\w+\s+(.*)$/.exec(trimmed);
     if (!match) continue;
 
-    const name = (match[1] ?? '').trim();
-    const data = (match[2] ?? '').trim();
+    const name = match[1].trim();
+    const data = match[2].trim();
     if (!name || name === '(Default)') continue;
     out[name] = data;
   }

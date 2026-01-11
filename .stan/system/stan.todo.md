@@ -42,4 +42,4 @@
 - Added portable schemes-only import/export (settings preserved locally).
 - Added settings persistence that can recover from broken shared config paths.
 - Documented import/export semantics in requirements.
-- Started Windows integration (HKCU registration + status) and applied run-at-login setting.
+- Started Windows integration (HKCU registration + status) and applied run-at-login setting.- Fixed reg.exe adapter linting and trimmed unused Windows exports.

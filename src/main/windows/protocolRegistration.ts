@@ -13,9 +13,9 @@ const CAPABILITIES_KEY = `${VENDOR_KEY}\\Capabilities`;
 const URL_ASSOCIATIONS_KEY = `${CAPABILITIES_KEY}\\URLAssociations`;
 const REGISTERED_APPLICATIONS_KEY = 'Software\\RegisteredApplications';
 
-export type DefaultHandlerStatus = 'default' | 'not-default' | 'unknown';
+type DefaultHandlerStatus = 'default' | 'not-default' | 'unknown';
 
-export interface SchemeWindowsStatus {
+interface SchemeWindowsStatus {
   scheme: string;
   enabled: boolean;
   registered: boolean;
@@ -116,22 +116,18 @@ export async function ensureCandidateRegistration(opts: {
   return { ok: true, warnings };
 }
 
-export async function getRegisteredUrlAssociations(): Promise<
-  Record<string, string>
-> {
+async function getRegisteredUrlAssociations(): Promise<Record<string, string>> {
   // scheme(lowercase) => ProgId
   return regListValues({ hive: 'HKCU', key: URL_ASSOCIATIONS_KEY });
 }
 
-export async function getUserChoiceProgId(
-  scheme: string,
-): Promise<string | null> {
+async function getUserChoiceProgId(scheme: string): Promise<string | null> {
   const normalized = normalizeScheme(scheme).toLowerCase();
   const key = `Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\${normalized}\\UserChoice`;
   return regQueryValue({ hive: 'HKCU', key, name: 'ProgId' });
 }
 
-export async function getSchemeWindowsStatus(
+async function getSchemeWindowsStatus(
   scheme: string,
   enabled: boolean,
 ): Promise<SchemeWindowsStatus> {
