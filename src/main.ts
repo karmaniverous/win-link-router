@@ -7,6 +7,7 @@ import { createTemplateRenderer } from './core/routing/templateRenderer';
 import { AppConfigStore } from './main/config/appConfigStore';
 import { registerIpcHandlers } from './main/ipc/registerIpcHandlers';
 import { loadBundledPresets } from './main/presets/loadBundledPresets';
+import { setLastRouteError } from './main/routing/lastRouteError';
 import { routeIncomingUri } from './main/routing/routeIncomingUri';
 import { applyRunAtLoginSetting } from './main/settings/applyRunAtLogin';
 import { createTrayController } from './main/tray/trayController';
@@ -134,6 +135,12 @@ async function handleUri(uri: string): Promise<boolean> {
   const result = await routeIncomingUri(store, renderer, uri);
 
   if (result.type === 'routed') return true;
+
+  setLastRouteError({
+    when: new Date().toISOString(),
+    uri,
+    result,
+  });
 
   // v1 behavior: open the window on routing failure. Later UI work will prefill
   // the test input and show diagnostics via IPC.

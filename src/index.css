@@ -2,7 +2,107 @@ body {
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
     sans-serif;
-  margin: auto;
-  max-width: 38rem;
-  padding: 2rem;
+  margin: 0;
+  padding: 0;
 }
+
+main {
+  padding: 16px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.topbarActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.sidebar {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.content {
+  min-width: 0;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.list button {
+  width: 100%;
+  text-align: left;
+}
+
+.list button.selected {
+  font-weight: 600;
+}
+
+.panel {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.muted {
+  color: #666;
+}
+
+.warning {
+  color: #7a4a00;
+}
+
+.error {
+  color: #b00020;
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+}
+
+.card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.cardRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+

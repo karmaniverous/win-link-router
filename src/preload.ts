@@ -4,6 +4,7 @@
  * - UI must be able to load/save config and run debounced template tests.
  * - UI must support import/export and shared config settings management.
  * - UI must be able to display Windows registration/default status.
+ * - UI must be able to prefill test input after routing failures.
  */
 import { contextBridge, ipcRenderer } from 'electron';
 
@@ -24,6 +25,11 @@ contextBridge.exposeInMainWorld('winLinkRouter', {
     ensureRegistration: () => ipcRenderer.invoke('windows:ensureRegistration'),
     getSchemeStatuses: () => ipcRenderer.invoke('windows:getSchemeStatuses'),
     openDefaultApps: () => ipcRenderer.invoke('windows:openDefaultApps'),
+  },
+  routing: {
+    getLastRouteError: () => ipcRenderer.invoke('routing:getLastRouteError'),
+    clearLastRouteError: () =>
+      ipcRenderer.invoke('routing:clearLastRouteError'),
   },
   test: {
     evaluate: (scheme: string, uri: string) =>

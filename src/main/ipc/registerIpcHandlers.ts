@@ -26,6 +26,10 @@ import {
   exportSchemesSnapshotToFile,
   importSchemesSnapshotFromFile,
 } from '../config/configImportExport';
+import {
+  clearLastRouteError,
+  getLastRouteError,
+} from '../routing/lastRouteError';
 import { applyRunAtLoginSetting } from '../settings/applyRunAtLogin';
 import { openWindowsDefaultApps } from '../windows/openDefaultApps';
 import {
@@ -147,6 +151,15 @@ export function registerIpcHandlers(opts: {
 
   ipcMain.handle('windows:openDefaultApps', async () => {
     await openWindowsDefaultApps();
+    return { ok: true };
+  });
+
+  ipcMain.handle('routing:getLastRouteError', () => {
+    return getLastRouteError();
+  });
+
+  ipcMain.handle('routing:clearLastRouteError', () => {
+    clearLastRouteError();
     return { ok: true };
   });
 
