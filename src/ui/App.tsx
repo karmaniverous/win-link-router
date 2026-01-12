@@ -257,17 +257,29 @@ export function App() {
       {error ? <p className="error">{error}</p> : null}
       {routeErrorBanner ? <p className="error">{routeErrorBanner}</p> : null}
       {registrationResult ? (
-        <details>
-          <summary>
-            Registration{' '}
-            {registrationResult.kind === 'ok' ? 'updated' : 'warning'}
-          </summary>
+        <section className="panel">
+          <div className="row">
+            <strong>
+              Registration{' '}
+              {registrationResult.kind === 'ok' ? 'updated' : 'warning'}
+            </strong>
+            <div className="rowActions">
+              <button
+                type="button"
+                onClick={() => {
+                  setRegistrationResult(null);
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
           <pre
             className={registrationResult.kind === 'ok' ? 'muted' : 'warning'}
           >
             {registrationResult.message}
           </pre>
-        </details>
+        </section>
       ) : null}
       {warnings.length ? (
         <details>

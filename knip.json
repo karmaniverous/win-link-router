@@ -13,5 +13,9 @@
     "src/**/*.test.{ts,tsx}"
   ],
   "ignore": ["out/**", "dist/**", ".vite/**", ".stan/**", "coverage/**"],
-  "ignoreDependencies": ["@dotenvx/dotenvx", "release-it"]
+  "ignoreDependencies": [
+    "@dotenvx/dotenvx",
+    "@electron-forge/publisher-github",
+    "release-it"
+  ]
 }
