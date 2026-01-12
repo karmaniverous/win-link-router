@@ -19,6 +19,7 @@ import { setLastRouteError } from './main/routing/lastRouteError';
 import { routeIncomingUri } from './main/routing/routeIncomingUri';
 import { applyRunAtLoginSetting } from './main/settings/applyRunAtLogin';
 import { createTrayController } from './main/tray/trayController';
+import { ensureStartMenuShortcut } from './main/windows/ensureStartMenuShortcut';
 import { maybePromptDefaultHandlerMismatch } from './main/windows/maybePromptDefaultHandlerMismatch';
 import { ensureCandidateRegistration } from './main/windows/protocolRegistration';
 
@@ -122,6 +123,16 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
   });
 
   applyRunAtLoginSetting(configStore.getLoadedConfig());
+
+  // Best-effort: ensure a working Start Menu shortcut exists for the current
+  // user. Squirrel installs per-user under %LOCALAPPDATA% and Start Menu items
+  // are per-user as well.
+  if (process.platform === 'win32' && app.isPackaged) {
+    void ensureStartMenuShortcut({
+      shortcutName: 'win-link-router',
+      exePath: process.execPath,
+    }).catch(() => undefined);
+  }
 
   // Best-effort: ensure we're registered as a candidate handler for enabled schemes.
   // This does not set defaults; it only makes the app available in Default Apps.

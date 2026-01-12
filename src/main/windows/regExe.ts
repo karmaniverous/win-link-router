@@ -2,13 +2,15 @@
  * Requirements addressed:
  * - Windows integration must be robust and based on registry state.
  * - Keep side effects behind a thin adapter (ports & adapters).
+ * - Support querying merged class roots (HKCR) and reading (Default) values.
  */
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-type RegistryHive = 'HKCU';
+type RegistryHive = 'HKCU' | 'HKCR';
+type WritableRegistryHive = 'HKCU';
 type RegistryValueType = 'REG_SZ';
 
 function hiveKey(hive: RegistryHive, key: string): string {
@@ -17,7 +19,7 @@ function hiveKey(hive: RegistryHive, key: string): string {
 }
 
 export async function regSetValue(opts: {
-  hive: RegistryHive;
+  hive: WritableRegistryHive;
   key: string;
   name: string | null; // null = (Default)
   type: RegistryValueType;
@@ -37,7 +39,7 @@ export async function regSetValue(opts: {
 }
 
 export async function regDeleteValue(opts: {
-  hive: RegistryHive;
+  hive: WritableRegistryHive;
   key: string;
   name: string;
 }): Promise<void> {
@@ -50,15 +52,19 @@ export async function regDeleteValue(opts: {
 export async function regQueryValue(opts: {
   hive: RegistryHive;
   key: string;
-  name: string; // no (Default) reads needed for this app yet
+  name: string | null; // null = (Default)
 }): Promise<string | null> {
   const fullKey = hiveKey(opts.hive, opts.key);
   try {
-    const { stdout } = await execFileAsync(
-      'reg.exe',
-      ['query', fullKey, '/v', opts.name],
-      { windowsHide: true },
-    );
+    const args =
+      opts.name === null
+        ? ['query', fullKey, '/ve']
+        : ['query', fullKey, '/v', opts.name];
+
+    const { stdout } = await execFileAsync('reg.exe', args, {
+      windowsHide: true,
+    });
+
     try {
       return parseRegQuerySingleValue(stdout, opts.name);
     } catch {
@@ -84,8 +90,13 @@ export async function regListValues(opts: {
   }
 }
 
-function parseRegQuerySingleValue(stdout: string, valueName: string): string {
+function parseRegQuerySingleValue(
+  stdout: string,
+  valueName: string | null,
+): string {
+  const desiredName = valueName === null ? '(Default)' : valueName;
   const lines = stdout.split(/\r?\n/);
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
@@ -95,17 +106,18 @@ function parseRegQuerySingleValue(stdout: string, valueName: string): string {
     if (!match) continue;
 
     const name = match[1].trim();
-    if (name !== valueName) continue;
+    if (name !== desiredName) continue;
 
     return match[2].trim();
   }
 
-  throw new Error(`Value "${valueName}" not found in reg query output.`);
+  throw new Error(`Value "${desiredName}" not found in reg query output.`);
 }
 
 function parseRegQueryValues(stdout: string): Record<string, string> {
   const out: Record<string, string> = {};
   const lines = stdout.split(/\r?\n/);
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
@@ -119,5 +131,6 @@ function parseRegQueryValues(stdout: string): Record<string, string> {
     if (!name || name === '(Default)') continue;
     out[name] = data;
   }
+
   return out;
 }

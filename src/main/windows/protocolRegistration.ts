@@ -8,6 +8,7 @@
  * - Registration must follow enabled schemes (remove stale URLAssociations).
  */
 import { type AppConfig, normalizeScheme } from '../../core/config/appConfig';
+import { commandReferencesExe } from './commandReferencesExe';
 import {
   computeDefaultHandlerStatus,
   type DefaultHandlerStatus,
@@ -168,6 +169,23 @@ async function getUserChoiceProgId(scheme: string): Promise<string | null> {
   return regQueryValue({ hive: 'HKCU', key, name: 'ProgId' });
 }
 
+async function getProgIdOpenCommand(progId: string): Promise<string | null> {
+  // First check per-user classes.
+  const fromUser = await regQueryValue({
+    hive: 'HKCU',
+    key: `Software\\Classes\\${progId}\\shell\\open\\command`,
+    name: null,
+  });
+  if (fromUser) return fromUser;
+
+  // Fall back to HKCR (merged classes view).
+  return regQueryValue({
+    hive: 'HKCR',
+    key: `${progId}\\shell\\open\\command`,
+    name: null,
+  });
+}
+
 async function getSchemeWindowsStatus(
   scheme: string,
   enabled: boolean,
@@ -183,11 +201,17 @@ async function getSchemeWindowsStatus(
     registeredProgId.toLowerCase() === expectedProgId.toLowerCase();
 
   const actualProgId = await getUserChoiceProgId(normalized);
-  const defaultStatus: DefaultHandlerStatus = computeDefaultHandlerStatus({
+  let defaultStatus: DefaultHandlerStatus = computeDefaultHandlerStatus({
     expectedProgId,
     actualProgId,
     exePath,
   });
+  if (defaultStatus === 'not-default' && actualProgId && exePath) {
+    const command = await getProgIdOpenCommand(actualProgId);
+    if (command && commandReferencesExe(command, exePath)) {
+      defaultStatus = 'default';
+    }
+  }
 
   return {
     scheme: normalized,
