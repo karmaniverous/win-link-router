@@ -133,6 +133,10 @@ Durable project requirements (desired end-state).
   - Controls to open Windows Default Apps for the user to set the default.
 - The UI must autosave configuration changes without an explicit Save action.
 -
+- The UI must provide a loading indicator for slow-start content:
+  - Show a spinner/“Loading…” while config/presets/statuses are loading.
+  - Disable actions that depend on that data until loading completes.
+-
 - The renderer UI must not rely on browser blocking dialogs:
   - Do not use `window.alert`, `window.confirm`, or `window.prompt`.
   - Use in-app dialogs/modals instead (Electron may disable these APIs).

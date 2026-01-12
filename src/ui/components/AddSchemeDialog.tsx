@@ -47,12 +47,14 @@ export function AddSchemeDialog(props: {
 
   const [raw, setRaw] = useState('');
   const [selectedOptionKey, setSelectedOptionKey] = useState<string>('blank');
+  const [selectionTouched, setSelectionTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setRaw('');
     setSelectedOptionKey('blank');
+    setSelectionTouched(false);
     setError(null);
   }, [open]);
 
@@ -97,6 +99,27 @@ export function AddSchemeDialog(props: {
 
     return out;
   }, [normalized, presets]);
+
+  const presetCount = useMemo(() => {
+    if (!normalized) return 0;
+    if (!presets) return 0;
+    return getPresetsForScheme(presets, normalized).length;
+  }, [normalized, presets]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (!normalized) return;
+    if (!presets) return;
+    if (selectionTouched) return;
+
+    const preset = presetOptions.find((o) => o.kind === 'preset');
+    const presetOnly = presetOptions.filter((o) => o.kind === 'preset').length;
+    if (presetOnly === 1 && preset?.kind === 'preset') {
+      setSelectedOptionKey(preset.key);
+    } else {
+      setSelectedOptionKey('blank');
+    }
+  }, [normalized, open, presetOptions, presets, selectionTouched]);
 
   const canSubmit =
     open &&
@@ -177,12 +200,19 @@ export function AddSchemeDialog(props: {
       {duplicateError ? <p className="error">{duplicateError}</p> : null}
       {error ? <p className="error">{error}</p> : null}
 
+      {normalized && presets ? (
+        <p className="muted">
+          Presets found for {normalized}: {presetCount}
+        </p>
+      ) : null}
+
       <label className="field">
         <span>Initialize from</span>
         <select
           value={selectedOptionKey}
           onChange={(e) => {
             setSelectedOptionKey(e.target.value);
+            setSelectionTouched(true);
             setError(null);
           }}
           disabled={!normalized}

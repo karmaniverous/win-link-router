@@ -40,6 +40,7 @@ describe('SchemesSidebar (interaction)', () => {
 
       render(
         <SchemesSidebar
+          loading={false}
           readOnly={false}
           config={createConfig()}
           presets={null}

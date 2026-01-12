@@ -7,7 +7,7 @@
     - Prefer `ms-settings:defaultapps?registeredAppUser=win-link-router` when supported.
     - Fall back to plain `ms-settings:defaultapps` when not supported.
 - UI polish:
-  - Add preset picker (choose among multiple presets per scheme, when added).
+  - Improve loading UX (spinner placement, disable/enable timing) based on real-world startup behavior.
   - Expand routing-failure banner details (e.g., include which template failed,
     or how many targets were attempted) without bloating App.tsx.
 
@@ -55,4 +55,6 @@
 - Fixed SchemeEditor lint by removing an unnecessary `??` on extractor.pattern.
 - Added a best-effort Default Apps deep link (registeredAppUser) with safe fallback.
 - Extracted routing-failure banner logic into a testable renderer module and used it in App.tsx.
-- Replaced window.prompt/confirm with in-app dialogs and added interaction tests to prevent regressions.- Fixed lint and interaction test selectors after dialog refactor.
+- Replaced window.prompt/confirm with in-app dialogs and added interaction tests to prevent regressions.
+- Fixed lint and interaction test selectors after dialog refactor.
+- Added loading spinner UX and ensured Add Scheme shows available presets (with a regression test).

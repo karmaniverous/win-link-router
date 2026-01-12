@@ -7,13 +7,16 @@ import type {
 } from '../../core/config/appConfig';
 import { AddSchemeDialog } from './AddSchemeDialog';
 import { formatSchemeStatusLabel } from './formatSchemeStatusLabel';
+import { Spinner } from './Spinner';
 
 /**
  * Requirements addressed:
  * - Main view shows a list of configured schemes.
  * - Users can add schemes without using window.prompt().
+ * - Disable actions and show a loading indicator while config/presets load.
  */
 export function SchemesSidebar(props: {
+  loading: boolean;
   readOnly: boolean;
   config: AppConfig | null;
   presets: PresetsFile | null;
@@ -29,6 +32,7 @@ export function SchemesSidebar(props: {
   onError: (message: string) => void;
 }) {
   const {
+    loading,
     readOnly,
     config,
     presets,
@@ -51,6 +55,9 @@ export function SchemesSidebar(props: {
     return (config?.schemes ?? []).map((s) => s.scheme);
   }, [config]);
 
+  const canAdd = !readOnly && !loading && Boolean(config) && Boolean(presets);
+  const showLoading = loading || !config || !presets;
+
   return (
     <aside className="sidebar">
       <div className="row">
@@ -59,7 +66,7 @@ export function SchemesSidebar(props: {
           <button
             type="button"
             aria-label="Add scheme"
-            disabled={readOnly}
+            disabled={!canAdd}
             onClick={() => {
               setAddOpen(true);
             }}
@@ -86,7 +93,7 @@ export function SchemesSidebar(props: {
         }}
       />
 
-      {!config ? <p className="muted">Loading…</p> : null}
+      {showLoading ? <Spinner label="Loading schemes…" /> : null}
 
       {config ? (
         <ul className="list">

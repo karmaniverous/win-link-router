@@ -10,6 +10,7 @@ import { getWinLinkRouterApi } from './api/winLinkRouterApi';
 import { SchemeEditor } from './components/SchemeEditor';
 import { SchemesSidebar } from './components/SchemesSidebar';
 import { SettingsAndLogPanel } from './components/SettingsPanel';
+import { Spinner } from './components/Spinner';
 import { TestPanel } from './components/TestPanel';
 import {
   formatRouteFailureBanner,
@@ -219,7 +220,7 @@ export function App() {
         </div>
       </header>
 
-      {loading ? <p className="muted">Loading…</p> : null}
+      {loading ? <Spinner label="Loading…" /> : null}
       {error ? <p className="error">{error}</p> : null}
       {routeErrorBanner ? <p className="error">{routeErrorBanner}</p> : null}
       {warnings.length ? (
@@ -244,6 +245,7 @@ export function App() {
 
       <div className="layout">
         <SchemesSidebar
+          loading={loading}
           readOnly={readOnly}
           config={config}
           presets={presets}
