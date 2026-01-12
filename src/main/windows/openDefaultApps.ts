@@ -7,10 +7,29 @@
  */
 import { clipboard, dialog, shell } from 'electron';
 
+import { buildDefaultAppsSettingsUri } from './defaultAppsDeepLink';
+
+const REGISTERED_APP_USER = 'win-link-router';
+
 function normalizeSchemeForUi(raw: string): string {
   const trimmed = raw.trim();
   const withoutColon = trimmed.endsWith(':') ? trimmed.slice(0, -1) : trimmed;
   return withoutColon.toLowerCase();
+}
+
+async function openDefaultAppsSettingsForThisApp(): Promise<void> {
+  const deepLink = buildDefaultAppsSettingsUri({
+    registeredAppUser: REGISTERED_APP_USER,
+  });
+
+  try {
+    await shell.openExternal(deepLink);
+    return;
+  } catch {
+    // Fall back for older Windows builds that don't support the query param.
+  }
+
+  await shell.openExternal('ms-settings:defaultapps');
 }
 
 export async function openWindowsDefaultApps(opts?: {
@@ -44,6 +63,5 @@ export async function openWindowsDefaultApps(opts?: {
     if (res.response !== 0) return;
   }
 
-  // Best-effort generic entry point (Microsoft-documented).
-  await shell.openExternal('ms-settings:defaultapps');
+  await openDefaultAppsSettingsForThisApp();
 }

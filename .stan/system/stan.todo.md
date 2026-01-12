@@ -3,9 +3,9 @@
 ## Next up
 
 - Windows integration polish:
-  - Investigate whether Windows Settings supports protocol-specific deep links
-    for Default Apps; keep generic `ms-settings:defaultapps` + guidance as the
-    reliable fallback.
+  - Validate Default Apps deep link behavior across Windows builds:
+    - Prefer `ms-settings:defaultapps?registeredAppUser=win-link-router` when supported.
+    - Fall back to plain `ms-settings:defaultapps` when not supported.
 - UI polish:
   - Add inline validation and clearer save-error UX for extractor/templates.
     (e.g., show regex/template validation errors near fields before autosave).
@@ -49,4 +49,4 @@
 - Included extractor match groups in route results to improve diagnostics/logging.
 - Fixed lint in routing log tests by avoiding number interpolation in template literals.
 - Fixed Knip unused exports by removing `__private__` and keeping `RouteLogEntry` internal.
-- Added default redaction for persisted routing logs (no raw URIs/targets) and introduced per-entry `seq` ids to keep logs useful.- Added a small UI routing log viewer (refresh + clear) via IPC/preload API.- Added a settings-backed log mode toggle (redacted vs full) and wired main/log store to honor it.- Improved scheme list status labels and added scheme-specific “Set default…” guidance (clipboard + instructions).- Added inline extractor validation messaging in SchemeEditor and tightened route-log typing end-to-end.- Fixed SchemeEditor lint by removing an unnecessary `??` on extractor.pattern.
+- Added default redaction for persisted routing logs (no raw URIs/targets) and introduced per-entry `seq` ids to keep logs useful.- Added a small UI routing log viewer (refresh + clear) via IPC/preload API.- Added a settings-backed log mode toggle (redacted vs full) and wired main/log store to honor it.- Improved scheme list status labels and added scheme-specific “Set default…” guidance (clipboard + instructions).- Added inline extractor validation messaging in SchemeEditor and tightened route-log typing end-to-end.- Fixed SchemeEditor lint by removing an unnecessary `??` on extractor.pattern.- Added a best-effort Default Apps deep link (registeredAppUser) with safe fallback.
