@@ -43,6 +43,5 @@
 - Added scheme editor UI, settings panel, and aligned registration to enabled schemes.
 - Fixed lint issues in scheme add/reset and template id generation.
 - Added pre-save validation and prompt-based preset picking.
-- Added pre-save validation and prompt-based preset picking.
 - Added tests for core React UI components (SchemeEditor, SettingsPanel,
   TestPanel) and fixed remaining SchemeEditor lint warnings.

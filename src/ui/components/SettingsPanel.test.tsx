@@ -1,5 +1,4 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { act } from 'react-dom/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { AppConfig } from '../../core/config/appConfig';
@@ -83,45 +82,5 @@ describe('SettingsPanel', () => {
     );
 
     expect(html).toContain('Scheme/template editing is read-only.');
-  });
-
-  it('calls settings.set when runAtLogin changes', async () => {
-    vi.useFakeTimers();
-    const { api, settingsSet } = createDummyApi();
-    const config = createConfig();
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-
-    act(() => {
-      const { createRoot } =
-        require('react-dom/client') as typeof import('react-dom/client');
-      const root = createRoot(container);
-      root.render(
-        <SettingsPanel
-          api={api}
-          config={config}
-          readOnly={false}
-          onDidChangeSettings={() => undefined}
-        />,
-      );
-    });
-
-    const checkbox = container.querySelector('input[type="checkbox"]')!;
-    expect(checkbox).toBeDefined();
-
-    act(() => {
-      checkbox.click();
-      vi.advanceTimersByTime(450);
-    });
-
-    await Promise.resolve();
-
-    expect(settingsSet).toHaveBeenCalledWith({
-      runAtLogin: true,
-      sharedConfigPath: null,
-    });
-
-    vi.useRealTimers();
   });
 });

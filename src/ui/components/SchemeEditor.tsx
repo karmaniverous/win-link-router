@@ -15,7 +15,9 @@ function swap<T>(arr: T[], i: number, j: number): T[] {
 
 function newId(prefix: string): string {
   // Browser-safe id generation; stable enough for local config usage.
-  return `${prefix}-${String(Date.now())}-${Math.random().toString(16).slice(2)}`;
+  return `${prefix}-${String(Date.now())}-${Math.random()
+    .toString(16)
+    .slice(2)}`;
 }
 
 function findPresetsForScheme(
@@ -60,12 +62,11 @@ export function SchemeEditor(props: {
 
   const schemePresets = findPresetsForScheme(presets, scheme.scheme);
   const defaultPreset = schemePresets.length
-    ? schemePresets.find(
+    ? (schemePresets.find(
         (p) =>
-          p.presetId !== undefined &&
-          p.presetId === scheme.derivedFromPresetId,
-      ) ?? schemePresets[0]
-    null;
+          p.presetId !== undefined && p.presetId === scheme.derivedFromPresetId,
+      ) ?? schemePresets[0])
+    : null;
 
   const updateTemplate = (id: string, patch: Partial<TemplateConfig>) => {
     const templates = scheme.templates.map((t) =>
