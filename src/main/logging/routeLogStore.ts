@@ -3,6 +3,7 @@
  * - Maintain a minimal routing log for debugging (persisted per user).
  * - Keep filesystem side effects in main-process code (ports/adapters boundary).
  * - Enforce a simple size cap/retention policy to avoid unbounded growth.
+ * - Avoid persisting raw URIs/targets by default (redaction for sensitive data).
  */
 import path from 'node:path';
 
@@ -13,7 +14,10 @@ import {
   writeJsonFileAtomic,
 } from '../config/jsonFile';
 
+const REDACTED = '[redacted]';
+
 interface RouteLogEntry {
+  seq: number;
   when: string;
   result: RouteUriResult;
 }
@@ -24,10 +28,85 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isRouteLogEntry(value: unknown): value is RouteLogEntry {
   if (!isRecord(value)) return false;
+  if (typeof value.seq !== 'number') return false;
   if (typeof value.when !== 'string') return false;
   if (!isRecord(value.result)) return false;
   if (typeof value.result.type !== 'string') return false;
   return true;
+}
+
+function parseSchemeFromString(value: string): string | null {
+  const idx = value.indexOf(':');
+  if (idx <= 0) return null;
+  return value.slice(0, idx);
+}
+
+function redactIncomingUri(uri: string, schemeOverride?: string): string {
+  const scheme = schemeOverride ?? parseSchemeFromString(uri) ?? null;
+  if (!scheme) return REDACTED;
+  return `${scheme.toLowerCase()}:${REDACTED}`;
+}
+
+function redactTarget(target: string): string {
+  const scheme = parseSchemeFromString(target);
+  if (!scheme) return REDACTED;
+  return `${scheme.toLowerCase()}:${REDACTED}`;
+}
+
+function redactMatchGroups(
+  matchGroups: Record<string, string>,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const key of Object.keys(matchGroups)) {
+    out[key] = REDACTED;
+  }
+  return out;
+}
+
+function redactRouteUriResult(result: RouteUriResult): RouteUriResult {
+  // Ensure we do not persist raw URIs or rendered targets by default. We keep
+  // scheme-level information and errors for debugging.
+  const clone = structuredClone(result) as {
+    uri?: unknown;
+    scheme?: unknown;
+    target?: unknown;
+    attempts?: unknown;
+    matchGroups?: unknown;
+  };
+
+  const schemeOverride =
+    typeof clone.scheme === 'string' ? clone.scheme : undefined;
+
+  if (typeof clone.uri === 'string') {
+    clone.uri = redactIncomingUri(clone.uri, schemeOverride);
+  }
+
+  if (typeof clone.target === 'string') {
+    clone.target = redactTarget(clone.target);
+  }
+
+  if (Array.isArray(clone.attempts)) {
+    for (const attempt of clone.attempts) {
+      if (!isRecord(attempt)) continue;
+      const renderedTarget = attempt.renderedTarget;
+      if (typeof renderedTarget === 'string') {
+        attempt.renderedTarget = redactTarget(renderedTarget);
+      }
+    }
+  }
+
+  if (isRecord(clone.matchGroups)) {
+    const allStrings = Object.values(clone.matchGroups).every(
+      (v) => typeof v === 'string',
+    );
+    if (allStrings) {
+      clone.matchGroups = redactMatchGroups(
+        clone.matchGroups as Record<string, string>,
+      );
+    }
+  }
+
+  return clone as unknown as RouteUriResult;
 }
 
 function estimateBytes(value: unknown): number {
@@ -82,7 +161,9 @@ export class RouteLogStore {
     this.maxBytes = opts.maxBytes ?? 512 * 1024;
   }
 
-  async read(): Promise<{ when: string; result: RouteUriResult }[]> {
+  async read(): Promise<
+    { seq: number; when: string; result: RouteUriResult }[]
+  > {
     if (!(await fileExists(this.filePath))) return [];
     try {
       const raw = await readJsonFile(this.filePath);
@@ -94,12 +175,17 @@ export class RouteLogStore {
   }
 
   async append(result: RouteUriResult): Promise<void> {
+    const current = await this.read();
+    const lastSeq = current.length
+      ? (current[current.length - 1]?.seq ?? 0)
+      : 0;
+
     const entry: RouteLogEntry = {
+      seq: lastSeq + 1,
       when: new Date().toISOString(),
-      result,
+      result: redactRouteUriResult(result),
     };
 
-    const current = await this.read();
     const next = trimEntries(
       [...current, entry],
       this.maxEntries,

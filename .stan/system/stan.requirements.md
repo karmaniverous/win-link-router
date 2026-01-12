@@ -193,5 +193,10 @@ Durable project requirements (desired end-state).
 - The app must maintain a minimal routing log for debugging:
   - Timestamp, incoming URI, scheme, extracted groups (redacted if needed),
     attempted targets, and result.
+  - By default, persisted logs must avoid storing sensitive payloads:
+    - Do not persist raw incoming URIs.
+    - Do not persist fully rendered target URLs (which may include payloads).
+    - Persist only scheme-level information (e.g. `tel:[redacted]`,
+      `whatsapp:[redacted]`) plus template ids/labels and error/result metadata.
   - A full log viewer is optional, but the UI must surface relevant diagnostics
     on routing failures (via the test panel and error banner).

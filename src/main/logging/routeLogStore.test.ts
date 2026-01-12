@@ -39,8 +39,8 @@ describe('RouteLogStore', () => {
 
     const entries = await store.read();
     expect(entries).toHaveLength(3);
-    expect(entries[0]?.result.uri).toBe('uri-2');
-    expect(entries[2]?.result.uri).toBe('uri-4');
+    expect(entries[0]?.seq).toBe(3);
+    expect(entries[2]?.seq).toBe(5);
   });
 
   it('trims to fit maxBytes while keeping at least one entry', async () => {
@@ -49,7 +49,7 @@ describe('RouteLogStore', () => {
     const store = new RouteLogStore({
       userDataDir: tmpDir,
       maxEntries: 100,
-      maxBytes: 350,
+      maxBytes: 1,
     });
 
     const longUri = `tel:${'1'.repeat(600)}`;
@@ -61,6 +61,6 @@ describe('RouteLogStore', () => {
 
     const entries = await store.read();
     expect(entries.length).toBe(1);
-    expect(entries[0]?.result.uri).toBe(longUri);
+    expect(entries[0]?.seq).toBe(3);
   });
 });
