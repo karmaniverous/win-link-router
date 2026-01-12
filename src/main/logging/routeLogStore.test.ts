@@ -30,7 +30,10 @@ describe('RouteLogStore', () => {
     });
 
     for (let i = 0; i < 5; i++) {
-      const result: RouteUriResult = { type: 'noScheme', uri: `uri-${i}` };
+      const result: RouteUriResult = {
+        type: 'noScheme',
+        uri: `uri-${String(i)}`,
+      };
       await store.append(result);
     }
 

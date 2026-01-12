@@ -46,5 +46,8 @@
 - Added tests for core React UI components (SchemeEditor, SettingsPanel,
   TestPanel) and fixed remaining SchemeEditor lint warnings.
 - Fixed lint failure by removing an unused `TemplateConfig` import in `SchemeEditor.test.tsx`.
-- Reviewed latest script outputs: typecheck/tests/knip/package are passing; lint fix unblocks `npm run lint`.- Added a minimal per-user routing log (persisted under `userData`) with retention caps.
-- Included extractor match groups in route results to improve diagnostics/logging.
+- Reviewed latest script outputs: typecheck/tests/knip/package are passing; lint fix unblocks `npm run lint`.
+- Added a minimal per-user routing log (persisted under `userData`) with retention caps.
+- Included extractor match groups in route results to improve diagnostics/logging.
+- Fixed lint in routing log tests by avoiding number interpolation in template literals.
+- Fixed Knip unused exports by removing `__private__` and keeping `RouteLogEntry` internal.

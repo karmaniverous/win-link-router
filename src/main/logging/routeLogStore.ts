@@ -13,7 +13,7 @@ import {
   writeJsonFileAtomic,
 } from '../config/jsonFile';
 
-export interface RouteLogEntry {
+interface RouteLogEntry {
   when: string;
   result: RouteUriResult;
 }
@@ -82,7 +82,7 @@ export class RouteLogStore {
     this.maxBytes = opts.maxBytes ?? 512 * 1024;
   }
 
-  async read(): Promise<RouteLogEntry[]> {
+  async read(): Promise<{ when: string; result: RouteUriResult }[]> {
     if (!(await fileExists(this.filePath))) return [];
     try {
       const raw = await readJsonFile(this.filePath);
@@ -109,8 +109,3 @@ export class RouteLogStore {
     await writeJsonFileAtomic(this.filePath, next);
   }
 }
-
-export const __private__ = {
-  estimateBytes,
-  trimEntries,
-};
