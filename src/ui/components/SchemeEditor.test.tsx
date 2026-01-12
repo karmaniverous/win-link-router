@@ -109,4 +109,23 @@ describe('SchemeEditor', () => {
     const checkboxCount = (html.match(/type="checkbox"/g) ?? []).length;
     expect(checkboxCount).toBeGreaterThanOrEqual(2);
   });
+
+  it('shows an inline error when extractor regex is invalid', () => {
+    const scheme = createScheme({
+      extractor: { pattern: '(', flags: '' },
+    });
+
+    const html = renderToStaticMarkup(
+      <SchemeEditor
+        api={createDummyApi()}
+        presets={null}
+        readOnly={false}
+        scheme={scheme}
+        onChangeScheme={vi.fn()}
+        onRemoveScheme={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain('Extractor regex is invalid:');
+  });
 });

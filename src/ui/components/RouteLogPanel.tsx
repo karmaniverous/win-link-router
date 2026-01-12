@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import type { RouteUriResult } from '../../core/routing/routeUri';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 
 interface RouteLogEntry {
   seq: number;
   when: string;
-  result: unknown;
+  result: RouteUriResult;
 }
 
 export function RouteLogPanel(props: { api: WinLinkRouterApi }) {

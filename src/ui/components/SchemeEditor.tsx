@@ -37,6 +37,27 @@ function cloneFromPreset(preset: SchemeConfig): SchemeConfig {
   };
 }
 
+function getExtractorError(
+  extractor: SchemeConfig['extractor'],
+): string | null {
+  const pattern = extractor.pattern ?? '';
+  const flags = extractor.flags ?? '';
+
+  if (!pattern.trim()) return 'Extractor pattern is required.';
+
+  // Global matching is stateful across calls; we forbid it for determinism.
+  if (flags.includes('g')) {
+    return 'Extractor flags must not include "g".';
+  }
+
+  try {
+    RegExp(pattern, flags);
+    return null;
+  } catch (err) {
+    return `Extractor regex is invalid: ${(err as Error).message}`;
+  }
+}
+
 export function SchemeEditor(props: {
   api: WinLinkRouterApi;
   scheme: SchemeConfig | null;
@@ -68,6 +89,7 @@ export function SchemeEditor(props: {
       ) ?? schemePresets[0])
     : null;
 
+  const extractorError = getExtractorError(scheme.extractor);
   const updateTemplate = (id: string, patch: Partial<TemplateConfig>) => {
     const templates = scheme.templates.map((t) =>
       t.id === id ? { ...t, ...patch } : t,
@@ -194,9 +216,7 @@ export function SchemeEditor(props: {
           }}
         />
       </label>
-      {scheme.extractor.flags?.includes('g') ? (
-        <p className="error">Extractor flags must not include "g".</p>
-      ) : null}
+      {extractorError ? <p className="error">{extractorError}</p> : null}
 
       <h3>Templates</h3>
       <div className="row">

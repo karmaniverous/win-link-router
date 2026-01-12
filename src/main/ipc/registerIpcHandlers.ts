@@ -18,6 +18,7 @@ import {
 import { parseAppConfig } from '../../core/config/appConfig.schema';
 import {
   evaluateTemplatesForTest,
+  type RouteUriResult,
   type TemplateEvaluation,
 } from '../../core/routing/routeUri';
 import type { TemplateRenderer } from '../../core/routing/templateRenderer';
@@ -45,7 +46,7 @@ interface TestEvaluateResponse {
 }
 
 interface RouteLogGetResponse {
-  entries: { seq: number; when: string; result: unknown }[];
+  entries: { seq: number; when: string; result: RouteUriResult }[];
 }
 
 export function registerIpcHandlers(opts: {
