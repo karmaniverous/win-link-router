@@ -159,7 +159,9 @@ export function registerIpcHandlers(opts: {
 
   ipcMain.handle('windows:getSchemeStatuses', async () => {
     const config = opts.configStore.getLoadedConfig();
-    return getAllSchemeStatusesFromConfig(config);
+    return getAllSchemeStatusesFromConfig(config, {
+      exePath: opts.exePath,
+    });
   });
 
   ipcMain.handle('windows:openDefaultApps', async (_event, scheme?: string) => {

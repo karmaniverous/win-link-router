@@ -2,11 +2,16 @@
  * Requirements addressed:
  * - Register as a candidate handler per configured scheme under HKCU (no admin).
  * - Do not set defaults programmatically; only detect default status.
- * - Detect default status robustly via UserChoice ProgId compare.
+ * - Detect default status robustly via UserChoice ProgId compare (including
+ *   Applications\<exe>.exe ProgIds when applicable).
  * - List schemes the app is registered for from its own Capabilities.
  * - Registration must follow enabled schemes (remove stale URLAssociations).
  */
 import { type AppConfig, normalizeScheme } from '../../core/config/appConfig';
+import {
+  computeDefaultHandlerStatus,
+  type DefaultHandlerStatus,
+} from './defaultHandlerProgId';
 import {
   regDeleteValue,
   regListValues,
@@ -18,8 +23,6 @@ const VENDOR_KEY = 'Software\\karmaniverous\\win-link-router';
 const CAPABILITIES_KEY = `${VENDOR_KEY}\\Capabilities`;
 const URL_ASSOCIATIONS_KEY = `${CAPABILITIES_KEY}\\URLAssociations`;
 const REGISTERED_APPLICATIONS_KEY = 'Software\\RegisteredApplications';
-
-type DefaultHandlerStatus = 'default' | 'not-default' | 'unknown';
 
 interface SchemeWindowsStatus {
   scheme: string;
@@ -168,25 +171,23 @@ async function getUserChoiceProgId(scheme: string): Promise<string | null> {
 async function getSchemeWindowsStatus(
   scheme: string,
   enabled: boolean,
+  exePath?: string,
 ): Promise<SchemeWindowsStatus> {
   const normalized = normalizeScheme(scheme);
   const expectedProgId = progIdForScheme(normalized);
-  const expectedLower = expectedProgId.toLowerCase();
 
   const urlAssociations = await getRegisteredUrlAssociations();
   const registeredProgId = urlAssociations[normalized.toLowerCase()] ?? null;
   const registered =
     typeof registeredProgId === 'string' &&
-    registeredProgId.toLowerCase() === expectedLower;
+    registeredProgId.toLowerCase() === expectedProgId.toLowerCase();
 
   const actualProgId = await getUserChoiceProgId(normalized);
-  const actualLower = actualProgId ? actualProgId.toLowerCase() : null;
-  const defaultStatus: DefaultHandlerStatus =
-    actualProgId === null
-      ? 'unknown'
-      : actualLower === expectedLower
-        ? 'default'
-        : 'not-default';
+  const defaultStatus: DefaultHandlerStatus = computeDefaultHandlerStatus({
+    expectedProgId,
+    actualProgId,
+    exePath,
+  });
 
   return {
     scheme: normalized,
@@ -200,10 +201,13 @@ async function getSchemeWindowsStatus(
 
 export async function getAllSchemeStatusesFromConfig(
   config: AppConfig,
+  opts?: { exePath?: string },
 ): Promise<SchemeWindowsStatus[]> {
   const statuses: SchemeWindowsStatus[] = [];
   for (const s of config.schemes) {
-    statuses.push(await getSchemeWindowsStatus(s.scheme, s.enabled));
+    statuses.push(
+      await getSchemeWindowsStatus(s.scheme, s.enabled, opts?.exePath),
+    );
   }
   return statuses;
 }

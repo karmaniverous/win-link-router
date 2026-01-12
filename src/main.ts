@@ -192,6 +192,9 @@ void app.whenReady().then(async () => {
 
   void maybePromptDefaultHandlerMismatch(
     (configStore ?? (await ensureStoresReady())).getLoadedConfig(),
+    {
+      exePath: process.execPath,
+    },
   ).catch(() => undefined);
 });
 

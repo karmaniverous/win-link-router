@@ -12,11 +12,14 @@ import { getAllSchemeStatusesFromConfig } from './protocolRegistration';
 
 export async function maybePromptDefaultHandlerMismatch(
   config: AppConfig,
+  opts?: { exePath?: string },
 ): Promise<void> {
   const enabled = config.schemes.filter((s) => s.enabled);
   if (enabled.length === 0) return;
 
-  const statuses = await getAllSchemeStatusesFromConfig(config);
+  const statuses = await getAllSchemeStatusesFromConfig(config, {
+    exePath: opts?.exePath,
+  });
   const enabledStatuses = statuses.filter((s) => s.enabled);
 
   const notDefault = enabledStatuses.filter(
