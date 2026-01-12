@@ -56,7 +56,12 @@ const config: ForgeConfig = {
     },
   },
   makers: [
-    new MakerSquirrel({}),
+    // MakerSquirrel has issues with scoped package names (e.g. "@scope/name")
+    // when generating the temp .nuspec path on Windows. Override `name` to a
+    // non-scoped value so `npm run make` can reliably produce installers.
+    new MakerSquirrel({
+      name: 'win-link-router',
+    }),
     new MakerZIP({}, ['darwin']),
     new MakerRpm({}),
     new MakerDeb({}),
