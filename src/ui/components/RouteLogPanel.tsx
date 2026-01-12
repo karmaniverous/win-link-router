@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type { RouteUriResult } from '../../core/routing/routeUri';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface RouteLogEntry {
   seq: number;
@@ -15,6 +16,7 @@ export function RouteLogPanel(props: { api: WinLinkRouterApi }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [entries, setEntries] = useState<RouteLogEntry[]>([]);
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -37,6 +39,24 @@ export function RouteLogPanel(props: { api: WinLinkRouterApi }) {
 
   return (
     <section className="panel">
+      <ConfirmDialog
+        open={confirmClearOpen}
+        title="Clear routing log"
+        message="Clear routing log?"
+        confirmLabel="Clear"
+        onCancel={() => {
+          setConfirmClearOpen(false);
+        }}
+        onConfirm={() => {
+          setConfirmClearOpen(false);
+          void api.routeLog
+            .clear()
+            .then(() => reload())
+            .catch((err: unknown) => {
+              setError((err as Error).message);
+            });
+        }}
+      />
       <div className="row">
         <h2>Routing log</h2>
         <div className="rowActions">
@@ -50,14 +70,7 @@ export function RouteLogPanel(props: { api: WinLinkRouterApi }) {
           <button
             type="button"
             onClick={() => {
-              const ok = window.confirm('Clear routing log?');
-              if (!ok) return;
-              void api.routeLog
-                .clear()
-                .then(() => reload())
-                .catch((err: unknown) => {
-                  setError((err as Error).message);
-                });
+              setConfirmClearOpen(true);
             }}
             disabled={loading}
           >

@@ -7,8 +7,6 @@
     - Prefer `ms-settings:defaultapps?registeredAppUser=win-link-router` when supported.
     - Fall back to plain `ms-settings:defaultapps` when not supported.
 - UI polish:
-  - Add inline validation and clearer save-error UX for extractor/templates.
-    (e.g., show regex/template validation errors near fields before autosave).
   - Add preset picker (choose among multiple presets per scheme, when added).
   - Expand routing-failure banner details (e.g., include which template failed,
     or how many targets were attempted) without bloating App.tsx.
@@ -57,3 +55,4 @@
 - Fixed SchemeEditor lint by removing an unnecessary `??` on extractor.pattern.
 - Added a best-effort Default Apps deep link (registeredAppUser) with safe fallback.
 - Extracted routing-failure banner logic into a testable renderer module and used it in App.tsx.
+- Replaced window.prompt/confirm with in-app dialogs and added interaction tests to prevent regressions.

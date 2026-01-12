@@ -5,44 +5,16 @@ import type {
   PresetsFile,
   SchemeConfig,
 } from '../core/config/appConfig';
-import { normalizeScheme } from '../core/config/appConfig';
-import type { RouteUriResult } from '../core/routing/routeUri';
 import type { WinLinkRouterApi } from './api/winLinkRouterApi';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
-import { formatSchemeStatusLabel } from './components/formatSchemeStatusLabel';
 import { SchemeEditor } from './components/SchemeEditor';
+import { SchemesSidebar } from './components/SchemesSidebar';
 import { SettingsAndLogPanel } from './components/SettingsPanel';
 import { TestPanel } from './components/TestPanel';
 import {
   formatRouteFailureBanner,
   inferSchemeForRouteFailure,
 } from './routing/routeFailureUi';
-
-function findPresetsForScheme(
-  presets: PresetsFile | null,
-  scheme: string,
-): SchemeConfig[] {
-  if (!presets) return [];
-  return presets.presets.filter((x) => x.scheme === scheme);
-}
-
-function createBlankScheme(scheme: string): SchemeConfig {
-  return {
-    scheme,
-    enabled: true,
-    extractor: { pattern: '^(?<value>.*)$', flags: '' },
-    templates: [],
-  };
-}
-
-function cloneFromPreset(preset: SchemeConfig): SchemeConfig {
-  const { presetId, ...rest } = preset;
-  return {
-    ...rest,
-    presetId: undefined,
-    derivedFromPresetId: presetId ?? undefined,
-  };
-}
 
 function validateConfigBeforeSave(config: AppConfig): string | null {
   for (const scheme of config.schemes) {
@@ -277,107 +249,33 @@ export function App() {
       />
 
       <div className="layout">
-        <aside className="sidebar">
-          <div className="row">
-            <h2>Schemes</h2>
-            <div className="rowActions">
-              <button
-                type="button"
-                disabled={readOnly}
-                onClick={() => {
-                  const raw = window.prompt(
-                    'Scheme to add (e.g. TEL, MAILTO):',
-                  );
-                  if (!raw || !config) return;
-                  let scheme: string;
-                  try {
-                    scheme = normalizeScheme(raw);
-                  } catch (err) {
-                    setError((err as Error).message);
-                    return;
-                  }
-                  if (config.schemes.some((s) => s.scheme === scheme)) {
-                    setError(`Scheme ${scheme} already exists.`);
-                    return;
-                  }
+        <SchemesSidebar
+          readOnly={readOnly}
+          config={config}
+          presets={presets}
+          statuses={statuses}
+          selectedScheme={selectedScheme}
+          onSelectScheme={setSelectedScheme}
+          onError={(message) => {
+            setError(message);
+          }}
+          onAddScheme={(schemeConfig: SchemeConfig) => {
+            if (!config) return;
+            if (config.schemes.some((s) => s.scheme === schemeConfig.scheme)) {
+              setError(`Scheme ${schemeConfig.scheme} already exists.`);
+              return;
+            }
 
-                  const schemePresets = findPresetsForScheme(presets, scheme);
-                  let schemeConfig: SchemeConfig = createBlankScheme(scheme);
-
-                  if (schemePresets.length === 1) {
-                    const usePreset = window.confirm(
-                      `Preset found for ${scheme}. Initialize from preset?`,
-                    );
-                    if (usePreset) {
-                      schemeConfig = cloneFromPreset(schemePresets[0]);
-                    }
-                  } else if (schemePresets.length > 1) {
-                    const options = schemePresets
-                      .map((p) => p.presetId)
-                      .filter((x): x is string => Boolean(x));
-                    const chosen = window.prompt(
-                      `Multiple presets found for ${scheme}. Enter presetId to use:\n${options.join(
-                        '\n',
-                      )}`,
-                      options[0] ?? '',
-                    );
-                    if (chosen) {
-                      const match = schemePresets.find(
-                        (p) => p.presetId === chosen,
-                      );
-                      if (match) {
-                        schemeConfig = cloneFromPreset(match);
-                      } else {
-                        setError(
-                          `Unknown presetId "${chosen}". Added blank scheme.`,
-                        );
-                      }
-                    }
-                  }
-
-                  const next: AppConfig = {
-                    ...config,
-                    schemes: [...config.schemes, schemeConfig],
-                  };
-                  setConfig(next);
-                  configRef.current = next;
-                  setSelectedScheme(scheme);
-                  scheduleSave({ ensureRegistration: true });
-                }}
-              >
-                +
-              </button>
-            </div>
-          </div>
-          {!config ? null : (
-            <ul className="list">
-              {config.schemes.map((s) => {
-                const status = statusByScheme.get(s.scheme) ?? null;
-                const label = formatSchemeStatusLabel({
-                  scheme: s.scheme,
-                  enabled: s.enabled,
-                  status,
-                });
-                return (
-                  <li key={s.scheme}>
-                    <button
-                      type="button"
-                      className={selectedScheme === s.scheme ? 'selected' : ''}
-                      onClick={() => {
-                        setSelectedScheme(s.scheme);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          {!config?.schemes.length ? (
-            <p className="muted">No schemes configured yet.</p>
-          ) : null}
-        </aside>
+            const next: AppConfig = {
+              ...config,
+              schemes: [...config.schemes, schemeConfig],
+            };
+            setConfig(next);
+            configRef.current = next;
+            setSelectedScheme(schemeConfig.scheme);
+            scheduleSave({ ensureRegistration: true });
+          }}
+        />
 
         <section className="content">
           <SchemeEditor

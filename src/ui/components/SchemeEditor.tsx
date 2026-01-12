@@ -1,9 +1,12 @@
+import { useMemo, useState } from 'react';
+
 import type {
   PresetsFile,
   SchemeConfig,
   TemplateConfig,
 } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
+import { ConfirmDialog } from './ConfirmDialog';
 
 function swap<T>(arr: T[], i: number, j: number): T[] {
   const next = [...arr];
@@ -89,6 +92,30 @@ export function SchemeEditor(props: {
       ) ?? schemePresets[0])
     : null;
 
+  const presetOptions = useMemo(() => {
+    return schemePresets.map((p, idx) => ({
+      key: p.presetId ?? `preset-${String(idx)}`,
+      label: p.presetId ?? `Preset ${String(idx + 1)}`,
+      preset: p,
+    }));
+  }, [schemePresets]);
+
+  const [removeSchemeOpen, setRemoveSchemeOpen] = useState(false);
+  const [removeTemplateId, setRemoveTemplateId] = useState<string | null>(null);
+
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetPresetKey, setResetPresetKey] = useState<string>(() => {
+    const match = presetOptions.find(
+      (o) => o.preset.presetId === scheme.derivedFromPresetId,
+    );
+    return match?.key ?? presetOptions[0]?.key ?? 'blank';
+  });
+
+  const templateToRemove =
+    removeTemplateId !== null
+      ? (scheme.templates.find((t) => t.id === removeTemplateId) ?? null)
+      : null;
+
   const extractorError = getExtractorError(scheme.extractor);
   const updateTemplate = (id: string, patch: Partial<TemplateConfig>) => {
     const templates = scheme.templates.map((t) =>
@@ -109,6 +136,84 @@ export function SchemeEditor(props: {
 
   return (
     <section className="panel">
+      <ConfirmDialog
+        open={removeSchemeOpen}
+        title="Remove scheme"
+        message={`Remove scheme ${scheme.scheme}?`}
+        confirmLabel="Remove"
+        onCancel={() => {
+          setRemoveSchemeOpen(false);
+        }}
+        onConfirm={() => {
+          setRemoveSchemeOpen(false);
+          onRemoveScheme(scheme.scheme);
+        }}
+      />
+
+      <ConfirmDialog
+        open={removeTemplateId !== null}
+        title="Remove template"
+        message={`Remove template "${templateToRemove?.label ?? '(untitled)'}"?`}
+        confirmLabel="Remove"
+        onCancel={() => {
+          setRemoveTemplateId(null);
+        }}
+        onConfirm={() => {
+          const id = removeTemplateId;
+          setRemoveTemplateId(null);
+          if (!id) return;
+          onChangeScheme({
+            ...scheme,
+            templates: scheme.templates.filter((x) => x.id !== id),
+          });
+        }}
+      />
+
+      <ConfirmDialog
+        open={resetOpen}
+        title="Reset to preset"
+        message={`Reset ${scheme.scheme} to preset? This will overwrite extractor and templates.`}
+        confirmLabel="Reset"
+        onCancel={() => {
+          setResetOpen(false);
+        }}
+        confirmDisabled={!presetOptions.length}
+        onConfirm={() => {
+          const chosen =
+            presetOptions.find((p) => p.key === resetPresetKey)?.preset ?? null;
+          if (!chosen) return;
+          const reset = cloneFromPreset(chosen);
+          setResetOpen(false);
+          onChangeScheme(
+            {
+              ...reset,
+              scheme: scheme.scheme,
+              enabled: scheme.enabled,
+            },
+            { ensureRegistration: true },
+          );
+        }}
+      >
+        {presetOptions.length > 1 ? (
+          <label className="field">
+            <span>Preset</span>
+            <select
+              value={resetPresetKey}
+              onChange={(e) => {
+                setResetPresetKey(e.target.value);
+              }}
+              aria-label="Preset"
+            >
+              {presetOptions.map((p) => (
+                <option key={p.key} value={p.key}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+      </ConfirmDialog>
+
       <div className="row">
         <h2>{scheme.scheme}</h2>
         <div className="rowActions">
@@ -123,38 +228,14 @@ export function SchemeEditor(props: {
               type="button"
               disabled={readOnly}
               onClick={() => {
-                const ok = window.confirm(
-                  `Reset ${scheme.scheme} to preset? This will overwrite extractor and templates.`,
-                );
-                if (!ok) return;
-                let chosenPreset: SchemeConfig | null = defaultPreset;
-                if (schemePresets.length > 1) {
-                  const options = schemePresets
-                    .map((p) => p.presetId)
-                    .filter((x): x is string => Boolean(x));
-                  const chosenId = window.prompt(
-                    `Multiple presets available. Enter presetId to reset to:\n${options.join(
-                      '\n',
-                    )}`,
-                    defaultPreset.presetId ?? '',
-                  );
-                  if (!chosenId) return;
-                  const match = schemePresets.find(
-                    (p) => p.presetId === chosenId,
-                  );
-                  chosenPreset = match ?? null;
-                  if (!chosenPreset) return;
-                }
-
-                const reset = cloneFromPreset(chosenPreset);
-                onChangeScheme(
-                  {
-                    ...reset,
-                    scheme: scheme.scheme,
-                    enabled: scheme.enabled,
-                  },
-                  { ensureRegistration: true },
-                );
+                const preferredKey =
+                  presetOptions.find(
+                    (p) =>
+                      p.preset.presetId !== undefined &&
+                      p.preset.presetId === scheme.derivedFromPresetId,
+                  )?.key ?? presetOptions[0]?.key;
+                if (preferredKey) setResetPresetKey(preferredKey);
+                setResetOpen(true);
               }}
             >
               Reset to preset
@@ -164,9 +245,7 @@ export function SchemeEditor(props: {
             type="button"
             disabled={readOnly}
             onClick={() => {
-              const ok = window.confirm(`Remove scheme ${scheme.scheme}?`);
-              if (!ok) return;
-              onRemoveScheme(scheme.scheme);
+              setRemoveSchemeOpen(true);
             }}
           >
             Remove
@@ -271,12 +350,7 @@ export function SchemeEditor(props: {
                   type="button"
                   disabled={readOnly}
                   onClick={() => {
-                    const ok = window.confirm(`Remove template "${t.label}"?`);
-                    if (!ok) return;
-                    onChangeScheme({
-                      ...scheme,
-                      templates: scheme.templates.filter((x) => x.id !== t.id),
-                    });
+                    setRemoveTemplateId(t.id);
                   }}
                 >
                   Remove

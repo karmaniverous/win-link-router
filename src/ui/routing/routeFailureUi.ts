@@ -44,7 +44,8 @@ export function formatRouteFailureBanner(
       return `Routing failed: could not open any target (${result.scheme}).`;
     default: {
       const exhaustive: never = result;
-      return `Routing failed: ${(exhaustive as { type?: unknown }).type ?? 'unknown'}.`;
+      void exhaustive;
+      return 'Routing failed: unknown error.';
     }
   }
 }

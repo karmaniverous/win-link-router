@@ -1,0 +1,80 @@
+// @vitest-environment jsdom
+import { cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import type { SchemeConfig } from '../../core/config/appConfig';
+import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
+import { SchemeEditor } from './SchemeEditor';
+
+afterEach(() => {
+  cleanup();
+});
+
+function createDummyApi(): WinLinkRouterApi {
+  return {
+    appConfig: {
+      get: vi.fn(),
+      set: vi.fn(),
+      exportSchemes: vi.fn(),
+      importSchemes: vi.fn(),
+    },
+    settings: { set: vi.fn() },
+    presets: { get: vi.fn() },
+    windows: {
+      ensureRegistration: vi.fn(),
+      getSchemeStatuses: vi.fn(),
+      openDefaultApps: vi.fn().mockResolvedValue({ ok: true }),
+    },
+    routing: {
+      getLastRouteError: vi.fn(),
+      clearLastRouteError: vi.fn(),
+    },
+    routeLog: {
+      get: vi.fn().mockResolvedValue({ entries: [] }),
+      clear: vi.fn().mockResolvedValue({ ok: true as const }),
+    },
+    test: { evaluate: vi.fn() },
+  };
+}
+
+function createScheme(): SchemeConfig {
+  return {
+    scheme: 'TEL',
+    enabled: true,
+    extractor: { pattern: '^tel:(?<number>.*)$', flags: 'i' },
+    templates: [],
+  };
+}
+
+describe('SchemeEditor (interaction)', () => {
+  it('does not call window.confirm for destructive actions', async () => {
+    const w = window as unknown as { confirm: (message?: string) => boolean };
+    const originalConfirm = w.confirm;
+    w.confirm = () => {
+      throw new Error('confirm() is not supported.');
+    };
+
+    const user = userEvent.setup();
+    const onRemoveScheme = vi.fn();
+
+    render(
+      <SchemeEditor
+        api={createDummyApi()}
+        presets={null}
+        readOnly={false}
+        scheme={createScheme()}
+        onChangeScheme={vi.fn()}
+        onRemoveScheme={onRemoveScheme}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /^remove$/i }));
+    expect(screen.getByRole('dialog', { name: /remove scheme/i })).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /^remove$/i }));
+    expect(onRemoveScheme).toHaveBeenCalledWith('TEL');
+
+    w.confirm = originalConfirm;
+  });
+});
