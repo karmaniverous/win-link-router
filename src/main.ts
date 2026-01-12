@@ -10,6 +10,7 @@ import { app, BrowserWindow } from 'electron';
 import started from 'electron-squirrel-startup';
 
 import { createTemplateRenderer } from './core/routing/templateRenderer';
+import { findUriArg } from './main/argv/findUriArg';
 import { AppConfigStore } from './main/config/appConfigStore';
 import { registerIpcHandlers } from './main/ipc/registerIpcHandlers';
 import { RouteLogStore } from './main/logging/routeLogStore';
@@ -24,16 +25,6 @@ import { ensureCandidateRegistration } from './main/windows/protocolRegistration
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
-}
-
-function findUriArg(argv: string[]): string | null {
-  for (const arg of argv) {
-    if (!arg) continue;
-    if (arg.startsWith('--')) continue;
-    const idx = arg.indexOf(':');
-    if (idx > 0) return arg;
-  }
-  return null;
 }
 
 let mainWindow: BrowserWindow | null = null;

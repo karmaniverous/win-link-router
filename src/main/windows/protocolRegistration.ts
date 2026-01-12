@@ -171,16 +171,20 @@ async function getSchemeWindowsStatus(
 ): Promise<SchemeWindowsStatus> {
   const normalized = normalizeScheme(scheme);
   const expectedProgId = progIdForScheme(normalized);
+  const expectedLower = expectedProgId.toLowerCase();
 
   const urlAssociations = await getRegisteredUrlAssociations();
   const registeredProgId = urlAssociations[normalized.toLowerCase()] ?? null;
-  const registered = registeredProgId === expectedProgId;
+  const registered =
+    typeof registeredProgId === 'string' &&
+    registeredProgId.toLowerCase() === expectedLower;
 
   const actualProgId = await getUserChoiceProgId(normalized);
+  const actualLower = actualProgId ? actualProgId.toLowerCase() : null;
   const defaultStatus: DefaultHandlerStatus =
     actualProgId === null
       ? 'unknown'
-      : actualProgId === expectedProgId
+      : actualLower === expectedLower
         ? 'default'
         : 'not-default';
 
