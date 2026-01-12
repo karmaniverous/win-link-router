@@ -11,7 +11,6 @@
 - Implement UI:
   - Add inline validation and clearer save-error UX for extractor/templates.
   - Add preset picker (choose among multiple presets per scheme, when added).
-- Implement tray + run-at-login:
 
 ## Completed (recent)
 
@@ -39,4 +38,4 @@
 - Fixed renderer lint issues and trimmed unused exported types.
 - Fixed App.tsx async cancellation and reload wiring.
 - Added scheme editor UI, settings panel, and aligned registration to enabled schemes.
-- Fixed lint issues in scheme add/reset and template id generation.
+- Fixed lint issues in scheme add/reset and template id generation.- Added pre-save validation and prompt-based preset picking.

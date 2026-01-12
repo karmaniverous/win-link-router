@@ -18,13 +18,12 @@ function newId(prefix: string): string {
   return `${prefix}-${String(Date.now())}-${Math.random().toString(16).slice(2)}`;
 }
 
-function findPresetForScheme(
+function findPresetsForScheme(
   presets: PresetsFile | null,
   scheme: string,
-): SchemeConfig | null {
-  if (!presets) return null;
-  const match = presets.presets.find((p) => p.scheme === scheme);
-  return match ?? null;
+): SchemeConfig[] {
+  if (!presets) return [];
+  return presets.presets.filter((p) => p.scheme === scheme);
 }
 
 function cloneFromPreset(preset: SchemeConfig): SchemeConfig {
@@ -59,7 +58,11 @@ export function SchemeEditor(props: {
     );
   }
 
-  const preset = findPresetForScheme(presets, scheme.scheme);
+  const schemePresets = findPresetsForScheme(presets, scheme.scheme);
+  const defaultPreset =
+    schemePresets.find((p) => p.presetId === scheme.derivedFromPresetId) ??
+    schemePresets[0] ??
+    null;
 
   const updateTemplate = (id: string, patch: Partial<TemplateConfig>) => {
     const templates = scheme.templates.map((t) =>
@@ -89,7 +92,7 @@ export function SchemeEditor(props: {
           >
             Set default…
           </button>
-          {preset ? (
+          {defaultPreset ? (
             <button
               type="button"
               disabled={readOnly}
@@ -98,7 +101,26 @@ export function SchemeEditor(props: {
                   `Reset ${scheme.scheme} to preset? This will overwrite extractor and templates.`,
                 );
                 if (!ok) return;
-                const reset = cloneFromPreset(preset);
+                let chosenPreset: SchemeConfig | null = defaultPreset;
+                if (schemePresets.length > 1) {
+                  const options = schemePresets
+                    .map((p) => p.presetId)
+                    .filter((x): x is string => Boolean(x));
+                  const chosenId = window.prompt(
+                    `Multiple presets available. Enter presetId to reset to:\n${options.join(
+                      '\n',
+                    )}`,
+                    defaultPreset.presetId ?? '',
+                  );
+                  if (!chosenId) return;
+                  const match = schemePresets.find(
+                    (p) => p.presetId === chosenId,
+                  );
+                  chosenPreset = match ?? null;
+                  if (!chosenPreset) return;
+                }
+
+                const reset = cloneFromPreset(chosenPreset);
                 onChangeScheme(
                   {
                     ...reset,
@@ -186,7 +208,9 @@ export function SchemeEditor(props: {
       </div>
 
       {scheme.templates.length === 0 ? (
-        <p className="muted">No templates yet.</p>
+        <p className="muted">
+          No templates yet. Add at least one enabled template to route links.
+        </p>
       ) : null}
 
       <div className="stack">

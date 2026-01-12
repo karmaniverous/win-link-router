@@ -27,13 +27,24 @@ export function SettingsPanel(props: {
   useEffect(() => {
     if (!config) return;
 
+    const desiredShared = debouncedSharedPath.trim()
+      ? debouncedSharedPath.trim()
+      : null;
+    const currentShared = config.settings.sharedConfigPath ?? null;
+    const currentRunAtLogin = config.settings.runAtLogin;
+
+    if (
+      desiredShared === currentShared &&
+      debouncedRunAtLogin === currentRunAtLogin
+    ) {
+      return;
+    }
+
     // In read-only mode we still allow settings changes to fix shared mode.
     void api.settings
       .set({
         runAtLogin: debouncedRunAtLogin,
-        sharedConfigPath: debouncedSharedPath.trim()
-          ? debouncedSharedPath.trim()
-          : null,
+        sharedConfigPath: desiredShared,
       })
       .then(onDidChangeSettings)
       .catch(() => undefined);

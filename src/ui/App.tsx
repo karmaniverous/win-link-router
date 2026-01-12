@@ -24,13 +24,12 @@ function getSchemeFromRouteResult(result: RouteUriResult): string | null {
   return typeof maybeScheme === 'string' ? maybeScheme : null;
 }
 
-function findPresetForScheme(
+function findPresetsForScheme(
   presets: PresetsFile | null,
   scheme: string,
-): SchemeConfig | null {
-  if (!presets) return null;
-  const p = presets.presets.find((x) => x.scheme === scheme);
-  return p ?? null;
+): SchemeConfig[] {
+  if (!presets) return [];
+  return presets.presets.filter((x) => x.scheme === scheme);
 }
 
 function createBlankScheme(scheme: string): SchemeConfig {
@@ -49,6 +48,31 @@ function cloneFromPreset(preset: SchemeConfig): SchemeConfig {
     presetId: undefined,
     derivedFromPresetId: presetId ?? undefined,
   };
+}
+
+function validateConfigBeforeSave(config: AppConfig): string | null {
+  for (const scheme of config.schemes) {
+    const flags = scheme.extractor.flags ?? '';
+    if (flags.includes('g')) {
+      return `Cannot save: ${scheme.scheme} extractor flags must not include "g".`;
+    }
+
+    try {
+      RegExp(scheme.extractor.pattern, flags);
+    } catch (err) {
+      return `Cannot save: ${scheme.scheme} extractor regex is invalid: ${
+        (err as Error).message
+      }`;
+    }
+
+    for (const tpl of scheme.templates) {
+      if (!tpl.template.trim()) {
+        return `Cannot save: ${scheme.scheme} template "${tpl.label}" is empty.`;
+      }
+    }
+  }
+
+  return null;
 }
 
 export function App() {
@@ -126,6 +150,12 @@ export function App() {
         const latest = configRef.current;
         if (!latest) return;
 
+        const validationError = validateConfigBeforeSave(latest);
+        if (validationError) {
+          setError(validationError);
+          return;
+        }
+
         void api.appConfig
           .set(latest)
           .then(async () => {
@@ -134,7 +164,10 @@ export function App() {
               await api.windows.ensureRegistration();
             }
           })
-          .then(() => reload(api))
+          .then(() => {
+            setError(null);
+            return reload(api);
+          })
           .catch((err: unknown) => {
             setError((err as Error).message);
           });
@@ -273,17 +306,38 @@ export function App() {
                     return;
                   }
 
-                  const preset = findPresetForScheme(presets, scheme);
-                  let schemeConfig: SchemeConfig;
-                  if (preset) {
+                  const schemePresets = findPresetsForScheme(presets, scheme);
+                  let schemeConfig: SchemeConfig = createBlankScheme(scheme);
+
+                  if (schemePresets.length === 1) {
                     const usePreset = window.confirm(
                       `Preset found for ${scheme}. Initialize from preset?`,
                     );
-                    schemeConfig = usePreset
-                      ? cloneFromPreset(preset)
-                      : createBlankScheme(scheme);
-                  } else {
-                    schemeConfig = createBlankScheme(scheme);
+                    if (usePreset) {
+                      schemeConfig = cloneFromPreset(schemePresets[0]);
+                    }
+                  } else if (schemePresets.length > 1) {
+                    const options = schemePresets
+                      .map((p) => p.presetId)
+                      .filter((x): x is string => Boolean(x));
+                    const chosen = window.prompt(
+                      `Multiple presets found for ${scheme}. Enter presetId to use:\n${options.join(
+                        '\n',
+                      )}`,
+                      options[0] ?? '',
+                    );
+                    if (chosen) {
+                      const match = schemePresets.find(
+                        (p) => p.presetId === chosen,
+                      );
+                      if (match) {
+                        schemeConfig = cloneFromPreset(match);
+                      } else {
+                        setError(
+                          `Unknown presetId "${chosen}". Added blank scheme.`,
+                        );
+                      }
+                    }
                   }
 
                   const next: AppConfig = {
