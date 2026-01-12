@@ -58,3 +58,5 @@
 - Replaced window.prompt/confirm with in-app dialogs and added interaction tests to prevent regressions.
 - Fixed lint and interaction test selectors after dialog refactor.
 - Added loading spinner UX and ensured Add Scheme shows available presets (with a regression test).
+- Fixed SchemesSidebar interaction test to provide presets (Add Scheme is gated on presets being loaded).- Configured Electron Forge GitHub publisher for `electron-forge publish`.
+- Surfaced Windows “Ensure Registration” warnings in the UI and clarified dev-mode behavior.

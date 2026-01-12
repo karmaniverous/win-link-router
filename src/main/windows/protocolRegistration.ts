@@ -53,7 +53,13 @@ export async function ensureCandidateRegistration(opts: {
 }): Promise<{ ok: boolean; warnings: string[] }> {
   const warnings: string[] = [];
   if (!opts.isPackaged) {
-    warnings.push('Protocol registration is disabled while not packaged.');
+    warnings.push(
+      [
+        'Protocol registration is disabled while not packaged.',
+        'To test Windows Default Apps integration, build and run a packaged app (e.g. `npm run make` and run the generated installer / exe from `out/`).',
+        'Then use “Ensure Registration” to register enabled schemes under HKCU so the app appears as a candidate handler.',
+      ].join(' '),
+    );
     return { ok: true, warnings };
   }
 

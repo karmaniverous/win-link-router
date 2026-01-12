@@ -3,7 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AppConfig } from '../../core/config/appConfig';
+import type { AppConfig, PresetsFile } from '../../core/config/appConfig';
 import { SchemesSidebar } from './SchemesSidebar';
 
 afterEach(() => {
@@ -20,6 +20,14 @@ function createConfig(): AppConfig {
       routeLogMode: 'redacted',
     },
     schemes: [],
+  };
+}
+
+function createPresets(): PresetsFile {
+  return {
+    schemaVersion: 1,
+    appVersion: '0.0.0',
+    presets: [],
   };
 }
 
@@ -43,7 +51,7 @@ describe('SchemesSidebar (interaction)', () => {
           loading={false}
           readOnly={false}
           config={createConfig()}
-          presets={null}
+          presets={createPresets()}
           statuses={[]}
           selectedScheme={null}
           onSelectScheme={vi.fn()}

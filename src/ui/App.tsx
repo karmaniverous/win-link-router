@@ -52,6 +52,10 @@ export function App() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [registrationResult, setRegistrationResult] = useState<{
+    kind: 'ok' | 'warn';
+    message: string;
+  } | null>(null);
 
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [readOnly, setReadOnly] = useState(false);
@@ -122,7 +126,18 @@ export function App() {
           .then(async () => {
             if (ensureRegistrationRef.current) {
               ensureRegistrationRef.current = false;
-              await api.windows.ensureRegistration();
+              const res = await api.windows.ensureRegistration();
+              if (res.warnings.length) {
+                setRegistrationResult({
+                  kind: 'warn',
+                  message: res.warnings.join('\n'),
+                });
+              } else {
+                setRegistrationResult({
+                  kind: 'ok',
+                  message: 'Registration updated.',
+                });
+              }
             }
           })
           .then(() => {
@@ -212,7 +227,25 @@ export function App() {
           <button
             type="button"
             onClick={() =>
-              void api.windows.ensureRegistration().then(() => reload(api))
+              void api.windows
+                .ensureRegistration()
+                .then((res) => {
+                  if (res.warnings.length) {
+                    setRegistrationResult({
+                      kind: 'warn',
+                      message: res.warnings.join('\n'),
+                    });
+                  } else {
+                    setRegistrationResult({
+                      kind: 'ok',
+                      message: 'Registration updated.',
+                    });
+                  }
+                  return reload(api);
+                })
+                .catch((err: unknown) => {
+                  setError((err as Error).message);
+                })
             }
           >
             Ensure Registration
@@ -223,6 +256,19 @@ export function App() {
       {loading ? <Spinner label="Loading…" /> : null}
       {error ? <p className="error">{error}</p> : null}
       {routeErrorBanner ? <p className="error">{routeErrorBanner}</p> : null}
+      {registrationResult ? (
+        <details>
+          <summary>
+            Registration{' '}
+            {registrationResult.kind === 'ok' ? 'updated' : 'warning'}
+          </summary>
+          <pre
+            className={registrationResult.kind === 'ok' ? 'muted' : 'warning'}
+          >
+            {registrationResult.message}
+          </pre>
+        </details>
+      ) : null}
       {warnings.length ? (
         <details>
           <summary>Warnings</summary>
