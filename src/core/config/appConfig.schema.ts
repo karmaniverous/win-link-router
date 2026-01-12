@@ -62,6 +62,7 @@ const schemeConfigSchema = z.object({
 const appSettingsSchema = z.object({
   runAtLogin: z.boolean().default(false),
   sharedConfigPath: z.string().min(1).optional().nullable(),
+  routeLogMode: z.enum(['redacted', 'full']).optional().default('redacted'),
 });
 
 const appConfigSchema = z.object({

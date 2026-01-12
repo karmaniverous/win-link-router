@@ -70,6 +70,7 @@ describe('SettingsPanel', () => {
 
     expect(html).toContain('Run at login');
     expect(html).toContain('Shared config path (optional)');
+    expect(html).toContain('Store full routing log');
   });
 
   it('shows read-only warning when readOnly is true', () => {

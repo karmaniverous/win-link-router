@@ -66,6 +66,9 @@ export function registerIpcHandlers(opts: {
     const parsed = parseAppConfig(next);
     await opts.configStore.save(parsed);
     applyRunAtLoginSetting(opts.configStore.getLoadedConfig());
+    opts.logStore.setMode(
+      opts.configStore.getLoadedConfig().settings.routeLogMode ?? 'redacted',
+    );
     return { ok: true };
   });
 
@@ -133,6 +136,9 @@ export function registerIpcHandlers(opts: {
     });
     await opts.configStore.saveSettings(parsed.settings);
     applyRunAtLoginSetting(opts.configStore.getLoadedConfig());
+    opts.logStore.setMode(
+      opts.configStore.getLoadedConfig().settings.routeLogMode ?? 'redacted',
+    );
     return { ok: true };
   });
 

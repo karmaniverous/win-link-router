@@ -7,6 +7,7 @@
  */
 import path from 'node:path';
 
+import type { RouteLogMode } from '../../core/config/appConfig';
 import type { RouteUriResult } from '../../core/routing/routeUri';
 import {
   fileExists,
@@ -146,12 +147,14 @@ export class RouteLogStore {
   private filePath: string;
   private maxEntries: number;
   private maxBytes: number;
+  private mode: RouteLogMode;
 
   constructor(opts: {
     userDataDir: string;
     fileName?: string;
     maxEntries?: number;
     maxBytes?: number;
+    mode?: RouteLogMode;
   }) {
     this.filePath = path.join(
       opts.userDataDir,
@@ -159,6 +162,11 @@ export class RouteLogStore {
     );
     this.maxEntries = opts.maxEntries ?? 200;
     this.maxBytes = opts.maxBytes ?? 512 * 1024;
+    this.mode = opts.mode ?? 'redacted';
+  }
+
+  setMode(next: RouteLogMode) {
+    this.mode = next;
   }
 
   async read(): Promise<
@@ -187,7 +195,7 @@ export class RouteLogStore {
     const entry: RouteLogEntry = {
       seq: lastSeq + 1,
       when: new Date().toISOString(),
-      result: redactRouteUriResult(result),
+      result: this.mode === 'full' ? result : redactRouteUriResult(result),
     };
 
     const next = trimEntries(

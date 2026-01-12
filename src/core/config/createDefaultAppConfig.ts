@@ -12,6 +12,7 @@ export function createDefaultAppConfig(appVersion?: string): AppConfig {
     settings: {
       runAtLogin: false,
       sharedConfigPath: null,
+      routeLogMode: 'redacted',
     },
     schemes: [],
   };

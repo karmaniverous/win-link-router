@@ -7,6 +7,8 @@
  */
 export const APP_CONFIG_SCHEMA_VERSION = 1 as const;
 
+export type RouteLogMode = 'redacted' | 'full';
+
 export interface TemplateConfig {
   id: string;
   label: string;
@@ -49,6 +51,12 @@ export interface AppConfig {
   settings: {
     runAtLogin: boolean;
     sharedConfigPath?: string | null;
+    /**
+     * Privacy/safety control for persisted routing logs.
+     * - "redacted": do not persist raw URIs/targets (default).
+     * - "full": persist raw URIs/targets (more useful, less private).
+     */
+    routeLogMode?: RouteLogMode;
   };
   schemes: SchemeConfig[];
 }

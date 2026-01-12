@@ -2,8 +2,6 @@
 
 ## Next up
 
-- Routing log polish:
-  - Optional: add a user setting to allow full (unredacted) logging.
 - Windows integration polish:
   - Investigate scheme-specific deep links into Windows Default Apps (fallback to `ms-settings:defaultapps`).
   - Improve UI status labeling for scheme rows (default/not-default/unknown + reg/unreg).
@@ -50,4 +48,4 @@
 - Included extractor match groups in route results to improve diagnostics/logging.
 - Fixed lint in routing log tests by avoiding number interpolation in template literals.
 - Fixed Knip unused exports by removing `__private__` and keeping `RouteLogEntry` internal.
-- Added default redaction for persisted routing logs (no raw URIs/targets) and introduced per-entry `seq` ids to keep logs useful.- Added a small UI routing log viewer (refresh + clear) via IPC/preload API.
+- Added default redaction for persisted routing logs (no raw URIs/targets) and introduced per-entry `seq` ids to keep logs useful.- Added a small UI routing log viewer (refresh + clear) via IPC/preload API.- Added a settings-backed log mode toggle (redacted vs full) and wired main/log store to honor it.

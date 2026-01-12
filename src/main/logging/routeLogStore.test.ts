@@ -63,4 +63,25 @@ describe('RouteLogStore', () => {
     expect(entries.length).toBe(1);
     expect(entries[0]?.seq).toBe(3);
   });
+
+  it('stores raw URIs when mode is full', async () => {
+    tmpDir = await createTempDir();
+
+    const store = new RouteLogStore({
+      userDataDir: tmpDir,
+      mode: 'full',
+      maxEntries: 50,
+      maxBytes: 1024 * 1024,
+    });
+
+    const result: RouteUriResult = {
+      type: 'schemeNotConfigured',
+      scheme: 'TEL',
+      uri: 'tel:+1 (555) 123-4567',
+    };
+
+    await store.append(result);
+    const entries = await store.read();
+    expect(entries[0]?.result.uri).toBe('tel:+1 (555) 123-4567');
+  });
 });

@@ -198,5 +198,7 @@ Durable project requirements (desired end-state).
     - Do not persist fully rendered target URLs (which may include payloads).
     - Persist only scheme-level information (e.g. `tel:[redacted]`,
       `whatsapp:[redacted]`) plus template ids/labels and error/result metadata.
+  - The app must provide a user setting to enable full (unredacted) logging,
+    which is OFF by default.
   - A full log viewer is optional, but the UI must surface relevant diagnostics
     on routing failures (via the test panel and error banner).

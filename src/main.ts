@@ -111,9 +111,14 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
   });
   await configStore.load();
 
+  const loaded = configStore.getLoadedConfig();
+  const desiredLogMode = loaded.settings.routeLogMode ?? 'redacted';
+
   const logStore = (routeLogStore ??= new RouteLogStore({
     userDataDir: app.getPath('userData'),
+    mode: desiredLogMode,
   }));
+  logStore.setMode(desiredLogMode);
 
   registerIpcHandlers({
     configStore,
