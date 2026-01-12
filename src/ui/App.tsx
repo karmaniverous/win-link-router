@@ -13,17 +13,10 @@ import { formatSchemeStatusLabel } from './components/formatSchemeStatusLabel';
 import { SchemeEditor } from './components/SchemeEditor';
 import { SettingsAndLogPanel } from './components/SettingsPanel';
 import { TestPanel } from './components/TestPanel';
-
-function parseSchemeFromUri(uri: string): string | null {
-  const idx = uri.indexOf(':');
-  if (idx <= 0) return null;
-  return uri.slice(0, idx).toUpperCase();
-}
-
-function getSchemeFromRouteResult(result: RouteUriResult): string | null {
-  const maybeScheme = (result as { scheme?: unknown }).scheme;
-  return typeof maybeScheme === 'string' ? maybeScheme : null;
-}
+import {
+  formatRouteFailureBanner,
+  inferSchemeForRouteFailure,
+} from './routing/routeFailureUi';
 
 function findPresetsForScheme(
   presets: PresetsFile | null,
@@ -191,14 +184,15 @@ export function App() {
 
         const last = await api.routing.getLastRouteError();
         if (last) {
-          const inferredScheme =
-            getSchemeFromRouteResult(last.result) ??
-            parseSchemeFromUri(last.uri);
+          const inferredScheme = inferSchemeForRouteFailure({
+            uri: last.uri,
+            result: last.result,
+          });
 
           if (!cancelledRef.current) {
-            if (inferredScheme) setSelectedScheme(inferredScheme.toUpperCase());
+            if (inferredScheme) setSelectedScheme(inferredScheme);
             setTestUri(last.uri);
-            setRouteErrorBanner(`Routing failed: ${last.result.type}`);
+            setRouteErrorBanner(formatRouteFailureBanner(last.result));
           }
           await api.routing.clearLastRouteError();
         }

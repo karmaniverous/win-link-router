@@ -10,8 +10,8 @@
   - Add inline validation and clearer save-error UX for extractor/templates.
     (e.g., show regex/template validation errors near fields before autosave).
   - Add preset picker (choose among multiple presets per scheme, when added).
-  - Add richer tests around routing failure UX (banner + prefilled test URI)
-    once more renderer behavior is in place.
+  - Expand routing-failure banner details (e.g., include which template failed,
+    or how many targets were attempted) without bloating App.tsx.
 
 ## Completed (recent)
 
@@ -49,4 +49,11 @@
 - Included extractor match groups in route results to improve diagnostics/logging.
 - Fixed lint in routing log tests by avoiding number interpolation in template literals.
 - Fixed Knip unused exports by removing `__private__` and keeping `RouteLogEntry` internal.
-- Added default redaction for persisted routing logs (no raw URIs/targets) and introduced per-entry `seq` ids to keep logs useful.- Added a small UI routing log viewer (refresh + clear) via IPC/preload API.- Added a settings-backed log mode toggle (redacted vs full) and wired main/log store to honor it.- Improved scheme list status labels and added scheme-specific “Set default…” guidance (clipboard + instructions).- Added inline extractor validation messaging in SchemeEditor and tightened route-log typing end-to-end.- Fixed SchemeEditor lint by removing an unnecessary `??` on extractor.pattern.- Added a best-effort Default Apps deep link (registeredAppUser) with safe fallback.
+- Added default redaction for persisted routing logs (no raw URIs/targets) and introduced per-entry `seq` ids to keep logs useful.
+- Added a small UI routing log viewer (refresh + clear) via IPC/preload API.
+- Added a settings-backed log mode toggle (redacted vs full) and wired main/log store to honor it.
+- Improved scheme list status labels and added scheme-specific “Set default…” guidance (clipboard + instructions).
+- Added inline extractor validation messaging in SchemeEditor and tightened route-log typing end-to-end.
+- Fixed SchemeEditor lint by removing an unnecessary `??` on extractor.pattern.
+- Added a best-effort Default Apps deep link (registeredAppUser) with safe fallback.
+- Extracted routing-failure banner logic into a testable renderer module and used it in App.tsx.
