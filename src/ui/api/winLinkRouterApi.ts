@@ -46,7 +46,7 @@ export interface WinLinkRouterApi {
   windows: {
     ensureRegistration: () => Promise<{ ok: boolean; warnings: string[] }>;
     getSchemeStatuses: () => Promise<SchemeWindowsStatusDto[]>;
-    openDefaultApps: () => Promise<{ ok: true }>;
+    openDefaultApps: (scheme?: string) => Promise<{ ok: true }>;
   };
   routing: {
     getLastRouteError: () => Promise<LastRouteErrorDto | null>;

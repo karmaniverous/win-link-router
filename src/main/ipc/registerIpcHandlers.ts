@@ -161,8 +161,8 @@ export function registerIpcHandlers(opts: {
     return getAllSchemeStatusesFromConfig(config);
   });
 
-  ipcMain.handle('windows:openDefaultApps', async () => {
-    await openWindowsDefaultApps();
+  ipcMain.handle('windows:openDefaultApps', async (_event, scheme?: string) => {
+    await openWindowsDefaultApps({ scheme });
     return { ok: true };
   });
 

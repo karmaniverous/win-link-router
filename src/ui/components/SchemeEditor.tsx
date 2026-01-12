@@ -92,7 +92,7 @@ export function SchemeEditor(props: {
         <div className="rowActions">
           <button
             type="button"
-            onClick={() => void api.windows.openDefaultApps()}
+            onClick={() => void api.windows.openDefaultApps(scheme.scheme)}
           >
             Set default…
           </button>

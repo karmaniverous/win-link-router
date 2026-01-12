@@ -2,11 +2,48 @@
  * Requirements addressed:
  * - Provide a shortcut to open Windows Default Apps settings so the user can
  *   assign this app as default for protocols.
+ * - When invoked for a specific scheme, provide lightweight guidance without
+ *   attempting to programmatically set defaults.
  */
-import { shell } from 'electron';
+import { clipboard, dialog, shell } from 'electron';
 
-export async function openWindowsDefaultApps(): Promise<void> {
-  // Best-effort generic entry point. We can add scheme-specific deep links later
-  // if Windows supports them reliably.
+function normalizeSchemeForUi(raw: string): string {
+  const trimmed = raw.trim();
+  const withoutColon = trimmed.endsWith(':') ? trimmed.slice(0, -1) : trimmed;
+  return withoutColon.toLowerCase();
+}
+
+export async function openWindowsDefaultApps(opts?: {
+  scheme?: string;
+}): Promise<void> {
+  const scheme = opts?.scheme ? normalizeSchemeForUi(opts.scheme) : null;
+
+  if (scheme) {
+    try {
+      clipboard.writeText(scheme);
+    } catch {
+      // Best-effort only.
+    }
+
+    const res = await dialog.showMessageBox({
+      type: 'info',
+      title: 'Set default app',
+      message: `Set win-link-router as the default handler for "${scheme}:"`,
+      detail: [
+        'Windows Settings will open to Default apps.',
+        '',
+        'Tip: choose “Choose defaults by link type” and search for the protocol.',
+        `The protocol name "${scheme}" was copied to your clipboard.`,
+      ].join('\n'),
+      buttons: ['Open Default Apps', 'Cancel'],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true,
+    });
+
+    if (res.response !== 0) return;
+  }
+
+  // Best-effort generic entry point (Microsoft-documented).
   await shell.openExternal('ms-settings:defaultapps');
 }
