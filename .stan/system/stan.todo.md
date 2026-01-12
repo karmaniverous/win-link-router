@@ -10,7 +10,10 @@
   - Add UI-level “Set default” affordances per scheme (likely still opens the generic Default Apps page).
 - Implement UI:
   - Add inline validation and clearer save-error UX for extractor/templates.
+    (e.g., show regex/template validation errors near fields before autosave).
   - Add preset picker (choose among multiple presets per scheme, when added).
+  - Add richer tests around routing failure UX (banner + prefilled test URI)
+    once more renderer behavior is in place.
 
 ## Completed (recent)
 
@@ -38,4 +41,8 @@
 - Fixed renderer lint issues and trimmed unused exported types.
 - Fixed App.tsx async cancellation and reload wiring.
 - Added scheme editor UI, settings panel, and aligned registration to enabled schemes.
-- Fixed lint issues in scheme add/reset and template id generation.- Added pre-save validation and prompt-based preset picking.
+- Fixed lint issues in scheme add/reset and template id generation.
+- Added pre-save validation and prompt-based preset picking.
+- Added pre-save validation and prompt-based preset picking.
+- Added tests for core React UI components (SchemeEditor, SettingsPanel,
+  TestPanel) and fixed remaining SchemeEditor lint warnings.

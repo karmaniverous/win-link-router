@@ -59,9 +59,12 @@ export function SchemeEditor(props: {
   }
 
   const schemePresets = findPresetsForScheme(presets, scheme.scheme);
-  const defaultPreset =
-    schemePresets.find((p) => p.presetId === scheme.derivedFromPresetId) ??
-    schemePresets[0] ??
+  const defaultPreset = schemePresets.length
+    ? schemePresets.find(
+        (p) =>
+          p.presetId !== undefined &&
+          p.presetId === scheme.derivedFromPresetId,
+      ) ?? schemePresets[0]
     null;
 
   const updateTemplate = (id: string, patch: Partial<TemplateConfig>) => {
