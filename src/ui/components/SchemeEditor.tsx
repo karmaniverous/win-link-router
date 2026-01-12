@@ -40,7 +40,7 @@ function cloneFromPreset(preset: SchemeConfig): SchemeConfig {
 function getExtractorError(
   extractor: SchemeConfig['extractor'],
 ): string | null {
-  const pattern = extractor.pattern ?? '';
+  const pattern = extractor.pattern;
   const flags = extractor.flags ?? '';
 
   if (!pattern.trim()) return 'Extractor pattern is required.';
