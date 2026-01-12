@@ -5,6 +5,7 @@
  * - Template context includes top-level capture groups + `uri` + `match`.
  * - Render failures are configuration errors (open UI; do not fallback).
  * - openExternal failures attempt next enabled template (best-effort fallback).
+ * - Route results include extractor match groups for diagnostics/logging.
  * - Test evaluation is available for UI: show per-template rendered output or
  *   render error for a given test URI.
  */
@@ -27,7 +28,12 @@ export type RouteUriResult =
   | { type: 'schemeNotConfigured'; scheme: string; uri: string }
   | { type: 'schemeDisabled'; scheme: string; uri: string }
   | { type: 'extractorNoMatch'; scheme: string; uri: string }
-  | { type: 'noEnabledTemplates'; scheme: string; uri: string }
+  | {
+      type: 'noEnabledTemplates';
+      scheme: string;
+      uri: string;
+      matchGroups?: Record<string, string>;
+    }
   | {
       type: 'templateRenderError';
       scheme: string;
@@ -35,12 +41,14 @@ export type RouteUriResult =
       templateId: string;
       message: string;
       attempts: TemplateAttempt[];
+      matchGroups?: Record<string, string>;
     }
   | {
       type: 'openFailed';
       scheme: string;
       uri: string;
       attempts: TemplateAttempt[];
+      matchGroups?: Record<string, string>;
     }
   | {
       type: 'routed';
@@ -49,6 +57,7 @@ export type RouteUriResult =
       target: string;
       templateId: string;
       attempts: TemplateAttempt[];
+      matchGroups?: Record<string, string>;
     };
 
 export interface TemplateEvaluation {
@@ -141,10 +150,16 @@ export async function routeUriWithSchemeConfig(
   if (!match) {
     return { type: 'extractorNoMatch', scheme: schemeConfig.scheme, uri };
   }
+  const matchGroups = match.groups ? { ...match.groups } : undefined;
 
   const templates = enabledTemplates(schemeConfig);
   if (!templates.length) {
-    return { type: 'noEnabledTemplates', scheme: schemeConfig.scheme, uri };
+    return {
+      type: 'noEnabledTemplates',
+      scheme: schemeConfig.scheme,
+      uri,
+      matchGroups,
+    };
   }
 
   const context = buildTemplateContext(uri, match);
@@ -163,6 +178,7 @@ export async function routeUriWithSchemeConfig(
         templateId: t.id,
         message: (err as Error).message,
         attempts,
+        matchGroups,
       };
     }
 
@@ -180,6 +196,7 @@ export async function routeUriWithSchemeConfig(
         target,
         templateId: t.id,
         attempts,
+        matchGroups,
       };
     } catch (err) {
       attempts.push({
@@ -191,7 +208,13 @@ export async function routeUriWithSchemeConfig(
     }
   }
 
-  return { type: 'openFailed', scheme: schemeConfig.scheme, uri, attempts };
+  return {
+    type: 'openFailed',
+    scheme: schemeConfig.scheme,
+    uri,
+    attempts,
+    matchGroups,
+  };
 }
 
 export async function routeUriOrFail(

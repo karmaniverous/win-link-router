@@ -2,10 +2,9 @@
 
 ## Next up
 
-- Implement minimal routing log:
-  - Capture timestamp, incoming URI, selected scheme, extracted match groups (best-effort), attempted targets, and final result.
-  - Persist per-user (e.g., under `userData`) with a simple size cap/rotation policy.
+- Routing log polish:
   - Decide on basic redaction rules for potentially sensitive payloads.
+  - Optional: add a small UI viewer + “clear log” affordance (debug-only).
 - Windows integration polish:
   - Investigate scheme-specific deep links into Windows Default Apps (fallback to `ms-settings:defaultapps`).
   - Improve UI status labeling for scheme rows (default/not-default/unknown + reg/unreg).
@@ -47,4 +46,5 @@
 - Added tests for core React UI components (SchemeEditor, SettingsPanel,
   TestPanel) and fixed remaining SchemeEditor lint warnings.
 - Fixed lint failure by removing an unused `TemplateConfig` import in `SchemeEditor.test.tsx`.
-- Reviewed latest script outputs: typecheck/tests/knip/package are passing; lint fix unblocks `npm run lint`.
+- Reviewed latest script outputs: typecheck/tests/knip/package are passing; lint fix unblocks `npm run lint`.- Added a minimal per-user routing log (persisted under `userData`) with retention caps.
+- Included extractor match groups in route results to improve diagnostics/logging.

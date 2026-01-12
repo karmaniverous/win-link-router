@@ -1,3 +1,9 @@
+/**
+ * Requirements addressed:
+ * - Support normal launch (open UI) and protocol launch (route URI argument).
+ * - Single-instance routing (second instance forwards URI to first).
+ * - Persist a minimal per-user routing log for debugging.
+ */
 import path from 'node:path';
 
 import { app, BrowserWindow } from 'electron';
@@ -6,6 +12,7 @@ import started from 'electron-squirrel-startup';
 import { createTemplateRenderer } from './core/routing/templateRenderer';
 import { AppConfigStore } from './main/config/appConfigStore';
 import { registerIpcHandlers } from './main/ipc/registerIpcHandlers';
+import { RouteLogStore } from './main/logging/routeLogStore';
 import { loadBundledPresets } from './main/presets/loadBundledPresets';
 import { setLastRouteError } from './main/routing/lastRouteError';
 import { routeIncomingUri } from './main/routing/routeIncomingUri';
@@ -91,6 +98,7 @@ if (!gotLock) {
 }
 
 let configStore: AppConfigStore | null = null;
+let routeLogStore: RouteLogStore | null = null;
 const renderer = createTemplateRenderer();
 const presets = () => loadBundledPresets(app.getVersion());
 
@@ -102,6 +110,10 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
     appVersion: app.getVersion(),
   });
   await configStore.load();
+
+  routeLogStore ??= new RouteLogStore({
+    userDataDir: app.getPath('userData'),
+  });
 
   registerIpcHandlers({
     configStore,
@@ -133,6 +145,8 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
 async function handleUri(uri: string): Promise<boolean> {
   const store = await ensureStoresReady();
   const result = await routeIncomingUri(store, renderer, uri);
+
+  await routeLogStore?.append(result).catch(() => undefined);
 
   if (result.type === 'routed') return true;
 
