@@ -29,6 +29,10 @@ function createApiWithEvaluate(
       getLastRouteError: vi.fn(),
       clearLastRouteError: vi.fn(),
     },
+    routeLog: {
+      get: vi.fn().mockResolvedValue({ entries: [] }),
+      clear: vi.fn().mockResolvedValue({ ok: true as const }),
+    },
     test: {
       evaluate: impl,
     },

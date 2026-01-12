@@ -52,6 +52,16 @@ export interface WinLinkRouterApi {
     getLastRouteError: () => Promise<LastRouteErrorDto | null>;
     clearLastRouteError: () => Promise<{ ok: true }>;
   };
+  routeLog: {
+    get: () => Promise<{
+      entries: {
+        seq: number;
+        when: string;
+        result: RouteUriResult;
+      }[];
+    }>;
+    clear: () => Promise<{ ok: true }>;
+  };
   test: {
     evaluate: (
       scheme: string,

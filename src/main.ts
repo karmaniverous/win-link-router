@@ -111,12 +111,13 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
   });
   await configStore.load();
 
-  routeLogStore ??= new RouteLogStore({
+  const logStore = (routeLogStore ??= new RouteLogStore({
     userDataDir: app.getPath('userData'),
-  });
+  }));
 
   registerIpcHandlers({
     configStore,
+    logStore,
     getPresets: presets,
     renderer,
     appVersion: app.getVersion(),

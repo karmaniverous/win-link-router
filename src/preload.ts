@@ -31,6 +31,10 @@ contextBridge.exposeInMainWorld('winLinkRouter', {
     clearLastRouteError: () =>
       ipcRenderer.invoke('routing:clearLastRouteError'),
   },
+  routeLog: {
+    get: () => ipcRenderer.invoke('routeLog:get'),
+    clear: () => ipcRenderer.invoke('routeLog:clear'),
+  },
   test: {
     evaluate: (scheme: string, uri: string) =>
       ipcRenderer.invoke('test:evaluate', { scheme, uri }),

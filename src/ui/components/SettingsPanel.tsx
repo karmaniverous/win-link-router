@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import type { AppConfig } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { RouteLogPanel } from './RouteLogPanel';
 
 export function SettingsPanel(props: {
   api: WinLinkRouterApi;
@@ -89,5 +90,16 @@ export function SettingsPanel(props: {
         </p>
       ) : null}
     </section>
+  );
+}
+
+export function SettingsAndLogPanel(
+  props: Parameters<typeof SettingsPanel>[0],
+) {
+  return (
+    <>
+      <SettingsPanel {...props} />
+      <RouteLogPanel api={props.api} />
+    </>
   );
 }

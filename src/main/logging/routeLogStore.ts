@@ -174,6 +174,10 @@ export class RouteLogStore {
     }
   }
 
+  async clear(): Promise<void> {
+    await writeJsonFileAtomic(this.filePath, []);
+  }
+
   async append(result: RouteUriResult): Promise<void> {
     const current = await this.read();
     const lastSeq = current.length

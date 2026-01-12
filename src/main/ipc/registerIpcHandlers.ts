@@ -26,6 +26,7 @@ import {
   exportSchemesSnapshotToFile,
   importSchemesSnapshotFromFile,
 } from '../config/configImportExport';
+import type { RouteLogStore } from '../logging/routeLogStore';
 import {
   clearLastRouteError,
   getLastRouteError,
@@ -43,8 +44,13 @@ interface TestEvaluateResponse {
   error?: string;
 }
 
+interface RouteLogGetResponse {
+  entries: { seq: number; when: string; result: unknown }[];
+}
+
 export function registerIpcHandlers(opts: {
   configStore: AppConfigStore;
+  logStore: RouteLogStore;
   getPresets: () => PresetsFile;
   renderer: TemplateRenderer;
   appVersion: string;
@@ -160,6 +166,16 @@ export function registerIpcHandlers(opts: {
 
   ipcMain.handle('routing:clearLastRouteError', () => {
     clearLastRouteError();
+    return { ok: true };
+  });
+
+  ipcMain.handle('routeLog:get', async (): Promise<RouteLogGetResponse> => {
+    const entries = await opts.logStore.read();
+    return { entries };
+  });
+
+  ipcMain.handle('routeLog:clear', async () => {
+    await opts.logStore.clear();
     return { ok: true };
   });
 

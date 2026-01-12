@@ -10,7 +10,7 @@ import type { RouteUriResult } from '../core/routing/routeUri';
 import type { WinLinkRouterApi } from './api/winLinkRouterApi';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
 import { SchemeEditor } from './components/SchemeEditor';
-import { SettingsPanel } from './components/SettingsPanel';
+import { SettingsAndLogPanel } from './components/SettingsPanel';
 import { TestPanel } from './components/TestPanel';
 
 function parseSchemeFromUri(uri: string): string | null {
@@ -274,7 +274,7 @@ export function App() {
         </p>
       ) : null}
 
-      <SettingsPanel
+      <SettingsAndLogPanel
         api={api}
         config={config}
         readOnly={readOnly}
