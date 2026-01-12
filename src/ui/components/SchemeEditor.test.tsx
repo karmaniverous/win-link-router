@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { SchemeConfig, TemplateConfig } from '../../core/config/appConfig';
+import type { SchemeConfig } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { SchemeEditor } from './SchemeEditor';
 

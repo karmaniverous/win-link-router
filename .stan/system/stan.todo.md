@@ -2,13 +2,14 @@
 
 ## Next up
 
-- Baseline sanity:
-  - Run `npm install` and confirm dependency tree is clean.
-  - Run `npm run typecheck`, `npm run lint`, `npm run test`, `npm run knip`.
-  - Run `npm run package` to confirm Forge packaging still works.
-- Implement Windows integration (HKCU; no admin):
-  - Add UI-level “Set default” affordances per scheme (likely still opens the generic Default Apps page).
-- Implement UI:
+- Implement minimal routing log:
+  - Capture timestamp, incoming URI, selected scheme, extracted match groups (best-effort), attempted targets, and final result.
+  - Persist per-user (e.g., under `userData`) with a simple size cap/rotation policy.
+  - Decide on basic redaction rules for potentially sensitive payloads.
+- Windows integration polish:
+  - Investigate scheme-specific deep links into Windows Default Apps (fallback to `ms-settings:defaultapps`).
+  - Improve UI status labeling for scheme rows (default/not-default/unknown + reg/unreg).
+- UI polish:
   - Add inline validation and clearer save-error UX for extractor/templates.
     (e.g., show regex/template validation errors near fields before autosave).
   - Add preset picker (choose among multiple presets per scheme, when added).
@@ -45,3 +46,5 @@
 - Added pre-save validation and prompt-based preset picking.
 - Added tests for core React UI components (SchemeEditor, SettingsPanel,
   TestPanel) and fixed remaining SchemeEditor lint warnings.
+- Fixed lint failure by removing an unused `TemplateConfig` import in `SchemeEditor.test.tsx`.
+- Reviewed latest script outputs: typecheck/tests/knip/package are passing; lint fix unblocks `npm run lint`.
