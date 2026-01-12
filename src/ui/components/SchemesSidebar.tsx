@@ -25,6 +25,8 @@ export function SchemesSidebar(props: {
     enabled: boolean;
     registered: boolean;
     defaultStatus: 'default' | 'not-default' | 'unknown';
+    expectedProgId: string;
+    actualProgId?: string | null;
   }[];
   selectedScheme: string | null;
   onSelectScheme: (scheme: string) => void;
@@ -50,6 +52,11 @@ export function SchemesSidebar(props: {
     for (const s of statuses) map.set(s.scheme.toUpperCase(), s);
     return map;
   }, [statuses]);
+
+  const selectedStatus = useMemo(() => {
+    if (!selectedScheme) return null;
+    return statusByScheme.get(selectedScheme.toUpperCase()) ?? null;
+  }, [selectedScheme, statusByScheme]);
 
   const existingSchemes = useMemo(() => {
     return (config?.schemes ?? []).map((s) => s.scheme);
@@ -123,6 +130,27 @@ export function SchemesSidebar(props: {
 
       {!config?.schemes.length ? (
         <p className="muted">No schemes configured yet.</p>
+      ) : null}
+
+      {selectedStatus ? (
+        <details>
+          <summary>Windows status details</summary>
+          <div className="stack">
+            <div className="card">
+              <div className="cardRow">
+                <strong>{selectedStatus.scheme}</strong>
+                <span className="muted">{selectedStatus.defaultStatus}</span>
+              </div>
+              <div className="muted">
+                Expected ProgId: <code>{selectedStatus.expectedProgId}</code>
+              </div>
+              <div className="muted">
+                Actual ProgId:{' '}
+                <code>{selectedStatus.actualProgId ?? '(null)'}</code>
+              </div>
+            </div>
+          </div>
+        </details>
       ) : null}
     </aside>
   );

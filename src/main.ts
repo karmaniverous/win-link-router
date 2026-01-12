@@ -164,8 +164,18 @@ async function handleUri(uri: string): Promise<boolean> {
 
 app.on('second-instance', (_event, argv) => {
   const uri = findUriArg(argv);
-  if (!uri) return;
-  void handleUri(uri).catch(() => undefined);
+  if (uri) {
+    void handleUri(uri).catch(() => undefined);
+    return;
+  }
+
+  // If the app is already running (likely in tray) and the user launches it
+  // again without a URI, show/focus the main window.
+  void app.whenReady().then(() => {
+    const win = createWindow();
+    win.show();
+    win.focus();
+  });
 });
 
 void app.whenReady().then(async () => {

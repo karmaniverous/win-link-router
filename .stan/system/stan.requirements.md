@@ -21,6 +21,9 @@ Durable project requirements (desired end-state).
 - The app must be single-instance:
   - If a second instance is started with a URI, it forwards the URI to the
     already-running instance and exits.
+  - If a second instance is started without a URI (user launches the app while
+    it is already running in the tray), the already-running instance should
+    show/focus the main window.
 - Normal launch (no URI argument):
   - Opens the main window.
 - Protocol launch (with URI argument):

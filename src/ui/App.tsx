@@ -72,6 +72,8 @@ export function App() {
       enabled: boolean;
       registered: boolean;
       defaultStatus: 'default' | 'not-default' | 'unknown';
+      expectedProgId: string;
+      actualProgId?: string | null;
     }[]
   >([]);
 
@@ -92,6 +94,8 @@ export function App() {
         enabled: s.enabled,
         registered: s.registered,
         defaultStatus: s.defaultStatus,
+        expectedProgId: s.expectedProgId,
+        actualProgId: s.actualProgId,
       })),
     );
 

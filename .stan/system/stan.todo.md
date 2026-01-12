@@ -63,5 +63,9 @@
 - Surfaced Windows “Ensure Registration” warnings in the UI and clarified dev-mode behavior.
 - Suppressed Knip false positive for `@electron-forge/publisher-github`.
 - Made “Ensure Registration” results visible by default (dismissible banner).
-- Fixed `electron-forge make` on Windows by overriding MakerSquirrel `name` (avoid scoped package-name nuspec path).- Fixed protocol-launch arg parsing to ignore Windows paths like `C:\...` and correctly detect `tel:` URIs.
-- Made default-handler detection compare ProgIds case-insensitively.
+- Fixed `electron-forge make` on Windows by overriding MakerSquirrel `name` (avoid scoped package-name nuspec path).
+- Fixed protocol-launch arg parsing to ignore Windows paths like `C:\...` and correctly detect `tel:` URIs.
+- Made default-handler detection compare ProgIds case-insensitively.
+- Treat `Applications\<exe>.exe` UserChoice ProgIds as “Default” when they match the running packaged exe.
+- Show/focus main window when a second instance is launched without a URI (tray-friendly UX).
+- Added tray shortcuts to reveal install location and user data folder; surfaced ProgId details for debugging default status.

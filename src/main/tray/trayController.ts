@@ -6,7 +6,7 @@
  * Notes:
  * - We avoid adding binary icon assets by using app.getFileIcon(process.execPath).
  */
-import { app, Menu, nativeImage, Tray } from 'electron';
+import { app, Menu, nativeImage, shell, Tray } from 'electron';
 
 interface TrayController {
   tray: Tray;
@@ -33,6 +33,19 @@ export async function createTrayController(opts: {
         label: 'Show/Hide',
         click: () => {
           opts.onToggleMainWindow();
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Show install location',
+        click: () => {
+          shell.showItemInFolder(process.execPath);
+        },
+      },
+      {
+        label: 'Open data folder',
+        click: () => {
+          void shell.openPath(app.getPath('userData'));
         },
       },
       { type: 'separator' },
