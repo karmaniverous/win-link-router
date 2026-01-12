@@ -1,9 +1,8 @@
 /**
  * Requirements addressed:
  * - Packaged app should be launchable via Start Menu reliably.
- * - Squirrel installs under %LOCALAPPDATA% and commonly uses Update.exe as the
- *   Start Menu shortcut target; if Update.exe is missing/broken, fall back to
- *   launching the versioned exe directly.
+ * - Squirrel installs under %LOCALAPPDATA% and Start Menu items are per-user.
+ * - Prefer launching the installed app exe directly (most reliable baseline).
  * - Keep path/arg selection pure/testable.
  */
 import path from 'node:path';
@@ -18,26 +17,25 @@ export function getStartMenuProgramsDir(appDataDir: string): string {
   );
 }
 
-export function getStartMenuShortcutPath(
+export function getStartMenuAppDir(
   programsDir: string,
-  shortcutName: string,
+  appFolderName: string,
 ): string {
-  return path.join(programsDir, `${shortcutName}.lnk`);
+  return path.join(programsDir, appFolderName);
 }
 
-export function buildStartMenuShortcutTarget(opts: {
-  exePath: string;
-  updateExePath: string;
-  updateExeExists: boolean;
-}): { target: string; args: string } {
-  if (opts.updateExeExists) {
-    const exeName = path.basename(opts.exePath);
-    return {
-      target: opts.updateExePath,
-      args: `--processStart ${exeName}`,
-    };
-  }
+export function getStartMenuShortcutPath(
+  directory: string,
+  shortcutName: string,
+): string {
+  return path.join(directory, `${shortcutName}.lnk`);
+}
 
+export function buildStartMenuShortcutTarget(opts: { exePath: string }): {
+  target: string;
+  args: string;
+} {
+  void opts;
   return { target: opts.exePath, args: '' };
 }
 

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildStartMenuShortcutTarget,
   computeUpdateExePathFromExePath,
+  getStartMenuAppDir,
   getStartMenuProgramsDir,
   getStartMenuShortcutPath,
 } from './startMenuShortcutPlan';
@@ -28,25 +29,16 @@ describe('startMenuShortcutPlan', () => {
     );
   });
 
-  it('uses Update.exe when present', () => {
-    expect(
-      buildStartMenuShortcutTarget({
-        exePath: 'C:\\x\\app-0.0.0\\win-link-router.exe',
-        updateExePath: 'C:\\x\\Update.exe',
-        updateExeExists: true,
-      }),
-    ).toEqual({
-      target: 'C:\\x\\Update.exe',
-      args: '--processStart win-link-router.exe',
-    });
+  it('computes app folder under Programs', () => {
+    expect(getStartMenuAppDir('C:\\Programs', 'win-link-router')).toBe(
+      path.join('C:\\Programs', 'win-link-router'),
+    );
   });
 
-  it('falls back to exe when Update.exe is missing', () => {
+  it('uses the installed exe as the Start Menu shortcut target', () => {
     expect(
       buildStartMenuShortcutTarget({
         exePath: 'C:\\x\\app-0.0.0\\win-link-router.exe',
-        updateExePath: 'C:\\x\\Update.exe',
-        updateExeExists: false,
       }),
     ).toEqual({ target: 'C:\\x\\app-0.0.0\\win-link-router.exe', args: '' });
   });

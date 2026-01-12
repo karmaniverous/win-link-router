@@ -6,12 +6,11 @@
  * Notes:
  * - We avoid adding binary icon assets by using app.getFileIcon(process.execPath).
  */
-import path from 'node:path';
-
 import { app, Menu, nativeImage, shell, Tray } from 'electron';
 
 import { ensureStartMenuShortcut } from '../windows/ensureStartMenuShortcut';
 import {
+  getStartMenuAppDir,
   getStartMenuProgramsDir,
   getStartMenuShortcutPath,
 } from '../windows/startMenuShortcutPlan';
@@ -48,8 +47,9 @@ export async function createTrayController(opts: {
         label: 'Show Start Menu shortcut',
         click: () => {
           const programsDir = getStartMenuProgramsDir(app.getPath('appData'));
+          const appDir = getStartMenuAppDir(programsDir, 'win-link-router');
           const shortcutPath = getStartMenuShortcutPath(
-            programsDir,
+            appDir,
             'win-link-router',
           );
           shell.showItemInFolder(shortcutPath);

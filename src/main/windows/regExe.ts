@@ -94,7 +94,7 @@ function parseRegQuerySingleValue(
   stdout: string,
   valueName: string | null,
 ): string {
-  const desiredName = valueName === null ? '(Default)' : valueName;
+  const desiredName = valueName ?? '(Default)';
   const lines = stdout.split(/\r?\n/);
 
   for (const line of lines) {

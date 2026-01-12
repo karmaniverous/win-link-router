@@ -70,4 +70,5 @@
 - Show/focus main window when a second instance is launched without a URI (tray-friendly UX).
 - Added tray shortcuts to reveal install location and user data folder; surfaced ProgId details for debugging default status.
 - Improved default-handler detection for opaque AppX* ProgIds by resolving the ProgId open command and matching it to the running exe.
-- Added self-healing Start Menu shortcut repair (fallback to exe when Update.exe is missing).
+- Added self-healing Start Menu shortcut repair (fallback to exe when Update.exe is missing).- Fixed lint issues in tray controller and reg.exe adapter.
+- Hardened default-status handling for AppX* UserChoice ProgIds and wrote Start Menu shortcuts that launch the installed exe directly (Programs root + folder).

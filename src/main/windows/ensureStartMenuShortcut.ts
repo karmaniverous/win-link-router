@@ -1,7 +1,7 @@
 /**
  * Requirements addressed:
  * - Packaged app must be launchable from Start Menu even when Squirrel's
- *   Update.exe shortcut target is missing/broken.
+ *   default shortcut target is missing/broken.
  * - Keep side effects in main-process adapters (fs + shell.writeShortcutLink).
  */
 import fs from 'node:fs/promises';
@@ -9,10 +9,9 @@ import path from 'node:path';
 
 import { app, shell } from 'electron';
 
-import { fileExists } from '../config/jsonFile';
 import {
   buildStartMenuShortcutTarget,
-  computeUpdateExePathFromExePath,
+  getStartMenuAppDir,
   getStartMenuProgramsDir,
   getStartMenuShortcutPath,
 } from './startMenuShortcutPlan';
@@ -20,40 +19,46 @@ import {
 export async function ensureStartMenuShortcut(opts: {
   shortcutName: string;
   exePath: string;
-}): Promise<{ ok: boolean; warnings: string[]; shortcutPath: string }> {
+}): Promise<{ ok: boolean; warnings: string[]; shortcutPaths: string[] }> {
   const warnings: string[] = [];
 
   const appDataDir = app.getPath('appData');
   const programsDir = getStartMenuProgramsDir(appDataDir);
-  const shortcutPath = getStartMenuShortcutPath(programsDir, opts.shortcutName);
+  const appDir = getStartMenuAppDir(programsDir, opts.shortcutName);
 
-  const updateExePath = computeUpdateExePathFromExePath(opts.exePath);
-  const updateExeExists = await fileExists(updateExePath);
+  const shortcutPaths = [
+    // Common Squirrel location: Programs\<app>\<app>.lnk
+    getStartMenuShortcutPath(appDir, opts.shortcutName),
+    // Fallback location: Programs\<app>.lnk
+    getStartMenuShortcutPath(programsDir, opts.shortcutName),
+  ];
+
   const { target, args } = buildStartMenuShortcutTarget({
     exePath: opts.exePath,
-    updateExePath,
-    updateExeExists,
   });
 
   await fs.mkdir(programsDir, { recursive: true });
+  await fs.mkdir(appDir, { recursive: true });
 
-  const ok = shell.writeShortcutLink(shortcutPath, {
-    target,
-    args,
-    cwd: path.dirname(opts.exePath),
-    description: opts.shortcutName,
-    icon: opts.exePath,
+  const results = shortcutPaths.map((shortcutPath) => {
+    return shell.writeShortcutLink(shortcutPath, {
+      target,
+      args,
+      cwd: path.dirname(opts.exePath),
+      description: opts.shortcutName,
+      icon: opts.exePath,
+    });
   });
 
-  if (!ok) {
-    warnings.push(`Failed to write Start Menu shortcut: ${shortcutPath}`);
-  }
+  const ok = results.every(Boolean);
 
-  if (!updateExeExists) {
+  if (!ok) {
     warnings.push(
-      `Update.exe not found at ${updateExePath}; Start Menu shortcut targets the versioned exe instead.`,
+      `Failed to write one or more Start Menu shortcuts: ${shortcutPaths.join(
+        ', ',
+      )}`,
     );
   }
 
-  return { ok, warnings, shortcutPath };
+  return { ok, warnings, shortcutPaths };
 }

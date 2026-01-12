@@ -186,6 +186,23 @@ async function getProgIdOpenCommand(progId: string): Promise<string | null> {
   });
 }
 
+async function getProtocolOpenCommand(scheme: string): Promise<string | null> {
+  const normalized = normalizeScheme(scheme).toLowerCase();
+
+  const fromUser = await regQueryValue({
+    hive: 'HKCU',
+    key: `Software\\Classes\\${normalized}\\shell\\open\\command`,
+    name: null,
+  });
+  if (fromUser) return fromUser;
+
+  return regQueryValue({
+    hive: 'HKCR',
+    key: `${normalized}\\shell\\open\\command`,
+    name: null,
+  });
+}
+
 async function getSchemeWindowsStatus(
   scheme: string,
   enabled: boolean,
@@ -201,16 +218,33 @@ async function getSchemeWindowsStatus(
     registeredProgId.toLowerCase() === expectedProgId.toLowerCase();
 
   const actualProgId = await getUserChoiceProgId(normalized);
+
   let defaultStatus: DefaultHandlerStatus = computeDefaultHandlerStatus({
     expectedProgId,
     actualProgId,
     exePath,
   });
+
   if (defaultStatus === 'not-default' && actualProgId && exePath) {
-    const command = await getProgIdOpenCommand(actualProgId);
-    if (command && commandReferencesExe(command, exePath)) {
+    const progIdCommand = await getProgIdOpenCommand(actualProgId);
+    if (progIdCommand && commandReferencesExe(progIdCommand, exePath)) {
       defaultStatus = 'default';
+    } else {
+      const protocolCommand = await getProtocolOpenCommand(normalized);
+      if (protocolCommand && commandReferencesExe(protocolCommand, exePath)) {
+        defaultStatus = 'default';
+      }
     }
+  }
+
+  // If Windows reports an opaque AppX* ProgId and we couldn't validate a handler
+  // command, avoid a false-negative by reporting "unknown".
+  if (
+    defaultStatus === 'not-default' &&
+    typeof actualProgId === 'string' &&
+    actualProgId.toLowerCase().startsWith('appx')
+  ) {
+    defaultStatus = 'unknown';
   }
 
   return {
