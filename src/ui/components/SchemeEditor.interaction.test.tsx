@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -55,26 +55,31 @@ describe('SchemeEditor (interaction)', () => {
       throw new Error('confirm() is not supported.');
     };
 
-    const user = userEvent.setup();
-    const onRemoveScheme = vi.fn();
+    try {
+      const user = userEvent.setup();
+      const onRemoveScheme = vi.fn();
 
-    render(
-      <SchemeEditor
-        api={createDummyApi()}
-        presets={null}
-        readOnly={false}
-        scheme={createScheme()}
-        onChangeScheme={vi.fn()}
-        onRemoveScheme={onRemoveScheme}
-      />,
-    );
+      render(
+        <SchemeEditor
+          api={createDummyApi()}
+          presets={null}
+          readOnly={false}
+          scheme={createScheme()}
+          onChangeScheme={vi.fn()}
+          onRemoveScheme={onRemoveScheme}
+        />,
+      );
 
-    await user.click(screen.getByRole('button', { name: /^remove$/i }));
-    expect(screen.getByRole('dialog', { name: /remove scheme/i })).toBeTruthy();
+      await user.click(screen.getByRole('button', { name: /^remove$/i }));
+      const dialog = screen.getByRole('dialog', { name: /remove scheme/i });
+      expect(dialog).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: /^remove$/i }));
-    expect(onRemoveScheme).toHaveBeenCalledWith('TEL');
-
-    w.confirm = originalConfirm;
+      await user.click(
+        within(dialog).getByRole('button', { name: /^remove$/i }),
+      );
+      expect(onRemoveScheme).toHaveBeenCalledWith('TEL');
+    } finally {
+      w.confirm = originalConfirm;
+    }
   });
 });

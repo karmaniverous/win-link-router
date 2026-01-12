@@ -60,7 +60,7 @@ export function AddSchemeDialog(props: {
     try {
       if (!raw.trim()) return null;
       return normalizeScheme(raw);
-    } catch (err) {
+    } catch (_err) {
       return null;
     }
   }, [raw]);
@@ -70,8 +70,8 @@ export function AddSchemeDialog(props: {
       if (!raw.trim()) return null;
       normalizeScheme(raw);
       return null;
-    } catch (err) {
-      return (err as Error).message;
+    } catch (_err) {
+      return (_err as Error).message;
     }
   }, [raw]);
 
@@ -99,10 +99,10 @@ export function AddSchemeDialog(props: {
   }, [normalized, presets]);
 
   const canSubmit =
-    Boolean(open) &&
-    Boolean(normalized) &&
-    !normalizedError &&
-    !duplicateError &&
+    open &&
+    normalized !== null &&
+    normalizedError === null &&
+    duplicateError === null &&
     presetOptions.some((o) =>
       o.kind === 'blank'
         ? selectedOptionKey === 'blank'

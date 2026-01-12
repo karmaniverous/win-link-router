@@ -55,4 +55,4 @@
 - Fixed SchemeEditor lint by removing an unnecessary `??` on extractor.pattern.
 - Added a best-effort Default Apps deep link (registeredAppUser) with safe fallback.
 - Extracted routing-failure banner logic into a testable renderer module and used it in App.tsx.
-- Replaced window.prompt/confirm with in-app dialogs and added interaction tests to prevent regressions.
+- Replaced window.prompt/confirm with in-app dialogs and added interaction tests to prevent regressions.- Fixed lint and interaction test selectors after dialog refactor.

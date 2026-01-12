@@ -104,12 +104,7 @@ export function SchemeEditor(props: {
   const [removeTemplateId, setRemoveTemplateId] = useState<string | null>(null);
 
   const [resetOpen, setResetOpen] = useState(false);
-  const [resetPresetKey, setResetPresetKey] = useState<string>(() => {
-    const match = presetOptions.find(
-      (o) => o.preset.presetId === scheme.derivedFromPresetId,
-    );
-    return match?.key ?? presetOptions[0]?.key ?? 'blank';
-  });
+  const [resetPresetKey, setResetPresetKey] = useState<string>('blank');
 
   const templateToRemove =
     removeTemplateId !== null

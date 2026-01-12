@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type {
   AppConfig,
@@ -69,12 +69,6 @@ export function App() {
       defaultStatus: 'default' | 'not-default' | 'unknown';
     }[]
   >([]);
-
-  const statusByScheme = useMemo(() => {
-    const map = new Map<string, (typeof statuses)[number]>();
-    for (const s of statuses) map.set(s.scheme.toUpperCase(), s);
-    return map;
-  }, [statuses]);
 
   const reload = useCallback(async (api: WinLinkRouterApi) => {
     const cfg = await api.appConfig.get();
