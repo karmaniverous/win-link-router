@@ -1,10 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
 
-const execFileAsync = vi.fn().mockResolvedValue({ stdout: '', stderr: '' });
+const execFileMock = vi.fn(
+  (file: unknown, args: unknown, optsOrCb: unknown, cbMaybe?: unknown) => {
+    const cb =
+      typeof optsOrCb === 'function'
+        ? (optsOrCb as (err: unknown, stdout: string, stderr: string) => void)
+        : (cbMaybe as (err: unknown, stdout: string, stderr: string) => void);
+    if (typeof cb === 'function') cb(null, '', '');
+    void file;
+    void args;
+    return;
+  },
+);
 
 vi.mock('node:child_process', () => {
   return {
-    execFile: (...args: unknown[]) => execFileAsync(...args),
+    execFile: execFileMock,
   };
 });
 
@@ -13,9 +24,9 @@ describe('regExe', () => {
     const { regDeleteKey } = await import('./regExe');
     await regDeleteKey({ hive: 'HKCU', key: 'Software\\Classes\\x' });
 
-    expect(execFileAsync).toHaveBeenCalledTimes(1);
-    expect(execFileAsync.mock.calls[0]?.[0]).toBe('reg.exe');
-    expect(execFileAsync.mock.calls[0]?.[1]).toEqual([
+    expect(execFileMock).toHaveBeenCalledTimes(1);
+    expect(execFileMock.mock.calls[0]?.[0]).toBe('reg.exe');
+    expect(execFileMock.mock.calls[0]?.[1]).toEqual([
       'delete',
       'HKCU\\Software\\Classes\\x',
       '/f',
@@ -30,9 +41,9 @@ describe('regExe', () => {
       name: 'win-link-router',
     });
 
-    expect(execFileAsync).toHaveBeenCalledTimes(1);
-    expect(execFileAsync.mock.calls[0]?.[0]).toBe('reg.exe');
-    expect(execFileAsync.mock.calls[0]?.[1]).toEqual([
+    expect(execFileMock).toHaveBeenCalledTimes(1);
+    expect(execFileMock.mock.calls[0]?.[0]).toBe('reg.exe');
+    expect(execFileMock.mock.calls[0]?.[1]).toEqual([
       'delete',
       'HKCU\\Software\\RegisteredApplications',
       '/v',

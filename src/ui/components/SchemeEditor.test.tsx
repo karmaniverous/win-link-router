@@ -43,6 +43,7 @@ function createScheme(overrides: Partial<SchemeConfig> = {}): SchemeConfig {
   const base: SchemeConfig = {
     scheme: 'TEL',
     enabled: true,
+    registered: true,
     extractor: { pattern: '^tel:(?<number>.*)$', flags: 'i' },
     templates: [
       {

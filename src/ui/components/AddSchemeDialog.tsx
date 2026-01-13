@@ -13,6 +13,7 @@ function createBlankScheme(scheme: string): SchemeConfig {
   return {
     scheme,
     enabled: true,
+    registered: true,
     extractor: { pattern: '^(?<value>.*)$', flags: '' },
     templates: [],
   };
@@ -156,6 +157,7 @@ export function AddSchemeDialog(props: {
             ...cloneFromPreset(option.preset),
             scheme: normalized,
             enabled: true,
+            registered: true,
           };
 
     onAdd(next);

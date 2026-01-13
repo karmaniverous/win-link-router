@@ -21,5 +21,4 @@ stan-cli:
     knip:
       script: npm run knip
       warnPattern: Configuration hints
-    package: npx dotenvx run -e NO_COLOR=1 --ignore=MISSING_ENV_FILE -- npm run package
     make: npx dotenvx run -e NO_COLOR=1 --ignore=MISSING_ENV_FILE -- npm run make

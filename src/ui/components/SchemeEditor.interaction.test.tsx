@@ -42,6 +42,7 @@ function createScheme(): SchemeConfig {
   return {
     scheme: 'TEL',
     enabled: true,
+    registered: true,
     extractor: { pattern: '^tel:(?<number>.*)$', flags: 'i' },
     templates: [],
   };

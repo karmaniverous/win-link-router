@@ -41,13 +41,11 @@ function canonicalizeSettings(
   const runAtLogin = settings.runAtLogin;
 
   // Enforce SWL ⇒ RIB.
-  const effectiveRunInBackground = runAtLogin ? true : runInBackground;
+  const effectiveRunInBackground = runAtLogin || runInBackground;
 
   const autoEnableNewSchemes = settings.autoEnableNewSchemes ?? true;
   const autoRegisterNewSchemes = settings.autoRegisterNewSchemes ?? true;
-  const effectiveAutoEnable = autoRegisterNewSchemes
-    ? true
-    : autoEnableNewSchemes;
+  const effectiveAutoEnable = autoRegisterNewSchemes || autoEnableNewSchemes;
 
   return {
     ...settings,

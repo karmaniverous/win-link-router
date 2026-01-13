@@ -19,6 +19,7 @@ function createPresets(): PresetsFile {
         presetId: 'tel.whatsapp',
         scheme: 'TEL',
         enabled: true,
+        registered: true,
         extractor: { pattern: '^tel:(?<number>.*)$', flags: 'i' },
         templates: [
           {
@@ -61,6 +62,7 @@ describe('AddSchemeDialog (interaction)', () => {
     expect(onAdd.mock.calls[0]?.[0]).toMatchObject({
       scheme: 'TEL',
       derivedFromPresetId: 'tel.whatsapp',
+      registered: true,
     });
   });
 });

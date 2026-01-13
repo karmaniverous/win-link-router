@@ -22,6 +22,7 @@ describe('routeUriWithSchemeConfig', () => {
     const schemeConfig = {
       scheme: 'TEL',
       enabled: true,
+      registered: true,
       extractor: { pattern: '^tel:(?<number>.*)$', flags: 'i' },
       templates: [
         {
@@ -64,6 +65,7 @@ describe('routeUriWithSchemeConfig', () => {
     const schemeConfig = {
       scheme: 'TEL',
       enabled: true,
+      registered: true,
       extractor: { pattern: '^(?<num>[\\d\\s]+)$' },
       templates: [
         {
@@ -99,6 +101,7 @@ describe('routeUriWithSchemeConfig', () => {
     const schemeConfig = {
       scheme: 'TEL',
       enabled: true,
+      registered: true,
       extractor: { pattern: '^(?<number>[\\d\\s]+)$' },
       templates: [
         {
@@ -128,6 +131,7 @@ describe('routeUriWithSchemeConfig', () => {
     const schemeConfig = {
       scheme: 'TEL',
       enabled: true,
+      registered: true,
       extractor: { pattern: '^tel:(?<number>.*)$', flags: 'i' },
       templates: [
         {
