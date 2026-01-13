@@ -111,7 +111,7 @@ describe('SettingsPanel (interaction)', () => {
     await user.click(screen.getByRole('button', { name: /browse/i }));
 
     expect(api.settings.pickSharedConfigPath).toHaveBeenCalledTimes(1);
-    const input = screen.getByRole('textbox', {
+    const input = screen.getByRole<HTMLInputElement>('textbox', {
       name: /shared config path/i,
     });
     expect(input.value).toBe('C:\\x\\shared.json');

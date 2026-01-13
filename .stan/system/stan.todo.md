@@ -117,4 +117,5 @@
 - Added log redaction toggle to Log tab and aligned wording in Settings.
 - Added shared-config toggle + Browse picker in Settings.
 - Fixed SettingsPanel browse test (no fake timers/jest-dom)
-- Fixed lint/typecheck in SettingsPanel browse test.
+- Fixed lint/typecheck in SettingsPanel browse test.
+- Avoided ESLint removing assertion by using getByRole<T>().

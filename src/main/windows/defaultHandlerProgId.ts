@@ -31,7 +31,7 @@ export function computeDefaultHandlerStatus(opts: {
   if (opts.exePath) {
     const expectedExe = path.basename(opts.exePath).toLowerCase();
     const applicationsExe = parseApplicationsProgId(actualLower);
-    if (applicationsExe && applicationsExe.toLowerCase() === expectedExe) {
+    if (applicationsExe?.toLowerCase() === expectedExe) {
       return 'default';
     }
   }
