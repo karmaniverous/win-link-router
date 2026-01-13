@@ -72,7 +72,7 @@ export function App() {
   };
 
   return (
-    <AppShell header={{ height: 64 }} padding="md">
+    <AppShell header={{ height: 64 }} padding="md" style={{ height: '100%' }}>
       <AppShell.Header>
         <Group h="100%" px="md" justify="flex-end" gap="xs" wrap="wrap">
           <Button
@@ -98,19 +98,21 @@ export function App() {
           >
             Default Apps…
           </Button>
-          <GitHubButton
-            href="https://github.com/karmaniverous/win-link-router"
-            data-color-scheme="no-preference: light; light: light; dark: dark;"
-            data-size="large"
-            data-show-count="true"
-            aria-label="Star karmaniverous/win-link-router on GitHub"
-          >
-            Star
-          </GitHubButton>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <GitHubButton
+              href="https://github.com/karmaniverous/win-link-router"
+              data-color-scheme="no-preference: light; light: light; dark: dark;"
+              data-size="large"
+              data-show-count="true"
+              aria-label="Star karmaniverous/win-link-router on GitHub"
+            >
+              Star
+            </GitHubButton>
+          </div>
         </Group>
       </AppShell.Header>
 
-      <AppShell.Main>
+      <AppShell.Main style={{ height: '100%', minHeight: 0 }}>
         <Stack gap="md" style={{ minHeight: 0, height: '100%' }}>
           <Stack gap="xs" role="region" aria-label="Status">
             {controller.loading ? (
@@ -239,23 +241,33 @@ export function App() {
                     />
                   </div>
 
-                  <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-                    <SchemeEditor
-                      api={api}
-                      presets={controller.presets}
-                      readOnly={controller.readOnly}
-                      scheme={
-                        controller.config?.schemes.find(
-                          (s) => s.scheme === controller.selectedScheme,
-                        ) ?? null
-                      }
-                      onChangeScheme={(next, opts) => {
-                        controller.onChangeScheme(next, opts);
-                      }}
-                      onRemoveScheme={(schemeToRemove) => {
-                        controller.onRemoveScheme(schemeToRemove);
-                      }}
-                    />
+                  <div
+                    style={{
+                      flex: 1,
+                      minHeight: 0,
+                      display: 'flex',
+                      height: '100%',
+                    }}
+                  >
+                    <div style={{ flex: 1, minHeight: 0, height: '100%' }}>
+                      <SchemeEditor
+                        api={api}
+                        presets={controller.presets}
+                        readOnly={controller.readOnly}
+                        scheme={
+                          controller.config?.schemes.find(
+                            (s) => s.scheme === controller.selectedScheme,
+                          ) ?? null
+                        }
+                        onChangeScheme={(next, opts) => {
+                          controller.onChangeScheme(next, opts);
+                        }}
+                        onRemoveScheme={(schemeToRemove) => {
+                          controller.onChangeScheme;
+                          controller.onRemoveScheme(schemeToRemove);
+                        }}
+                      />
+                    </div>
                   </div>
                 </Group>
               </Stack>
