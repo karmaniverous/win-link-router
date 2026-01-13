@@ -3,16 +3,17 @@
 ## Next up
 
 - Mantine migration (pause bespoke UI work):
-  - Convert the pinned layout shell to Mantine primitives:
-    - App shell layout (pinned header + tabs)
-    - Scroll regions for scheme list, log, templates, and test output
+  - Convert remaining bespoke UI panels to Mantine primitives:
+    - Schemes sidebar rows (icons, toggles, tooltips)
+    - Scheme editor extractor/templates UI
+    - Log panel + test panel polish
   - Replace bespoke UI primitives with Mantine equivalents incrementally:
-    - tabs, spinner/loader, buttons, inputs, toggles
     - dialogs/confirmations (move off bespoke Modal/ConfirmDialog as needed)
+    - spinner/loader, buttons, inputs, toggles
   - Adjust renderer tests toward jsdom + Testing Library where Mantine is involved.
 
 - UI redesign (tabs + pinned layout):
-  - Re-implement the pinned layout and scroll regions using Mantine components.
+  - Trim legacy CSS layout scaffolding as Mantine AppShell replaces it.
   - Keep extractor/template inputs as 3-row textareas (Mantine `Textarea`).
 - Scheme model/UI overhaul (enabled vs registered):
   - Persist `scheme.registered` as desired Windows registration state.
@@ -100,4 +101,6 @@
 - Added pinned layout scaffolding with Settings/Log/Test tabs and converted extractor/template inputs to 3-row textareas.
 - Decomposed App and SchemeEditor modules to stay under the 300 LOC limit.
 - Decision: adopt Mantine as the renderer UI component library.
-- Added Mantine dependencies and wired MantineProvider in the renderer root.- Fixed tab component typing to restore typecheck (pre-Mantine Tabs swap).
+- Added Mantine dependencies and wired MantineProvider in the renderer root.
+- Fixed tab component typing to restore typecheck (pre-Mantine Tabs swap).
+- Converted app shell + tabs chrome to Mantine primitives (AppShell/Tabs).

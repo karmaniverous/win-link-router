@@ -1,13 +1,25 @@
+import {
+  Alert,
+  AppShell,
+  Button,
+  Group,
+  Loader,
+  Stack,
+  Tabs,
+  Title,
+} from '@mantine/core';
+
 import type { SchemeConfig } from '../core/config/appConfig';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
-import { useAppController } from './app/useAppController';
-import { APP_TABS } from './app/useAppController';
+import {
+  APP_TABS,
+  type AppTabId,
+  useAppController,
+} from './app/useAppController';
 import { RouteLogPanel } from './components/RouteLogPanel';
 import { SchemeEditor } from './components/SchemeEditor';
 import { SchemesSidebar } from './components/SchemesSidebar';
 import { SettingsPanel } from './components/SettingsPanel';
-import { Spinner } from './components/Spinner';
-import { Tabs } from './components/Tabs';
 import { TestPanel } from './components/TestPanel';
 
 export function App() {
@@ -24,112 +36,78 @@ export function App() {
 
   const controller = useAppController(api);
 
-  return (
-    <main className="appShell">
-      <header className="topbar">
-        <h1>win-link-router</h1>
-        <div className="topbarActions">
-          <button
-            type="button"
-            onClick={() =>
-              void api.appConfig.importSchemes().then(controller.reload)
-            }
-          >
-            Import
-          </button>
-          <button
-            type="button"
-            onClick={() => void api.appConfig.exportSchemes()}
-          >
-            Export
-          </button>
-          <button
-            type="button"
-            onClick={() => void api.windows.openDefaultApps()}
-          >
-            Default Apps…
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              void api.windows
-                .ensureRegistration()
-                .then((res) => {
-                  if (res.warnings.length) {
-                    controller.setRegistrationResult({
-                      kind: 'warn',
-                      message: res.warnings.join('\n'),
-                    });
-                  } else {
-                    controller.setRegistrationResult({
-                      kind: 'ok',
-                      message: 'Registration updated.',
-                    });
-                  }
-                  return controller.reload();
-                })
-                .catch((err: unknown) => {
-                  controller.setError((err as Error).message);
-                })
-            }
-          >
-            Ensure Registration
-          </button>
-        </div>
-      </header>
+  const onTabChange = (value: string | null) => {
+    if (!value) return;
+    controller.setActiveTab(value as AppTabId);
+  };
 
-      <div className="appBanners" role="region" aria-label="Status">
-        {controller.loading ? <Spinner label="Loading…" /> : null}
-        {controller.error ? <p className="error">{controller.error}</p> : null}
-        {controller.routeErrorBanner ? (
-          <p className="error">{controller.routeErrorBanner}</p>
-        ) : null}
-        {controller.registrationResult ? (
-          <section className="panel">
-            <div className="row">
-              <strong>
-                Registration{' '}
-                {controller.registrationResult.kind === 'ok'
-                  ? 'updated'
-                  : 'warning'}
-              </strong>
-              <div className="rowActions">
-                <button
-                  type="button"
-                  onClick={() => {
-                    controller.setRegistrationResult(null);
-                  }}
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-            <pre
-              className={
-                controller.registrationResult.kind === 'ok'
-                  ? 'muted'
-                  : 'warning'
+  return (
+    <AppShell
+      header={{ height: 64 }}
+      navbar={{ width: 320, breakpoint: 'sm' }}
+      padding="md"
+    >
+      <AppShell.Header>
+        <Group h="100%" px="md" justify="space-between">
+          <Title order={1} size="h3">
+            win-link-router
+          </Title>
+          <Group gap="xs" wrap="wrap">
+            <Button
+              size="xs"
+              variant="default"
+              onClick={() =>
+                void api.appConfig.importSchemes().then(controller.reload)
               }
             >
-              {controller.registrationResult.message}
-            </pre>
-          </section>
-        ) : null}
-        {controller.warnings.length ? (
-          <details>
-            <summary>Warnings</summary>
-            <pre>{controller.warnings.join('\n')}</pre>
-          </details>
-        ) : null}
-        {controller.readOnly ? (
-          <p className="warning">
-            Config is read-only (shared config error). Settings can still be
-            updated to fix the shared config path.
-          </p>
-        ) : null}
-      </div>
+              Import
+            </Button>
+            <Button
+              size="xs"
+              variant="default"
+              onClick={() => void api.appConfig.exportSchemes()}
+            >
+              Export
+            </Button>
+            <Button
+              size="xs"
+              variant="default"
+              onClick={() => void api.windows.openDefaultApps()}
+            >
+              Default Apps…
+            </Button>
+            <Button
+              size="xs"
+              variant="default"
+              onClick={() =>
+                void api.windows
+                  .ensureRegistration()
+                  .then((res) => {
+                    if (res.warnings.length) {
+                      controller.setRegistrationResult({
+                        kind: 'warn',
+                        message: res.warnings.join('\n'),
+                      });
+                    } else {
+                      controller.setRegistrationResult({
+                        kind: 'ok',
+                        message: 'Registration updated.',
+                      });
+                    }
+                    return controller.reload();
+                  })
+                  .catch((err: unknown) => {
+                    controller.setError((err as Error).message);
+                  })
+              }
+            >
+              Ensure Registration
+            </Button>
+          </Group>
+        </Group>
+      </AppShell.Header>
 
-      <div className="appBody">
+      <AppShell.Navbar p="xs">
         <SchemesSidebar
           loading={controller.loading}
           readOnly={controller.readOnly}
@@ -145,40 +123,95 @@ export function App() {
             controller.onAddScheme(schemeConfig);
           }}
         />
+      </AppShell.Navbar>
 
-        <section className="contentColumn">
-          <Tabs
-            value={controller.activeTab}
-            onChange={(next) => {
-              controller.setActiveTab(next);
-            }}
-            tabs={APP_TABS}
-          />
+      <AppShell.Main>
+        <Stack gap="md" style={{ minHeight: 0 }}>
+          <Stack gap="xs" role="region" aria-label="Status">
+            {controller.loading ? (
+              <Group gap="xs">
+                <Loader size="sm" />
+                <span>Loading…</span>
+              </Group>
+            ) : null}
+            {controller.error ? (
+              <Alert color="red" title="Error">
+                {controller.error}
+              </Alert>
+            ) : null}
+            {controller.routeErrorBanner ? (
+              <Alert color="red" title="Routing failed">
+                {controller.routeErrorBanner}
+              </Alert>
+            ) : null}
+            {controller.registrationResult ? (
+              <Alert
+                color={
+                  controller.registrationResult.kind === 'ok'
+                    ? 'green'
+                    : 'yellow'
+                }
+                title={
+                  controller.registrationResult.kind === 'ok'
+                    ? 'Registration updated'
+                    : 'Registration warning'
+                }
+                withCloseButton
+                onClose={() => {
+                  controller.setRegistrationResult(null);
+                }}
+              >
+                <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                  {controller.registrationResult.message}
+                </pre>
+              </Alert>
+            ) : null}
+            {controller.warnings.length ? (
+              <details>
+                <summary>Warnings</summary>
+                <pre>{controller.warnings.join('\n')}</pre>
+              </details>
+            ) : null}
+            {controller.readOnly ? (
+              <Alert color="yellow" title="Read-only config">
+                Config is read-only (shared config error). Settings can still be
+                updated to fix the shared config path.
+              </Alert>
+            ) : null}
+          </Stack>
 
-          <div className="contentScroll">
-            <div className="tabPanel" role="region" aria-label="Tab panel">
-              {controller.activeTab === 'settings' ? (
-                <SettingsPanel
-                  api={api}
-                  config={controller.config}
-                  readOnly={controller.readOnly}
-                  onDidChangeSettings={() => void controller.reload()}
-                />
-              ) : null}
-              {controller.activeTab === 'log' ? (
-                <RouteLogPanel api={api} />
-              ) : null}
-              {controller.activeTab === 'test' ? (
-                <TestPanel
-                  api={api}
-                  scheme={controller.selectedScheme}
-                  testUri={controller.testUri}
-                  onChangeTestUri={controller.setTestUri}
-                />
-              ) : null}
-            </div>
+          <Tabs value={controller.activeTab} onChange={onTabChange}>
+            <Tabs.List>
+              {APP_TABS.map((t) => (
+                <Tabs.Tab key={t.id} value={t.id}>
+                  {t.label}
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
 
-            <div className="editorPanel">
+            <Tabs.Panel value="settings" pt="xs">
+              <SettingsPanel
+                api={api}
+                config={controller.config}
+                readOnly={controller.readOnly}
+                onDidChangeSettings={() => void controller.reload()}
+              />
+            </Tabs.Panel>
+            <Tabs.Panel value="log" pt="xs">
+              <RouteLogPanel api={api} />
+            </Tabs.Panel>
+            <Tabs.Panel value="test" pt="xs">
+              <TestPanel
+                api={api}
+                scheme={controller.selectedScheme}
+                testUri={controller.testUri}
+                onChangeTestUri={controller.setTestUri}
+              />
+            </Tabs.Panel>
+          </Tabs>
+
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <div style={{ height: '100%' }}>
               <SchemeEditor
                 api={api}
                 presets={controller.presets}
@@ -197,8 +230,8 @@ export function App() {
               />
             </div>
           </div>
-        </section>
-      </div>
-    </main>
+        </Stack>
+      </AppShell.Main>
+    </AppShell>
   );
 }
