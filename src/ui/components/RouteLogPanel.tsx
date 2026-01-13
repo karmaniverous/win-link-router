@@ -6,11 +6,13 @@ import {
   Loader,
   Paper,
   Stack,
+  Switch,
   Text,
   Title,
 } from '@mantine/core';
 import { useCallback, useEffect, useState } from 'react';
 
+import type { AppConfig, RouteLogMode } from '../../core/config/appConfig';
 import type { RouteUriResult } from '../../core/routing/routeUri';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -21,13 +23,21 @@ interface RouteLogEntry {
   result: RouteUriResult;
 }
 
-export function RouteLogPanel(props: { api: WinLinkRouterApi }) {
-  const { api } = props;
+export function RouteLogPanel(props: {
+  api: WinLinkRouterApi;
+  config?: AppConfig | null;
+  onDidChangeSettings?: () => void;
+}) {
+  const { api, config, onDidChangeSettings } = props;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [entries, setEntries] = useState<RouteLogEntry[]>([]);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [modeBusy, setModeBusy] = useState(false);
+
+  const routeLogMode: RouteLogMode =
+    config?.settings.routeLogMode ?? 'redacted';
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -95,6 +105,35 @@ export function RouteLogPanel(props: { api: WinLinkRouterApi }) {
           </Group>
         </Group>
 
+        <Switch
+          label="Redact new log entries"
+          checked={routeLogMode === 'redacted'}
+          disabled={loading || modeBusy}
+          onChange={(e) => {
+            const nextMode: RouteLogMode = e.currentTarget.checked
+              ? 'redacted'
+              : 'full';
+            setModeBusy(true);
+            void api.settings
+              .set({ routeLogMode: nextMode })
+              .then(() => {
+                onDidChangeSettings?.();
+              })
+              .catch((err: unknown) => {
+                setError((err as Error).message);
+              })
+              .finally(() => {
+                setModeBusy(false);
+              });
+          }}
+        />
+
+        <Text size="sm" c="dimmed">
+          {routeLogMode === 'redacted'
+            ? 'Redacted mode stores scheme-level info only (recommended).'
+            : 'Full mode stores raw URIs/targets (less private).'}
+        </Text>
+
         <Text size="sm" c="dimmed">
           Entries: {entries.length}
           {lastSeq !== null ? ` (latest seq: ${String(lastSeq)})` : ''}
@@ -117,7 +156,7 @@ export function RouteLogPanel(props: { api: WinLinkRouterApi }) {
 
         {entries.length ? (
           <details>
-            <summary>Show entries (redacted)</summary>
+            <summary>Show entries</summary>
             <Code block>{JSON.stringify(entries, null, 2)}</Code>
           </details>
         ) : (

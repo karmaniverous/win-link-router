@@ -109,7 +109,7 @@ export function App() {
             >
               Default Apps…
             </Button>
-            <Tooltip label="Star this repo on GtHub!" withArrow>
+            <Tooltip label="Star this repo on GitHub!" withArrow>
               <Button
                 size="xs"
                 variant="default"
@@ -235,7 +235,11 @@ export function App() {
               />
             </Tabs.Panel>
             <Tabs.Panel value="log" pt="xs">
-              <RouteLogPanel api={api} />
+              <RouteLogPanel
+                api={api}
+                config={controller.config}
+                onDidChangeSettings={() => void controller.reload()}
+              />
             </Tabs.Panel>
             <Tabs.Panel value="test" pt="xs">
               <TestPanel

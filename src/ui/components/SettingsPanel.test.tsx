@@ -77,7 +77,7 @@ describe('SettingsPanel', () => {
     expect(html).toContain('Auto-enable new schemes');
     expect(html).toContain('Auto-register new schemes');
     expect(html).toContain('Shared config path (optional)');
-    expect(html).toContain('Store full routing log');
+    expect(html).toContain('Redact new log entries');
   });
 
   it('shows read-only warning when readOnly is true', () => {

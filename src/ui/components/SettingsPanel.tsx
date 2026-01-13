@@ -184,16 +184,16 @@ export function SettingsPanel(props: {
         />
 
         <Switch
-          label="Store full routing log (less private)"
-          checked={routeLogMode === 'full'}
+          label="Redact new log entries"
+          checked={routeLogMode === 'redacted'}
           onChange={(e) => {
-            setRouteLogMode(e.currentTarget.checked ? 'full' : 'redacted');
+            setRouteLogMode(e.currentTarget.checked ? 'redacted' : 'full');
           }}
         />
 
         <Text size="sm" c="dimmed">
-          Default is redacted (no raw URIs/targets). Enable full logging only if
-          you understand the privacy implications.
+          Redacted mode stores scheme-level info only. Disable redaction to
+          store full URIs/targets (less private).
         </Text>
 
         {readOnly ? (
@@ -213,7 +213,11 @@ export function SettingsAndLogPanel(
   return (
     <>
       <SettingsPanel {...props} />
-      <RouteLogPanel api={props.api} />
+      <RouteLogPanel
+        api={props.api}
+        config={props.config}
+        onDidChangeSettings={props.onDidChangeSettings}
+      />
     </>
   );
 }

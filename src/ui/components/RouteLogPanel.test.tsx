@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
+import type { AppConfig } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { MantineTestProvider } from '../test/MantineTestProvider';
 import { RouteLogPanel } from './RouteLogPanel';
@@ -39,11 +40,24 @@ function createDummyApi(): WinLinkRouterApi {
   };
 }
 
+function createConfig(): AppConfig {
+  return {
+    schemaVersion: 1,
+    appVersion: '0.0.0',
+    settings: {
+      runAtLogin: false,
+      sharedConfigPath: null,
+      routeLogMode: 'redacted',
+    },
+    schemes: [],
+  };
+}
+
 describe('RouteLogPanel', () => {
   it('renders panel shell', () => {
     const html = renderToStaticMarkup(
       <MantineTestProvider>
-        <RouteLogPanel api={createDummyApi()} />
+        <RouteLogPanel api={createDummyApi()} config={createConfig()} />
       </MantineTestProvider>,
     );
     expect(html).toContain('Routing log');
