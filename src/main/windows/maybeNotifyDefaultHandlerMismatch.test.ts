@@ -1,3 +1,4 @@
+import type { Tray } from 'electron';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { AppConfig } from '../../core/config/appConfig';
@@ -32,20 +33,22 @@ function createConfig(): AppConfig {
 
 describe('maybeNotifyDefaultHandlerMismatch', () => {
   it('does nothing when platform is not win32', async () => {
-    const tray = { displayBalloon: vi.fn() };
+    const displayBalloon = vi.fn();
+    const tray = { displayBalloon };
 
     const res = await maybeNotifyDefaultHandlerMismatch({
       config: createConfig(),
-      tray: tray as unknown as Electron.Tray,
+      tray: tray as unknown as Tray,
       platform: 'darwin',
     });
 
     expect(res).toEqual({ notified: false });
-    expect(tray.displayBalloon).not.toHaveBeenCalled();
+    expect(displayBalloon).not.toHaveBeenCalled();
   });
 
   it('shows a tray balloon when mismatch exists', async () => {
-    const tray = { displayBalloon: vi.fn() };
+    const displayBalloon = vi.fn();
+    const tray = { displayBalloon };
 
     const mocked = vi.mocked(getAllSchemeStatusesFromConfig);
     mocked.mockResolvedValueOnce([
@@ -61,16 +64,17 @@ describe('maybeNotifyDefaultHandlerMismatch', () => {
 
     const res = await maybeNotifyDefaultHandlerMismatch({
       config: createConfig(),
-      tray: tray as unknown as Electron.Tray,
+      tray: tray as unknown as Tray,
       platform: 'win32',
     });
 
     expect(res).toEqual({ notified: true });
-    expect(tray.displayBalloon).toHaveBeenCalledTimes(1);
+    expect(displayBalloon).toHaveBeenCalledTimes(1);
 
-    const arg = (
-      tray.displayBalloon as unknown as { mock: { calls: unknown[] } }
-    ).mock.calls[0]?.[0] as { title?: unknown; content?: unknown };
+    const arg = displayBalloon.mock.calls[0]?.[0] as {
+      title?: unknown;
+      content?: unknown;
+    };
     expect(arg.title).toBe('Default app not set for some protocols');
     expect(String(arg.content)).toMatch(/Not default:\s*TEL/i);
   });
