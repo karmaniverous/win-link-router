@@ -40,6 +40,14 @@ function createApiWithEvaluate(
     test: {
       evaluate: impl,
     },
+    share: {
+      open: vi.fn(),
+      getContext: vi.fn(),
+      later: vi.fn(),
+      stopNagging: vi.fn(),
+      shareX: vi.fn(),
+      shareLinkedIn: vi.fn(),
+    },
   };
 }
 

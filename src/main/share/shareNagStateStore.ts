@@ -1,6 +1,7 @@
 /**
  * Requirements addressed:
  * - Persist nag state in a separate user file (not config) under userData.
+ * - Validate persisted state safely; fall back to defaults if malformed.
  * - Only successful routes count toward nag frequency.
  * - Manual share uses MRU (most recently used) scheme + template label.
  */
@@ -27,10 +28,25 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function isShareNagState(value: unknown): value is ShareNagState {
+  if (!isRecord(value)) return false;
+  if (value.schemaVersion !== 1) return false;
+  if (typeof value.disabled !== 'boolean') return false;
+  if (typeof value.successfulRouteCount !== 'number') return false;
+
+  const last = value.lastSuccessful;
+  if (last === undefined) return true;
+  if (!isRecord(last)) return false;
+  if (typeof last.scheme !== 'string') return false;
+  if (typeof last.templateLabel !== 'string') return false;
+  return true;
+}
+
 function parseState(raw: unknown): ShareNagState {
-  if (!isRecord(raw)) throw new Error('Invalid share nag state.');
-  if (raw.schemaVersion !== 1) throw new Error('Invalid share nag schema.');
-  return raw as ShareNagState;
+  if (!isShareNagState(raw)) {
+    throw new Error('Invalid share nag state.');
+  }
+  return raw;
 }
 
 export class ShareNagStateStore {

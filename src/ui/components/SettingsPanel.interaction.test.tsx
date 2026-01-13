@@ -71,6 +71,14 @@ function createApi(opts: {
     test: {
       evaluate: vi.fn(),
     },
+    share: {
+      open: vi.fn(),
+      getContext: vi.fn(),
+      later: vi.fn(),
+      stopNagging: vi.fn(),
+      shareX: vi.fn(),
+      shareLinkedIn: vi.fn(),
+    },
   };
 
   return { api, settingsSet: settingsSet as ReturnType<typeof vi.fn> };

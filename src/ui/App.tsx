@@ -6,34 +6,20 @@
  * - Provide a Share button in the header that opens the Share window.
  * - Replace remaining bespoke renderer UI with Mantine primitives as found.
  */
-import {
-  Accordion,
-  Alert,
-  AppShell,
-  Button,
-  Code,
-  Group,
-  Loader,
-  Stack,
-  Tabs,
-  Text,
-  Title,
-} from '@mantine/core';
-import { IconShare2 } from '@tabler/icons-react';
+import { Alert, AppShell, Stack, Tabs, Title } from '@mantine/core';
 
 import type { SchemeConfig } from '../core/config/appConfig';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
+import { AppHeaderActions } from './app/AppHeaderActions';
+import { AppStatusRegion } from './app/AppStatusRegion';
+import { SettingsTab } from './app/SettingsTab';
 import {
   APP_TABS,
   type AppTabId,
   useAppController,
 } from './app/useAppController';
-import { DefaultHandlerMismatchBanner } from './components/DefaultHandlerMismatchBanner';
 import { OnboardingPresetsDialog } from './components/OnboardingPresetsDialog';
 import { RouteLogPanel } from './components/RouteLogPanel';
-import { SchemeEditor } from './components/SchemeEditor';
-import { SchemesSidebar } from './components/SchemesSidebar';
-import { SettingsPanel } from './components/SettingsPanel';
 import { TestPanel } from './components/TestPanel';
 
 export function App() {
@@ -95,119 +81,45 @@ export function App() {
       ) : null}
 
       <AppShell.Header>
-        <Group h="100%" px="md" justify="flex-end" gap="xs" wrap="wrap">
-          <Button
-            size="xs"
-            variant="default"
-            disabled={controller.loading || controller.readOnly}
-            onClick={() =>
-              void api.appConfig
-                .importSchemes()
-                .then((res) => {
-                  if (res.cancelled) return;
-                  return controller.reload();
-                })
-                .catch((err: unknown) => {
-                  controller.setError((err as Error).message);
-                })
-            }
-          >
-            Import
-          </Button>
-          <Button
-            size="xs"
-            variant="default"
-            disabled={controller.loading}
-            onClick={() =>
-              void api.appConfig.exportSchemes().catch((err: unknown) => {
+        <AppHeaderActions
+          loading={controller.loading}
+          readOnly={controller.readOnly}
+          onImport={() =>
+            void api.appConfig
+              .importSchemes()
+              .then((res) => {
+                if (res.cancelled) return;
+                return controller.reload();
+              })
+              .catch((err: unknown) => {
                 controller.setError((err as Error).message);
               })
-            }
-          >
-            Export
-          </Button>
-          <Button
-            size="xs"
-            variant="default"
-            onClick={() => void api.windows.openDefaultApps()}
-          >
-            Default Apps…
-          </Button>
-
-          <Button
-            size="xs"
-            variant="default"
-            leftSection={<IconShare2 size={16} />}
-            disabled={controller.loading}
-            onClick={() => void api.share.open()}
-          >
-            Share
-          </Button>
-        </Group>
+          }
+          onExport={() =>
+            void api.appConfig.exportSchemes().catch((err: unknown) => {
+              controller.setError((err as Error).message);
+            })
+          }
+          onOpenDefaultApps={() => void api.windows.openDefaultApps()}
+          onOpenShare={() => void api.share.open()}
+        />
       </AppShell.Header>
 
       <AppShell.Main style={{ height: '100%', minHeight: 0 }}>
         <Stack gap="md" style={{ minHeight: 0, height: '100%' }}>
-          <Stack gap="xs" role="region" aria-label="Status">
-            {controller.loading ? (
-              <Group gap="xs">
-                <Loader size="sm" />
-                <Text size="sm" c="dimmed">
-                  Loading…
-                </Text>
-              </Group>
-            ) : null}
-            {controller.error ? (
-              <Alert color="red" title="Error">
-                {controller.error}
-              </Alert>
-            ) : null}
-            {controller.routeErrorBanner ? (
-              <Alert color="red" title="Routing failed">
-                {controller.routeErrorBanner}
-              </Alert>
-            ) : null}
-            {controller.registrationResult ? (
-              <Alert
-                color={
-                  controller.registrationResult.kind === 'ok'
-                    ? 'green'
-                    : 'yellow'
-                }
-                title={
-                  controller.registrationResult.kind === 'ok'
-                    ? 'Registration updated'
-                    : 'Registration warning'
-                }
-                withCloseButton
-                onClose={() => {
-                  controller.setRegistrationResult(null);
-                }}
-              >
-                <Code block>{controller.registrationResult.message}</Code>
-              </Alert>
-            ) : null}
-            <DefaultHandlerMismatchBanner
-              statuses={controller.statuses}
-              onOpenDefaultApps={() => void api.windows.openDefaultApps()}
-            />
-            {controller.warnings.length ? (
-              <Accordion variant="separated">
-                <Accordion.Item value="warnings">
-                  <Accordion.Control>Warnings</Accordion.Control>
-                  <Accordion.Panel>
-                    <Code block>{controller.warnings.join('\n')}</Code>
-                  </Accordion.Panel>
-                </Accordion.Item>
-              </Accordion>
-            ) : null}
-            {controller.readOnly ? (
-              <Alert color="yellow" title="Read-only config">
-                Config is read-only (shared config error). Settings can still be
-                updated to fix the shared config path.
-              </Alert>
-            ) : null}
-          </Stack>
+          <AppStatusRegion
+            loading={controller.loading}
+            error={controller.error}
+            routeErrorBanner={controller.routeErrorBanner}
+            registrationResult={controller.registrationResult}
+            warnings={controller.warnings}
+            readOnly={controller.readOnly}
+            statuses={controller.statuses}
+            onClearRegistrationResult={() => {
+              controller.setRegistrationResult(null);
+            }}
+            onOpenDefaultApps={() => void api.windows.openDefaultApps()}
+          />
 
           <Tabs
             value={controller.activeTab}
@@ -232,82 +144,38 @@ export function App() {
               pt="xs"
               style={{ minHeight: 0, flex: 1 }}
             >
-              <Stack gap="sm" style={{ height: '100%', minHeight: 0 }}>
-                <SettingsPanel
-                  api={api}
-                  config={controller.config}
-                  readOnly={controller.readOnly}
-                  onDidChangeSettings={() => void controller.reload()}
-                />
-
-                <Group
-                  align="stretch"
-                  wrap="nowrap"
-                  gap="md"
-                  style={{ minHeight: 0, flex: 1 }}
-                >
-                  <div style={{ width: 320, minHeight: 0, display: 'flex' }}>
-                    <SchemesSidebar
-                      loading={controller.loading}
-                      readOnly={controller.readOnly}
-                      config={controller.config}
-                      presets={controller.presets}
-                      statuses={controller.statuses}
-                      selectedScheme={controller.selectedScheme}
-                      onSelectScheme={controller.setSelectedScheme}
-                      onRefreshAndReconcile={() =>
-                        void ensureRegistrationAndReload()
-                      }
-                      onSetNewSchemeDefaults={(patch) => {
-                        void api.settings
-                          .set(patch)
-                          .then(() => controller.reload())
-                          .catch((err: unknown) => {
-                            controller.setError((err as Error).message);
-                          });
-                      }}
-                      onChangeScheme={(next, opts) => {
-                        controller.onChangeScheme(next, opts);
-                      }}
-                      onRemoveScheme={controller.onRemoveScheme}
-                      onError={(message) => {
-                        controller.setError(message);
-                      }}
-                      onAddScheme={(schemeConfig: SchemeConfig) => {
-                        controller.onAddScheme(schemeConfig);
-                      }}
-                    />
-                  </div>
-
-                  <div
-                    style={{
-                      flex: 1,
-                      minHeight: 0,
-                      display: 'flex',
-                      height: '100%',
-                    }}
-                  >
-                    <div style={{ flex: 1, minHeight: 0, height: '100%' }}>
-                      <SchemeEditor
-                        api={api}
-                        presets={controller.presets}
-                        readOnly={controller.readOnly}
-                        scheme={
-                          controller.config?.schemes.find(
-                            (s) => s.scheme === controller.selectedScheme,
-                          ) ?? null
-                        }
-                        onChangeScheme={(next, opts) => {
-                          controller.onChangeScheme(next, opts);
-                        }}
-                        onRemoveScheme={(schemeToRemove) => {
-                          controller.onRemoveScheme(schemeToRemove);
-                        }}
-                      />
-                    </div>
-                  </div>
-                </Group>
-              </Stack>
+              <SettingsTab
+                api={api}
+                loading={controller.loading}
+                readOnly={controller.readOnly}
+                config={controller.config}
+                presets={controller.presets}
+                statuses={controller.statuses}
+                selectedScheme={controller.selectedScheme}
+                onSelectScheme={controller.setSelectedScheme}
+                onRefreshAndReconcile={() => void ensureRegistrationAndReload()}
+                onSetNewSchemeDefaults={(patch) => {
+                  void api.settings
+                    .set(patch)
+                    .then(() => controller.reload())
+                    .catch((err: unknown) => {
+                      controller.setError((err as Error).message);
+                    });
+                }}
+                onChangeScheme={(next, opts) => {
+                  controller.onChangeScheme(next, opts);
+                }}
+                onRemoveScheme={(schemeToRemove) => {
+                  controller.onRemoveScheme(schemeToRemove);
+                }}
+                onAddScheme={(schemeConfig: SchemeConfig) => {
+                  controller.onAddScheme(schemeConfig);
+                }}
+                onError={(message) => {
+                  controller.setError(message);
+                }}
+                onDidChangeSettings={() => void controller.reload()}
+              />
             </Tabs.Panel>
 
             <Tabs.Panel

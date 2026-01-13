@@ -13,10 +13,9 @@ export interface ShareSubject {
 }
 
 function pickTemplateLabel(scheme: SchemeConfig): string | null {
-  const enabled = scheme.templates.find((t) => t.enabled) ?? null;
-  if (enabled?.label) return enabled.label;
-  const first = scheme.templates[0] ?? null;
-  return first?.label ?? null;
+  const enabled = scheme.templates.find((t) => t.enabled);
+  if (enabled) return enabled.label;
+  return scheme.templates[0]?.label ?? null;
 }
 
 function pickScheme(config: AppConfig): SchemeConfig | null {
@@ -46,7 +45,7 @@ export function deriveShareSubjectFromRouteResult(
 ): ShareSubject | null {
   if (result.type !== 'routed') return null;
 
-  const attempts = result.attempts ?? [];
+  const attempts = result.attempts;
   const attempt =
     attempts.find((a) => a.templateId === result.templateId) ??
     attempts[attempts.length - 1] ??
@@ -56,7 +55,7 @@ export function deriveShareSubjectFromRouteResult(
   if (!label) return null;
 
   return {
-    scheme: String(result.scheme).toUpperCase(),
+    scheme: result.scheme.toUpperCase(),
     templateLabel: label,
   };
 }
