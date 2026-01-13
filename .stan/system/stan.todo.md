@@ -130,4 +130,6 @@
 - Avoided ESLint removing assertion by using getByRole<T>().
 - Removed unused Spinner component and CSS.
 - Aligned Settings tab layout to the wireframe (Schemes/Detail + controls).
-- Replaced GitHub header button with react-github-btn.- Hardened Settings tab flex heights so Scheme Detail scrolls.
+- Replaced GitHub header button with react-github-btn.
+- Hardened Settings tab flex heights so Scheme Detail scrolls.
+- Fixed App.tsx lint by removing a stray expression.

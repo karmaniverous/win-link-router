@@ -263,7 +263,6 @@ export function App() {
                           controller.onChangeScheme(next, opts);
                         }}
                         onRemoveScheme={(schemeToRemove) => {
-                          controller.onChangeScheme;
                           controller.onRemoveScheme(schemeToRemove);
                         }}
                       />
