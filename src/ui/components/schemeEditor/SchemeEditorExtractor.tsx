@@ -4,7 +4,7 @@
  * - Extractor pattern input is a textarea (3 rows).
  * - Disabled schemes must block editing except re-enable; registered ⇒ enabled.
  */
-import { Alert, Stack, Textarea, TextInput } from '@mantine/core';
+import { Alert, Group, Stack, Textarea, TextInput } from '@mantine/core';
 
 import type { SchemeConfig } from '../../../core/config/appConfig';
 import { getExtractorError } from './getExtractorError';
@@ -23,30 +23,37 @@ export function SchemeEditorExtractor(props: {
 
   return (
     <Stack gap="sm">
-      <Textarea
-        label="Extractor pattern"
-        rows={3}
-        value={scheme.extractor.pattern}
-        disabled={editingDisabled}
-        onChange={(e) => {
-          onChangeScheme({
-            ...scheme,
-            extractor: { ...scheme.extractor, pattern: e.currentTarget.value },
-          });
-        }}
-      />
+      <Group align="flex-start" wrap="nowrap" gap="sm">
+        <Textarea
+          label="Extractor pattern"
+          rows={3}
+          style={{ flex: 1 }}
+          value={scheme.extractor.pattern}
+          disabled={editingDisabled}
+          onChange={(e) => {
+            onChangeScheme({
+              ...scheme,
+              extractor: {
+                ...scheme.extractor,
+                pattern: e.currentTarget.value,
+              },
+            });
+          }}
+        />
 
-      <TextInput
-        label="Extractor flags"
-        value={scheme.extractor.flags ?? ''}
-        disabled={editingDisabled}
-        onChange={(e) => {
-          onChangeScheme({
-            ...scheme,
-            extractor: { ...scheme.extractor, flags: e.currentTarget.value },
-          });
-        }}
-      />
+        <TextInput
+          label="Flags"
+          style={{ width: 120 }}
+          value={scheme.extractor.flags ?? ''}
+          disabled={editingDisabled}
+          onChange={(e) => {
+            onChangeScheme({
+              ...scheme,
+              extractor: { ...scheme.extractor, flags: e.currentTarget.value },
+            });
+          }}
+        />
+      </Group>
 
       {extractorError ? (
         <Alert color="red" title="Extractor error">

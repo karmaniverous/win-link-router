@@ -262,4 +262,11 @@ Durable project requirements (desired end-state).
 ## Text inputs
 
 - Extractor pattern input must be a textarea (3 rows).
+- Extractor flags input must:
+  - Be labeled “Flags”.
+  - Be a short text input positioned to the right of the extractor pattern textarea (wireframe-aligned).
 - Template string input must be a textarea (3 rows).
+
+- Settings panel layout (wireframe-aligned):
+  - The inline settings toggles must appear in a row above the shared config file picker.
+  - The shared config file picker row must only be visible when “Use shared config” is enabled.

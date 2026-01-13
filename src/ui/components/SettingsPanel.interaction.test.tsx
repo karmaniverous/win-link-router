@@ -108,6 +108,10 @@ describe('SettingsPanel (interaction)', () => {
       </MantineTestProvider>,
     );
 
+    await user.click(
+      screen.getByRole('checkbox', { name: /use shared config/i }),
+    );
+
     await user.click(screen.getByRole('button', { name: /browse/i }));
 
     expect(api.settings.pickSharedConfigPath).toHaveBeenCalledTimes(1);

@@ -76,7 +76,31 @@ describe('SettingsPanel', () => {
     expect(html).toContain('Run in Background');
     expect(html).toContain('Start on Windows Login');
     expect(html).toContain('Use shared config');
+    expect(html).not.toContain('Shared config path');
+  });
+
+  it('shows shared config path row when shared config is enabled', () => {
+    const { api } = createDummyApi();
+    const config = createConfig({
+      settings: {
+        ...createConfig().settings,
+        sharedConfigPath: 'C:\\x\\shared.json',
+      },
+    });
+
+    const html = renderToStaticMarkup(
+      <MantineTestProvider>
+        <SettingsPanel
+          api={api}
+          config={config}
+          readOnly={false}
+          onDidChangeSettings={() => undefined}
+        />
+      </MantineTestProvider>,
+    );
+
     expect(html).toContain('Shared config path');
+    expect(html).toContain('C:\\x\\shared.json');
   });
 
   it('shows read-only warning when readOnly is true', () => {

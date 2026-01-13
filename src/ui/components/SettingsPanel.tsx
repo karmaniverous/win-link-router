@@ -119,18 +119,14 @@ export function SettingsPanel(props: {
               if (!next) setSharedConfigPath('');
             }}
           />
+        </Group>
 
-          <Group
-            align="flex-end"
-            wrap="nowrap"
-            gap="xs"
-            style={{ flex: 1, minWidth: 360 }}
-          >
+        {useSharedConfig ? (
+          <Group align="flex-end" wrap="nowrap" gap="xs">
             <TextInput
               label="Shared config path"
               style={{ flex: 1 }}
               value={sharedConfigPath}
-              disabled={!useSharedConfig}
               onChange={(e) => {
                 setSharedConfigPath(e.currentTarget.value);
               }}
@@ -152,7 +148,7 @@ export function SettingsPanel(props: {
               Browse…
             </Button>
           </Group>
-        </Group>
+        ) : null}
 
         {useSharedConfig && !sharedConfigPath.trim() ? (
           <Alert color="yellow" title="Shared config needs a file path">
