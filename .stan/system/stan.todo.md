@@ -2,14 +2,30 @@
 
 ## Next up
 
-- Windows integration polish:
-  - Validate Default Apps deep link behavior across Windows builds:
-    - Prefer `ms-settings:defaultapps?registeredAppUser=win-link-router` when supported.
-    - Fall back to plain `ms-settings:defaultapps` when not supported.
-- UI polish:
-  - Improve loading UX (spinner placement, disable/enable timing) based on real-world startup behavior.
-  - Expand routing-failure banner details (e.g., include which template failed,
-    or how many targets were attempted) without bloating App.tsx.
+- UI redesign (tabs + pinned layout):
+  - Add Settings/Log/Test tabs and move panels into their respective tabs.
+  - Pin window chrome (header + tabs) and implement scroll regions for:
+    - scheme list
+    - templates list
+    - log view
+    - test output (as needed)
+  - Convert extractor/template inputs to 3-row textareas.
+- Scheme model/UI overhaul (enabled vs registered):
+  - Persist `scheme.registered` as desired Windows registration state.
+  - Keep `scheme.enabled` as a separate router behavior switch.
+  - Enforce `registered ⇒ enabled` and update UI to disable registration when disabled.
+  - Canonically sort schemes by scheme name (persisted ordering).
+  - Add new per-user settings: auto-register new schemes and auto-enable new schemes, enforcing `autoRegister ⇒ autoEnable` in the UI.
+  - Implement scheme row icons (info tooltip, register toggle, default status, delete) and disable editing for disabled schemes (except re-enable).
+- Windows registration reconciliation:
+  - Implement per-scheme register/deregister (including deleting ProgId key trees and URLAssociations values).
+  - Reconcile registry to match config on app start, config save, and via the schemes refresh button (save-first + reconcile + requery statuses).
+  - Remove `RegisteredApplications` entry when no schemes are registered.
+  - In routing-only mode, avoid modal prompts; show tray balloon on mismatch and surface a UI banner next time the window is shown.
+- Lifecycle settings:
+  - Add “Run in Background” setting and enforce `SWL ⇒ RIB`.
+  - When started at login (SWL ON), start hidden (tray only).
+  - Ensure routing-only protocol launches do not load the UI on success.
 
 ## Completed (recent)
 
@@ -39,8 +55,7 @@
 - Added scheme editor UI, settings panel, and aligned registration to enabled schemes.
 - Fixed lint issues in scheme add/reset and template id generation.
 - Added pre-save validation and prompt-based preset picking.
-- Added tests for core React UI components (SchemeEditor, SettingsPanel,
-  TestPanel) and fixed remaining SchemeEditor lint warnings.
+- Added tests for core React UI components (SchemeEditor, SettingsPanel, TestPanel) and fixed remaining SchemeEditor lint warnings.
 - Fixed lint failure by removing an unused `TemplateConfig` import in `SchemeEditor.test.tsx`.
 - Reviewed latest script outputs: typecheck/tests/knip/package are passing; lint fix unblocks `npm run lint`.
 - Added a minimal per-user routing log (persisted under `userData`) with retention caps.
@@ -69,6 +84,8 @@
 - Treat `Applications\<exe>.exe` UserChoice ProgIds as “Default” when they match the running packaged exe.
 - Show/focus main window when a second instance is launched without a URI (tray-friendly UX).
 - Added tray shortcuts to reveal install location and user data folder; surfaced ProgId details for debugging default status.
-- Improved default-handler detection for opaque AppX* ProgIds by resolving the ProgId open command and matching it to the running exe.
-- Added self-healing Start Menu shortcut repair (fallback to exe when Update.exe is missing).- Fixed lint issues in tray controller and reg.exe adapter.
-- Hardened default-status handling for AppX* UserChoice ProgIds and wrote Start Menu shortcuts that launch the installed exe directly (Programs root + folder).
+- Improved default-handler detection for opaque AppX\* UserChoice ProgIds by resolving the ProgId open command and matching it to the running exe.
+- Added self-healing Start Menu shortcut repair (fallback to exe when Update.exe is missing).
+- Fixed lint issues in tray controller and reg.exe adapter.
+- Hardened default-status handling for AppX\* UserChoice ProgIds and wrote Start Menu shortcuts that launch the installed exe directly (Programs root + folder).
+- Updated requirements and plan for tabbed UI, scheme enabled/registered split, auto-\* defaults, RIB/SWL lifecycle, and refresh+reconcile behavior.
