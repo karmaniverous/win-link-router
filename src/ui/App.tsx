@@ -181,7 +181,7 @@ export function App() {
               flex: 1,
             }}
           >
-            <Tabs.List grow>
+            <Tabs.List grow style={{ width: '100%' }}>
               {APP_TABS.map((t) => (
                 <Tabs.Tab key={t.id} value={t.id}>
                   {t.label}

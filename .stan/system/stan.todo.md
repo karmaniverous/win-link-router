@@ -8,15 +8,6 @@
 
 - UI redesign (tabs + pinned layout):
   - Keep extractor/template inputs as 3-row textareas (Mantine `Textarea`).
-  - Align runtime layout to the wireframe:
-    - Remove in-app title from the header (upper-left).
-    - Remove “Ensure Registration” button from the header.
-    - Make the tab bar full width.
-    - Show Schemes + Scheme Detail only in the Settings tab, side-by-side.
-    - Inline the top Settings toggles/controls to preserve vertical space.
-    - Do not include status text in scheme list labels (icons cover that).
-    - Use a power-button control for template enable/disable.
-    - Ensure Scheme Detail scrolls when content exceeds viewport height.
 - Scheme model/UI overhaul (enabled vs registered):
   - Persist `scheme.registered` as desired Windows registration state.
   - Keep `scheme.enabled` as a separate router behavior switch.
@@ -133,3 +124,4 @@
 - Replaced GitHub header button with react-github-btn.
 - Hardened Settings tab flex heights so Scheme Detail scrolls.
 - Fixed App.tsx lint by removing a stray expression.
+- Ensure Tabs.List stretches full width (wireframe polish).
