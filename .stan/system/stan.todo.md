@@ -119,3 +119,4 @@
 - Fixed SettingsPanel browse test (no fake timers/jest-dom)
 - Fixed lint/typecheck in SettingsPanel browse test.
 - Avoided ESLint removing assertion by using getByRole<T>().
+- Removed unused Spinner component and CSS.
