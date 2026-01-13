@@ -30,6 +30,7 @@ import {
   useAppController,
 } from './app/useAppController';
 import { DefaultHandlerMismatchBanner } from './components/DefaultHandlerMismatchBanner';
+import { OnboardingPresetsDialog } from './components/OnboardingPresetsDialog';
 import { RouteLogPanel } from './components/RouteLogPanel';
 import { SchemeEditor } from './components/SchemeEditor';
 import { SchemesSidebar } from './components/SchemesSidebar';
@@ -57,6 +58,22 @@ export function App() {
 
   const controller = useAppController(api);
 
+  const onboardingAvailable =
+    controller.onboardingOpen && Boolean(controller.presets);
+
+  const applyOnboarding = (schemes: SchemeConfig[]) => {
+    void controller.completeOnboarding({ addSchemes: schemes });
+  };
+
+  const skipOnboarding = () => {
+    void controller.completeOnboarding();
+  };
+
+  if (onboardingAvailable && controller.presets) {
+    // Render the onboarding modal above the app shell when applicable. It is
+    // tied to an empty config + onboarding not completed.
+  }
+
   const ensureRegistrationAndReload = () => {
     if (controller.readOnly) {
       return controller.reload().catch((err: unknown) => {
@@ -73,6 +90,15 @@ export function App() {
 
   return (
     <AppShell header={{ height: 64 }} padding="md" style={{ height: '100%' }}>
+      {onboardingAvailable && controller.presets ? (
+        <OnboardingPresetsDialog
+          open={true}
+          presets={controller.presets}
+          busy={controller.onboardingBusy}
+          onSkip={skipOnboarding}
+          onApply={applyOnboarding}
+        />
+      ) : null}
       <AppShell.Header>
         <Group h="100%" px="md" justify="flex-end" gap="xs" wrap="wrap">
           <Button

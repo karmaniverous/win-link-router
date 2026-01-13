@@ -61,6 +61,6 @@ describe('RouteLogPanel', () => {
         <RouteLogPanel api={createDummyApi()} config={createConfig()} />
       </MantineTestProvider>,
     );
-    expect(html).toContain('Routing log');
+    expect(html).toContain('Redact new log entries');
   });
 });

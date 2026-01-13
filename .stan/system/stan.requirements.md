@@ -217,6 +217,17 @@ Durable project requirements (desired end-state).
   - Resetting a scheme to its preset (destructive; requires confirmation).
 - User scheme configs should store “derived from preset” metadata so reset is possible (e.g., store a `presetId` reference).
 
+## First-run onboarding (preset selection)
+
+- When configuration is empty (no schemes) and onboarding has not been completed, the app must prompt the user to choose which bundled presets to add.
+  - This is a first-run onboarding flow (triggered by empty config + onboarding not completed), not a Windows installer wizard requirement.
+- Preset selection rules:
+  - Presets must be presented grouped by scheme (link type).
+  - The user may select at most one preset per scheme.
+  - TEL WhatsApp must be preselected when available.
+  - The user may skip onboarding; skipping marks onboarding completed without adding schemes.
+- Onboarding completion must be persisted per user so the prompt does not reappear once completed.
+
 ## Configuration storage and portability
 
 - Configuration storage is per-user by default.
@@ -258,6 +269,12 @@ Durable project requirements (desired end-state).
     - Persist only scheme-level information (e.g. `tel:[redacted]`, `whatsapp:[redacted]`) plus template ids/labels and error/result metadata.
   - The app must provide a user setting to enable full (unredacted) logging, which is OFF by default.
   - A full log viewer is optional, but the UI must surface relevant diagnostics on routing failures (via the test panel and error banner).
+- Log UI requirements:
+  - The Log tab content must be full-width (no half-width panel behavior).
+  - The routing log view must not be enclosed in an additional bordered panel box inside the tab.
+  - Do not render a redundant in-panel title (“Routing log”) since the tab label already provides context.
+  - Do not hide entries behind an accordion; render the log entries directly in a scrollable region.
+  - Log entries must be displayed as pretty JSON with an easy copy action.
 
 ## Text inputs
 
@@ -269,4 +286,17 @@ Durable project requirements (desired end-state).
 
 - Settings panel layout (wireframe-aligned):
   - The inline settings toggles must appear in a row above the shared config file picker.
-  - The shared config file picker row must only be visible when “Use shared config” is enabled.
+  - The shared config file picker row must only be visible when “Use shared config” is enabled.
+
+## Icon standardization
+
+- The renderer must use Tabler icons (`@tabler/icons-react`) for icon-only controls.
+- Icon-only controls must use tooltips and aria-labels for clarity and accessibility.
+- The registration control should use a circle-R (registered) style icon.
+
+## Test tab layout
+
+- The Test tab content must be full-width (no half-width panel behavior).
+- The test view must not be enclosed in an additional bordered panel box inside the tab.
+- Do not render a redundant in-panel title (“Test”) since the tab label already provides context.
+- Do not use accordions for test diagnostics; render match groups and other diagnostics directly.

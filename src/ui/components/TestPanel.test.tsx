@@ -93,7 +93,6 @@ describe('TestPanel', () => {
     );
 
     expect(html).toContain('Incoming URI');
-    expect(html).toContain('Test');
     expect(html).toContain('Scheme:');
   });
 });

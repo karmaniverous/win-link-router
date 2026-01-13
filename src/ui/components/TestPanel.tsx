@@ -2,17 +2,18 @@
  * Requirements addressed:
  * - Test tab infers scheme from URI (no scheme selector required).
  * - Disabled schemes can still be evaluated, but show a clear banner.
+ * - Test panel is full-width and avoids extra boxed chrome (tab already names it).
+ * - Avoid accordions in Test output; render diagnostics directly.
  */
 import {
-  Accordion,
   Alert,
+  Box,
   Code,
   Group,
-  Paper,
+  ScrollArea,
   Stack,
   Text,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -106,89 +107,86 @@ export function TestPanel(props: {
   }, [api, canRun, debouncedScheme, debouncedUri]);
 
   return (
-    <Paper withBorder radius="md" p="md">
-      <Stack gap="sm">
-        <Title order={2} size="h4" m={0}>
-          Test
-        </Title>
-
-        <Text size="sm" c="dimmed">
-          Scheme:{' '}
-          <Text span fw={600}>
-            {inferredScheme ?? '(not inferred)'}
-          </Text>
-        </Text>
-
-        {schemeConfig && !schemeConfig.enabled ? (
-          <Alert color="yellow" title="Scheme is disabled">
-            Routing for {schemeConfig.scheme} is currently disabled. Test output
-            below is for debugging only.
-          </Alert>
-        ) : null}
-
-        <TextInput
-          label="Incoming URI"
-          value={testUri}
-          onChange={(e) => {
-            onChangeTestUri(e.currentTarget.value);
-          }}
-          placeholder="e.g. tel:+1 (555) 123-4567"
-        />
-
-        {!testUri.trim() ? (
+    <Box style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex' }}>
+      <ScrollArea style={{ flex: 1 }} type="auto">
+        <Stack gap="sm" pr="xs">
           <Text size="sm" c="dimmed">
-            Enter a URI to run tests.
-          </Text>
-        ) : !inferredScheme ? (
-          <Text size="sm" c="dimmed">
-            Could not infer a scheme from the URI. Include a scheme prefix like
+            Scheme:{' '}
             <Text span fw={600}>
-              {' '}
-              tel:
+              {inferredScheme ?? '(not inferred)'}
             </Text>
-            .
           </Text>
-        ) : null}
 
-        {result?.error ? (
-          <Alert color="red" title="Error">
-            {result.error}
-          </Alert>
-        ) : null}
+          {schemeConfig && !schemeConfig.enabled ? (
+            <Alert color="yellow" title="Scheme is disabled">
+              Routing for {schemeConfig.scheme} is currently disabled. Test
+              output below is for debugging only.
+            </Alert>
+          ) : null}
 
-        {result?.matchGroups ? (
-          <Accordion variant="separated">
-            <Accordion.Item value="matchGroups">
-              <Accordion.Control>Match groups</Accordion.Control>
-              <Accordion.Panel>
-                <Code block>{JSON.stringify(result.matchGroups, null, 2)}</Code>
-              </Accordion.Panel>
-            </Accordion.Item>
-          </Accordion>
-        ) : null}
+          <TextInput
+            label="Incoming URI"
+            value={testUri}
+            onChange={(e) => {
+              onChangeTestUri(e.currentTarget.value);
+            }}
+            placeholder="e.g. tel:+1 (555) 123-4567"
+          />
 
-        {result?.evaluations.length ? (
-          <Stack gap="sm">
-            {result.evaluations.map((e) => (
-              <Paper key={e.templateId} withBorder radius="md" p="sm">
-                <Group justify="space-between" align="center" mb={6}>
-                  <Text fw={600}>{e.label}</Text>
-                  <Text size="sm" c="dimmed">
-                    {e.enabled ? 'enabled' : 'disabled'}
-                  </Text>
-                </Group>
-                {e.renderError ? (
-                  <Alert color="red" title="Render error">
-                    {e.renderError}
-                  </Alert>
-                ) : (
-                  <Code block>{e.renderedTarget}</Code>
-                )}
-              </Paper>
-            ))}
-          </Stack>
-        ) : null}
-      </Stack>
-    </Paper>
+          {!testUri.trim() ? (
+            <Text size="sm" c="dimmed">
+              Enter a URI to run tests.
+            </Text>
+          ) : !inferredScheme ? (
+            <Text size="sm" c="dimmed">
+              Could not infer a scheme from the URI. Include a scheme prefix
+              like
+              <Text span fw={600}>
+                {' '}
+                tel:
+              </Text>
+              .
+            </Text>
+          ) : null}
+
+          {result?.error ? (
+            <Alert color="red" title="Error">
+              {result.error}
+            </Alert>
+          ) : null}
+
+          {result?.matchGroups ? (
+            <Stack gap={6}>
+              <Text size="sm" fw={600}>
+                Match groups
+              </Text>
+              <Code block>{JSON.stringify(result.matchGroups, null, 2)}</Code>
+            </Stack>
+          ) : null}
+
+          {result?.evaluations.length ? (
+            <Stack gap="sm">
+              {result.evaluations.map((e) => (
+                <Paper key={e.templateId} withBorder radius="md" p="sm">
+                  <Group justify="space-between" align="center" mb={6}>
+                    <Text fw={600}>{e.label}</Text>
+                    <Text size="sm" c="dimmed">
+                      {e.enabled ? 'enabled' : 'disabled'}
+                    </Text>
+                  </Group>
+                  {e.renderError ? (
+                    <Alert color="red" title="Render error">
+                      {e.renderError}
+                    </Alert>
+                  ) : (
+                    <Code block>{e.renderedTarget}</Code>
+                  )}
+                </Paper>
+              ))}
+            </Stack>
+          ) : null}
+        </Stack>
+      </ScrollArea>
+    </Box>
   );
 }

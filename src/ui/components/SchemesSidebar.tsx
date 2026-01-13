@@ -2,6 +2,7 @@
  * Requirements addressed:
  * - Scheme list and add/remove/edit UX uses in-app dialogs (no window.prompt).
  * - Refresh copy reflects read-only behavior (refresh-only; no reconcile).
+ * - Standardize icon-only glyphs using Tabler icons.
  */
 import {
   ActionIcon,
@@ -15,6 +16,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
+import { IconPlus, IconRefresh } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 
 import type {
@@ -138,7 +140,7 @@ export function SchemesSidebar(props: {
                   onRefreshAndReconcile();
                 }}
               >
-                ⟳
+                <IconRefresh size={16} />
               </ActionIcon>
             </Tooltip>
             <Tooltip label="Add scheme" withArrow>
@@ -151,7 +153,7 @@ export function SchemesSidebar(props: {
                   setAddOpen(true);
                 }}
               >
-                +
+                <IconPlus size={16} />
               </ActionIcon>
             </Tooltip>
           </Group>

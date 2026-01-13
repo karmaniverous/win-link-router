@@ -53,6 +53,8 @@ export function useAppController(api: WinLinkRouterApi) {
   const [testUri, setTestUri] = useState('');
   const [routeErrorBanner, setRouteErrorBanner] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AppTabId>('settings');
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [onboardingBusy, setOnboardingBusy] = useState(false);
 
   const [statuses, setStatuses] = useState<
     {
@@ -91,6 +93,13 @@ export function useAppController(api: WinLinkRouterApi) {
       if (prev) return prev;
       return cfg.config.schemes[0]?.scheme ?? null;
     });
+
+    const onboardingCompleted =
+      cfg.config.settings.onboardingCompleted ?? false;
+    const isEmpty = cfg.config.schemes.length === 0;
+    const shouldOnboard =
+      !cfg.readOnly && !onboardingCompleted && isEmpty && p.presets.length > 0;
+    setOnboardingOpen(shouldOnboard);
   }, [api.appConfig, api.presets, api.windows]);
 
   const doSave = useCallback(
@@ -256,6 +265,40 @@ export function useAppController(api: WinLinkRouterApi) {
     [config, scheduleSave],
   );
 
+  const completeOnboarding = useCallback(
+    async (opts: { addSchemes?: SchemeConfig[] } = {}) => {
+      if (readOnly) return;
+      if (!config) return;
+
+      setOnboardingBusy(true);
+      try {
+        const additions = opts.addSchemes ?? [];
+        const next: AppConfig = {
+          ...config,
+          settings: {
+            ...config.settings,
+            onboardingCompleted: true,
+          },
+          schemes: [...config.schemes, ...additions],
+        };
+
+        setConfig(next);
+        configRef.current = next;
+
+        // Save immediately so onboarding does not re-open, and ensure Windows
+        // candidate registration reflects any newly registered presets.
+        await saveNow({ ensureRegistration: additions.length > 0 });
+        setOnboardingOpen(false);
+        setError(null);
+      } catch (err: unknown) {
+        setError((err as Error).message);
+      } finally {
+        setOnboardingBusy(false);
+      }
+    },
+    [config, readOnly, saveNow],
+  );
+
   return {
     loading,
     error,
@@ -269,6 +312,9 @@ export function useAppController(api: WinLinkRouterApi) {
     statuses,
     selectedScheme,
     setSelectedScheme,
+    onboardingOpen,
+    onboardingBusy,
+    completeOnboarding,
     testUri,
     setTestUri,
     routeErrorBanner,

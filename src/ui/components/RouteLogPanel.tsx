@@ -1,17 +1,17 @@
 import {
-  Accordion,
   Alert,
+  Box,
   Button,
   Code,
+  CopyButton,
   Group,
   Loader,
-  Paper,
   ScrollArea,
   Stack,
   Switch,
   Text,
-  Title,
 } from '@mantine/core';
+import { IconCopy } from '@tabler/icons-react';
 import { useCallback, useEffect, useState } from 'react';
 
 import type { AppConfig, RouteLogMode } from '../../core/config/appConfig';
@@ -61,12 +61,7 @@ export function RouteLogPanel(props: {
   const lastSeq = entries.length ? entries[entries.length - 1]?.seq : null;
 
   return (
-    <Paper
-      withBorder
-      radius="md"
-      p="md"
-      style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-    >
+    <Box style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex' }}>
       <ConfirmDialog
         open={confirmClearOpen}
         title="Clear routing log"
@@ -86,11 +81,8 @@ export function RouteLogPanel(props: {
         }}
       />
 
-      <Stack gap="sm" style={{ flex: 1, minHeight: 0 }}>
-        <Group justify="space-between" align="center">
-          <Title order={2} size="h4" m={0}>
-            Routing log
-          </Title>
+      <Stack gap="sm" style={{ flex: 1, minHeight: 0, width: '100%' }}>
+        <Group justify="flex-end" align="center">
           <Group gap="xs">
             <Button
               variant="default"
@@ -164,16 +156,42 @@ export function RouteLogPanel(props: {
             ) : null}
 
             {entries.length ? (
-              <Accordion variant="separated">
-                <Accordion.Item value="entries">
-                  <Accordion.Control>
-                    Entries JSON ({String(entries.length)})
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    <Code block>{JSON.stringify(entries, null, 2)}</Code>
-                  </Accordion.Panel>
-                </Accordion.Item>
-              </Accordion>
+              <Stack gap="sm">
+                {entries.map((e) => {
+                  const pretty = JSON.stringify(e, null, 2);
+                  return (
+                    <Stack key={e.seq} gap={6}>
+                      <Group
+                        justify="space-between"
+                        align="center"
+                        wrap="nowrap"
+                      >
+                        <Text size="xs" c="dimmed">
+                          #{String(e.seq)} • {e.when}
+                        </Text>
+                        <CopyButton value={pretty}>
+                          {({ copied, copy }) => (
+                            <Button
+                              variant="default"
+                              size="xs"
+                              onClick={copy}
+                              aria-label="Copy log entry JSON"
+                            >
+                              <Group gap={6} wrap="nowrap">
+                                <IconCopy size={14} />
+                                <Text size="xs">
+                                  {copied ? 'Copied' : 'Copy'}
+                                </Text>
+                              </Group>
+                            </Button>
+                          )}
+                        </CopyButton>
+                      </Group>
+                      <Code block>{pretty}</Code>
+                    </Stack>
+                  );
+                })}
+              </Stack>
             ) : (
               <Text size="sm" c="dimmed">
                 No routing log entries yet.
@@ -182,6 +200,6 @@ export function RouteLogPanel(props: {
           </Stack>
         </ScrollArea>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

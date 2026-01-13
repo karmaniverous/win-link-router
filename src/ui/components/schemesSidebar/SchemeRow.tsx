@@ -6,6 +6,7 @@
  *   status icon shows a disabled state.
  * - Enforce registered ⇒ enabled when disabling a scheme (disable clears
  *   registered).
+ * - Standardize icon-only glyphs using Tabler icons.
  */
 import {
   ActionIcon,
@@ -16,6 +17,16 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
+import {
+  IconCircleCheck,
+  IconCircleX,
+  IconHelpCircle,
+  IconInfoCircle,
+  IconMinus,
+  IconPower,
+  IconRegistered,
+  IconTrash,
+} from '@tabler/icons-react';
 
 import type { SchemeConfig } from '../../../core/config/appConfig';
 
@@ -28,22 +39,41 @@ export interface SchemeWindowsStatusLike {
   actualProgId?: string | null;
 }
 
+function iconColor(token: 'green' | 'red' | 'yellow' | 'dimmed'): string {
+  if (token === 'green') return 'var(--mantine-color-green-6)';
+  if (token === 'red') return 'var(--mantine-color-red-6)';
+  if (token === 'yellow') return 'var(--mantine-color-yellow-6)';
+  return 'var(--mantine-color-gray-6)';
+}
+
 function renderDefaultStatusIcon(opts: {
   schemeEnabled: boolean;
   status: SchemeWindowsStatusLike | null;
-}): { glyph: string; color: string; tooltip: string } {
+}): { icon: JSX.Element; tooltip: string } {
   if (!opts.schemeEnabled) {
-    return { glyph: '–', color: 'dimmed', tooltip: 'Scheme disabled' };
+    return {
+      icon: <IconMinus size={16} style={{ color: iconColor('dimmed') }} />,
+      tooltip: 'Scheme disabled',
+    };
   }
 
   const ds = opts.status?.defaultStatus ?? 'unknown';
   if (ds === 'default') {
-    return { glyph: '✓', color: 'green', tooltip: 'Default in Windows' };
+    return {
+      icon: <IconCircleCheck size={16} style={{ color: iconColor('green') }} />,
+      tooltip: 'Default in Windows',
+    };
   }
   if (ds === 'not-default') {
-    return { glyph: '×', color: 'red', tooltip: 'Not default in Windows' };
+    return {
+      icon: <IconCircleX size={16} style={{ color: iconColor('red') }} />,
+      tooltip: 'Not default in Windows',
+    };
   }
-  return { glyph: '?', color: 'yellow', tooltip: 'Default status unknown' };
+  return {
+    icon: <IconHelpCircle size={16} style={{ color: iconColor('yellow') }} />,
+    tooltip: 'Default status unknown',
+  };
 }
 
 function renderInfoTooltip(opts: {
@@ -135,9 +165,14 @@ export function SchemeRow(props: {
                 );
               }}
             >
-              <Text span fw={700} c={scheme.enabled ? 'green' : 'dimmed'}>
-                ⏻
-              </Text>
+              <IconPower
+                size={16}
+                style={{
+                  color: scheme.enabled
+                    ? iconColor('green')
+                    : iconColor('dimmed'),
+                }}
+              />
             </ActionIcon>
           </Tooltip>
 
@@ -155,7 +190,7 @@ export function SchemeRow(props: {
                 e.stopPropagation();
               }}
             >
-              i
+              <IconInfoCircle size={16} />
             </ActionIcon>
           </Tooltip>
 
@@ -181,9 +216,14 @@ export function SchemeRow(props: {
                 );
               }}
             >
-              <Text span fw={700} c={scheme.registered ? 'green' : 'dimmed'}>
-                R
-              </Text>
+              <IconRegistered
+                size={16}
+                style={{
+                  color: scheme.registered
+                    ? iconColor('green')
+                    : iconColor('dimmed'),
+                }}
+              />
             </ActionIcon>
           </Tooltip>
 
@@ -196,9 +236,7 @@ export function SchemeRow(props: {
                 e.stopPropagation();
               }}
             >
-              <Text span fw={700} c={defaultIcon.color}>
-                {defaultIcon.glyph}
-              </Text>
+              {defaultIcon.icon}
             </ActionIcon>
           </Tooltip>
 
@@ -214,7 +252,7 @@ export function SchemeRow(props: {
                 props.onRequestRemove();
               }}
             >
-              –
+              <IconTrash size={16} />
             </ActionIcon>
           </Tooltip>
         </Group>

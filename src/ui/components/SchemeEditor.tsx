@@ -5,7 +5,7 @@
  * - Prefer Mantine primitives over bespoke form controls.
  * - Wireframe alignment: scheme enable/disable uses a power-button control in
  *   the scheme header (not inside the extractor section).
- *   the scheme header (not inside the extractor section).
+ * - Standardize icon-only glyphs using Tabler icons.
  */
 import {
   ActionIcon,
@@ -19,6 +19,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
+import { IconPower } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 
 import type { PresetsFile, SchemeConfig } from '../../core/config/appConfig';
@@ -30,6 +31,11 @@ import {
 } from './schemeEditor/presetUtils';
 import { SchemeEditorExtractor } from './schemeEditor/SchemeEditorExtractor';
 import { SchemeEditorTemplates } from './schemeEditor/SchemeEditorTemplates';
+
+function iconColor(token: 'green' | 'dimmed'): string {
+  if (token === 'green') return 'var(--mantine-color-green-6)';
+  return 'var(--mantine-color-gray-6)';
+}
 
 export function SchemeEditor(props: {
   api: WinLinkRouterApi;
@@ -189,9 +195,14 @@ export function SchemeEditor(props: {
                   );
                 }}
               >
-                <Text span fw={700} c={scheme.enabled ? 'green' : 'dimmed'}>
-                  ⏻
-                </Text>
+                <IconPower
+                  size={16}
+                  style={{
+                    color: scheme.enabled
+                      ? iconColor('green')
+                      : iconColor('dimmed'),
+                  }}
+                />
               </ActionIcon>
             </Tooltip>
           </Group>

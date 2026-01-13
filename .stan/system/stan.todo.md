@@ -3,7 +3,9 @@
 ## Next up
 
 - UX polish:
-  - Consider standardizing glyph icons (optional) to a cohesive icon set.
+  - Consider adding an in-app “Add presets…” action for later use (post-onboarding).
+  - Consider adding basic log filtering/search (optional).
+  - Consider adding a compact log entry summary line above the JSON (optional).
 
 ## Completed (recent)
 
@@ -126,4 +128,6 @@
 - Allowed schemes refresh in read-only mode (reload-only; no reconcile).
 - Fixed SchemesSidebar refresh test to avoid jest-dom matchers (use .disabled).
 - Clarified Schemes refresh tooltip copy in read-only mode (refresh-only; no reconcile).
-- Trimmed renderer CSS and replaced remaining minor bespoke wrappers with Mantine primitives.
+- Trimmed renderer CSS and replaced remaining minor bespoke wrappers with Mantine primitives.- Standardized icon-only controls using Tabler icons (no glyphs).
+- Added first-run onboarding preset selection (empty config + not completed).
+- Updated Log/Test tabs to full-width, unboxed layout with direct output.

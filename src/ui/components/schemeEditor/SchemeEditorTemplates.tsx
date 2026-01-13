@@ -3,6 +3,7 @@
  * - Scheme editor provides template list CRUD: add/edit/remove, enable/disable,
  *   reorder.
  * - Template string input is a textarea (3 rows).
+ * - Standardize icon-only glyphs using Tabler icons.
  */
 import {
   ActionIcon,
@@ -15,12 +16,23 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core';
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconPower,
+  IconTrash,
+} from '@tabler/icons-react';
 
 import type {
   SchemeConfig,
   TemplateConfig,
 } from '../../../core/config/appConfig';
 import { newId, swap } from './schemeEditorUtils';
+
+function iconColor(token: 'green' | 'dimmed'): string {
+  if (token === 'green') return 'var(--mantine-color-green-6)';
+  return 'var(--mantine-color-gray-6)';
+}
 
 export function SchemeEditorTemplates(props: {
   scheme: SchemeConfig;
@@ -89,9 +101,14 @@ export function SchemeEditorTemplates(props: {
                       updateTemplate(t.id, { enabled: !t.enabled });
                     }}
                   >
-                    <Text span fw={700} c={t.enabled ? 'green' : 'dimmed'}>
-                      ⏻
-                    </Text>
+                    <IconPower
+                      size={16}
+                      style={{
+                        color: t.enabled
+                          ? iconColor('green')
+                          : iconColor('dimmed'),
+                      }}
+                    />
                   </ActionIcon>
                 </Tooltip>
                 <ActionIcon
@@ -105,7 +122,7 @@ export function SchemeEditorTemplates(props: {
                     });
                   }}
                 >
-                  ↑
+                  <IconArrowUp size={16} />
                 </ActionIcon>
                 <ActionIcon
                   variant="default"
@@ -118,7 +135,7 @@ export function SchemeEditorTemplates(props: {
                     });
                   }}
                 >
-                  ↓
+                  <IconArrowDown size={16} />
                 </ActionIcon>
                 <ActionIcon
                   variant="default"
@@ -128,7 +145,7 @@ export function SchemeEditorTemplates(props: {
                     onRequestRemoveTemplate(t.id);
                   }}
                 >
-                  –
+                  <IconTrash size={16} />
                 </ActionIcon>
               </Group>
             </Group>

@@ -1,6 +1,7 @@
 /**
  * Requirements addressed:
  * - Config and presets are JSON and share a common SchemeConfig shape.
+ * - Onboarding state is stored per user (first-run preset selection).
  * - Schemes are canonicalized (case-insensitive; stored in a canonical form).
  * - Presets and config record version information derived from app package
  *   version (captured in AppConfig/PresetsFile metadata).
@@ -87,6 +88,11 @@ export interface AppConfig {
      * Invariant: autoRegisterNewSchemes implies autoEnableNewSchemes.
      */
     autoRegisterNewSchemes?: boolean;
+    /**
+     * Per-user onboarding state. When false and config has no schemes, the UI
+     * may offer a first-run preset selection flow.
+     */
+    onboardingCompleted?: boolean;
   };
   schemes: SchemeConfig[];
 }
