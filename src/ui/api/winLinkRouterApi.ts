@@ -83,6 +83,20 @@ export interface WinLinkRouterApi {
       error?: string;
     }>;
   };
+  share: {
+    open: () => Promise<{ ok: true }>;
+    getContext: () => Promise<{
+      context: {
+        mode: 'manual' | 'nag';
+        scheme: string;
+        templateLabel: string;
+      } | null;
+    }>;
+    later: () => Promise<{ ok: true }>;
+    stopNagging: () => Promise<{ ok: true }>;
+    shareX: () => Promise<{ ok: true }>;
+    shareLinkedIn: () => Promise<{ ok: true }>;
+  };
 }
 
 declare global {

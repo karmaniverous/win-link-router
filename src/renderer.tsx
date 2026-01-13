@@ -11,14 +11,19 @@ import { MantineProvider } from '@mantine/core';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './ui/App';
+import { ShareWindow } from './ui/share/ShareWindow';
 
 const container = document.getElementById('root');
 if (!container) {
   throw new Error('Missing #root element in index.html');
 }
 
+const params = new URLSearchParams(window.location.search);
+const view = params.get('view') ?? 'main';
+const Root = view === 'share' ? ShareWindow : App;
+
 createRoot(container).render(
   <MantineProvider defaultColorScheme="light">
-    <App />
+    <Root />
   </MantineProvider>,
 );

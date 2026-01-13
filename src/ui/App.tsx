@@ -3,14 +3,13 @@
  * - Main view provides scheme list + editor and supports Windows registration
  *   reconciliation.
  * - Provide scheme-row controls (register toggle, delete) and refresh+reconcile.
- * - Provide a GitHub star button in the header (wireframe-aligned).
+ * - Provide a Share button in the header that opens the Share window.
  * - Replace remaining bespoke renderer UI with Mantine primitives as found.
  */
 import {
   Accordion,
   Alert,
   AppShell,
-  Box,
   Button,
   Code,
   Group,
@@ -20,7 +19,7 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import GitHubButton from 'react-github-btn';
+import { IconShare2 } from '@tabler/icons-react';
 
 import type { SchemeConfig } from '../core/config/appConfig';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
@@ -69,11 +68,6 @@ export function App() {
     void controller.completeOnboarding();
   };
 
-  if (onboardingAvailable && controller.presets) {
-    // Render the onboarding modal above the app shell when applicable. It is
-    // tied to an empty config + onboarding not completed.
-  }
-
   const ensureRegistrationAndReload = () => {
     if (controller.readOnly) {
       return controller.reload().catch((err: unknown) => {
@@ -99,6 +93,7 @@ export function App() {
           onApply={applyOnboarding}
         />
       ) : null}
+
       <AppShell.Header>
         <Group h="100%" px="md" justify="flex-end" gap="xs" wrap="wrap">
           <Button
@@ -138,17 +133,16 @@ export function App() {
           >
             Default Apps…
           </Button>
-          <Box style={{ display: 'flex', alignItems: 'center' }}>
-            <GitHubButton
-              href="https://github.com/karmaniverous/win-link-router"
-              data-color-scheme="no-preference: light; light: light; dark: dark;"
-              data-size="large"
-              data-show-count="true"
-              aria-label="Star karmaniverous/win-link-router on GitHub"
-            >
-              Star
-            </GitHubButton>
-          </Box>
+
+          <Button
+            size="xs"
+            variant="default"
+            leftSection={<IconShare2 size={16} />}
+            disabled={controller.loading}
+            onClick={() => void api.share.open()}
+          >
+            Share
+          </Button>
         </Group>
       </AppShell.Header>
 
@@ -315,6 +309,7 @@ export function App() {
                 </Group>
               </Stack>
             </Tabs.Panel>
+
             <Tabs.Panel
               value="log"
               pt="xs"
@@ -328,6 +323,7 @@ export function App() {
                 />
               </div>
             </Tabs.Panel>
+
             <Tabs.Panel
               value="test"
               pt="xs"

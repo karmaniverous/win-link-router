@@ -92,21 +92,21 @@ export function SettingsPanel(props: {
       <Stack gap="sm">
         <Group align="flex-end" gap="md" wrap="wrap">
           <Switch
-            label="Run in Background"
-            checked={runInBackground}
-            disabled={runAtLogin}
-            onChange={(e) => {
-              setRunInBackground(e.currentTarget.checked);
-            }}
-          />
-
-          <Switch
             label="Start on Windows Login"
             checked={runAtLogin}
             onChange={(e) => {
               const next = e.currentTarget.checked;
               setRunAtLogin(next);
               if (next) setRunInBackground(true);
+            }}
+          />
+
+          <Switch
+            label="Run in Background"
+            checked={runInBackground}
+            disabled={runAtLogin}
+            onChange={(e) => {
+              setRunInBackground(e.currentTarget.checked);
             }}
           />
 

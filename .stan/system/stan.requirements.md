@@ -129,7 +129,7 @@ Durable project requirements (desired end-state).
     - Do not display an in-app app title in the upper-left corner.
     - Do not display an “Ensure Registration” button in the header (registration reconciliation remains available via the Schemes panel refresh control).
     - Tabs should be presented full-width under the header toolbar.
-    - The header must include a GitHub “Star” button with star count (via `react-github-btn`).
+    - The header must include a Share button that opens the Share window.
   - Separate tabs: Settings, Log, Test.
   - List of configured schemes.
   - For selected scheme: extractor editor, template list editor.
@@ -304,3 +304,32 @@ Durable project requirements (desired end-state).
 - The test view must not be enclosed in an additional bordered panel box inside the tab.
 - Do not render a redundant in-panel title (“Test”) since the tab label already provides context.
 - Do not use accordions for test diagnostics; render match groups and other diagnostics directly.
+
+## Share window + nag interstitial
+
+- The app must provide a Share page in a separate window (not a main-window tab).
+  - Manual entrypoint: a header Share button opens the Share window.
+  - The Share window is an interstitial experience; when opened manually, it should prevent drifting into the main window (modal/disabled parent behavior).
+- Share page content (minimal):
+  - Like win-link-router? Tell your friends!
+    - X share button
+    - LinkedIn share button
+  - Give us a star on GitHub!
+    - GitHub “Star” button with star count (via `react-github-btn`)
+- Share message composition:
+  - Message includes:
+    - link type from scheme (e.g. TEL)
+    - target from template label (e.g. “WhatsApp Desktop”)
+    - repo URL
+  - For X, the message must mention @karmaniverous.
+  - Manual Share uses most recently used (MRU) scheme + template label derived from the last successful route.
+    - If MRU is unavailable, fall back to enabled schemes/templates first, then disabled.
+  - When share is shown due to nag, the scheme/template label used for the message must come from the link that triggered the nag (the actual routed template label).
+- Nagging behavior:
+  - Define a `NAG_INTERVAL` constant.
+  - After every `NAG_INTERVAL` successful routes (and only successful routes), show the Share window as an interstitial.
+  - The nag interstitial must include two buttons:
+    - “Later!” (dismisses the interstitial)
+    - “Stop Nagging Me!” (disables future nags permanently)
+  - Closing the Share window via the window close control is treated as “Later!”.
+  - Nag state (disabled flag and route counter/MRU) must be stored in a separate per-user file under userData (not in the main config/import/export).

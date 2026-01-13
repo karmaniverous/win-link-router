@@ -45,4 +45,12 @@ contextBridge.exposeInMainWorld('winLinkRouter', {
     evaluate: (scheme: string, uri: string) =>
       ipcRenderer.invoke('test:evaluate', { scheme, uri }),
   },
+  share: {
+    open: () => ipcRenderer.invoke('share:open'),
+    getContext: () => ipcRenderer.invoke('share:getContext'),
+    later: () => ipcRenderer.invoke('share:later'),
+    stopNagging: () => ipcRenderer.invoke('share:stopNagging'),
+    shareX: () => ipcRenderer.invoke('share:share', 'x'),
+    shareLinkedIn: () => ipcRenderer.invoke('share:share', 'linkedin'),
+  },
 });
