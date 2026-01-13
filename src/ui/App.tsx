@@ -162,9 +162,7 @@ export function App() {
                   controller.setRegistrationResult(null);
                 }}
               >
-                <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                  {controller.registrationResult.message}
-                </pre>
+                <Code block>{controller.registrationResult.message}</Code>
               </Alert>
             ) : null}
             <DefaultHandlerMismatchBanner
