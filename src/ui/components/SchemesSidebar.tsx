@@ -1,3 +1,7 @@
+/**
+ * Requirements addressed:
+ * - Scheme list and add/remove/edit UX uses in-app dialogs (no window.prompt).
+ */
 import {
   ActionIcon,
   Group,

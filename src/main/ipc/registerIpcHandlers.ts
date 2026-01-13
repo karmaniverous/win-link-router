@@ -10,7 +10,7 @@
  */
 import path from 'node:path';
 
-import { dialog, ipcMain } from 'electron';
+import { app, dialog, ipcMain } from 'electron';
 
 import {
   findSchemeConfig,
@@ -144,6 +144,23 @@ export function registerIpcHandlers(opts: {
       opts.configStore.getLoadedConfig().settings.routeLogMode ?? 'redacted',
     );
     return { ok: true };
+  });
+
+  ipcMain.handle('settings:pickSharedConfigPath', async () => {
+    const defaultPath = path.join(
+      app.getPath('documents'),
+      `win-link-router-shared-config-${opts.appVersion}.json`,
+    );
+
+    const res = await dialog.showSaveDialog({
+      title: 'Choose shared config file',
+      defaultPath,
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    });
+
+    if (res.canceled || !res.filePath) return { cancelled: true as const };
+
+    return { cancelled: false as const, filePath: res.filePath };
   });
 
   ipcMain.handle('windows:ensureRegistration', async () => {

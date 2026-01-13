@@ -7,6 +7,8 @@
  */
 import {
   Alert,
+  Button,
+  Group,
   Paper,
   Stack,
   Switch,
@@ -33,6 +35,7 @@ export function SettingsPanel(props: {
   const [runAtLogin, setRunAtLogin] = useState(false);
   const [autoEnableNewSchemes, setAutoEnableNewSchemes] = useState(true);
   const [autoRegisterNewSchemes, setAutoRegisterNewSchemes] = useState(true);
+  const [useSharedConfig, setUseSharedConfig] = useState(false);
   const [sharedConfigPath, setSharedConfigPath] = useState<string>('');
   const [routeLogMode, setRouteLogMode] = useState<RouteLogMode>('redacted');
 
@@ -42,7 +45,9 @@ export function SettingsPanel(props: {
     setRunAtLogin(config.settings.runAtLogin);
     setAutoEnableNewSchemes(config.settings.autoEnableNewSchemes ?? true);
     setAutoRegisterNewSchemes(config.settings.autoRegisterNewSchemes ?? true);
-    setSharedConfigPath(config.settings.sharedConfigPath ?? '');
+    const shared = config.settings.sharedConfigPath ?? '';
+    setUseSharedConfig(Boolean(shared));
+    setSharedConfigPath(shared);
     setRouteLogMode(config.settings.routeLogMode ?? 'redacted');
   }, [config]);
 
@@ -56,16 +61,19 @@ export function SettingsPanel(props: {
     autoRegisterNewSchemes,
     400,
   );
+  const debouncedUseSharedConfig = useDebouncedValue(useSharedConfig, 400);
   const debouncedSharedPath = useDebouncedValue(sharedConfigPath, 400);
   const debouncedRouteLogMode = useDebouncedValue(routeLogMode, 400);
 
   useEffect(() => {
     if (!config) return;
 
-    const desiredShared = debouncedSharedPath.trim()
-      ? debouncedSharedPath.trim()
-      : null;
     const currentShared = config.settings.sharedConfigPath ?? null;
+    const desiredShared = debouncedUseSharedConfig
+      ? debouncedSharedPath.trim()
+        ? debouncedSharedPath.trim()
+        : currentShared
+      : null;
     const currentRunInBackground = config.settings.runInBackground ?? false;
     const currentRunAtLogin = config.settings.runAtLogin;
     const currentAutoEnable = config.settings.autoEnableNewSchemes ?? true;
@@ -108,6 +116,7 @@ export function SettingsPanel(props: {
     debouncedRunAtLogin,
     debouncedAutoEnableNewSchemes,
     debouncedAutoRegisterNewSchemes,
+    debouncedUseSharedConfig,
     debouncedSharedPath,
     debouncedRouteLogMode,
     onDidChangeSettings,
@@ -174,14 +183,55 @@ export function SettingsPanel(props: {
           </Text>
         ) : null}
 
-        <TextInput
-          label="Shared config path (optional)"
-          value={sharedConfigPath}
+        <Title order={3} size="h5" m={0} mt="sm">
+          Shared config
+        </Title>
+
+        <Switch
+          label="Use shared config"
+          checked={useSharedConfig}
           onChange={(e) => {
-            setSharedConfigPath(e.currentTarget.value);
+            const next = e.currentTarget.checked;
+            setUseSharedConfig(next);
+            if (!next) {
+              setSharedConfigPath('');
+            }
           }}
-          placeholder="C:\\path\\to\\shared-config.json"
         />
+
+        <Group align="flex-end" wrap="nowrap">
+          <TextInput
+            label="Shared config path (optional)"
+            style={{ flex: 1 }}
+            value={sharedConfigPath}
+            disabled={!useSharedConfig}
+            onChange={(e) => {
+              setSharedConfigPath(e.currentTarget.value);
+            }}
+            placeholder="C:\\path\\to\\shared-config.json"
+          />
+          <Button
+            variant="default"
+            onClick={() => {
+              void api.settings
+                .pickSharedConfigPath()
+                .then((res) => {
+                  if (res.cancelled) return;
+                  setUseSharedConfig(true);
+                  setSharedConfigPath(res.filePath);
+                })
+                .catch(() => undefined);
+            }}
+          >
+            Browse…
+          </Button>
+        </Group>
+
+        {useSharedConfig && !sharedConfigPath.trim() ? (
+          <Alert color="yellow" title="Shared config needs a file path">
+            Choose a JSON file path to enable shared mode.
+          </Alert>
+        ) : null}
 
         <Switch
           label="Redact new log entries"

@@ -17,6 +17,7 @@ function createDummyApi() {
     },
     settings: {
       set: settingsSet,
+      pickSharedConfigPath: vi.fn(),
     },
     presets: {
       get: vi.fn(),

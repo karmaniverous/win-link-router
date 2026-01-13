@@ -18,6 +18,8 @@ contextBridge.exposeInMainWorld('winLinkRouter', {
   },
   settings: {
     set: (patch: unknown) => ipcRenderer.invoke('settings:set', patch),
+    pickSharedConfigPath: () =>
+      ipcRenderer.invoke('settings:pickSharedConfigPath'),
   },
   presets: {
     get: () => ipcRenderer.invoke('presets:get'),

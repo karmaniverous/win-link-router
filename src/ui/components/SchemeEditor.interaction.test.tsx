@@ -20,7 +20,10 @@ function createDummyApi(): WinLinkRouterApi {
       exportSchemes: vi.fn(),
       importSchemes: vi.fn(),
     },
-    settings: { set: vi.fn() },
+    settings: {
+      set: vi.fn(),
+      pickSharedConfigPath: vi.fn(),
+    },
     presets: { get: vi.fn() },
     windows: {
       ensureRegistration: vi.fn(),

@@ -114,4 +114,4 @@
 - Added tests for mismatch banner + tray notification.
 - Fixed typecheck in tray mismatch notification test.
 - Decomposed SchemesSidebar row rendering and added enable toggle.
-- Added log redaction toggle to Log tab and aligned wording in Settings.
+- Added log redaction toggle to Log tab and aligned wording in Settings.- Added shared-config toggle + Browse picker in Settings.

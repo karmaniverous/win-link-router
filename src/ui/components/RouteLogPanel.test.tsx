@@ -16,6 +16,7 @@ function createDummyApi(): WinLinkRouterApi {
     },
     settings: {
       set: vi.fn(),
+      pickSharedConfigPath: vi.fn(),
     },
     presets: {
       get: vi.fn(),
