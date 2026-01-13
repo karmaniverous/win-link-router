@@ -9,5 +9,6 @@ export default defineConfig({
       'src/**/*.test.{js,jsx}',
       'src/**/*.spec.{js,jsx}',
     ],
+    setupFiles: ['src/test/vitest.setup.ts'],
   },
 });
