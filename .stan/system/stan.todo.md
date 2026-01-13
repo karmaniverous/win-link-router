@@ -92,3 +92,4 @@
 - Began implementing scheme.registered + reconcile plumbing (IPC/startup) and narrowed mismatch prompts to enabled+registered schemes.
 - Fixed typecheck/lint/test fallout from adding scheme.registered and corrected regExe unit test mocking.
 - Amendment: finish fixing remaining lint/test failures (schema back-compat for registered, regExe.test mock isolation, appConfigStore lint).
+- Amendment: lint/test/typecheck are now passing after the fallout fixes.
