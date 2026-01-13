@@ -5,6 +5,8 @@ Durable project requirements (desired end-state).
 ## Scope & goals
 
 - The app is a Windows desktop application that routes protocol URIs (e.g. `tel:`) to other protocol handlers/URLs based on user configuration.
+- Supported OS: Windows only.
+  - The app does not implement or preserve macOS-specific lifecycle behavior (e.g., staying resident after all windows are closed, or `app.activate` window recreation).
 - The app must be safe and predictable:
   - No crashes on malformed input.
   - No silent misconfiguration when routing fails.

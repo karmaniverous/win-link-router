@@ -47,11 +47,8 @@ export function deriveShareSubjectFromRouteResult(
 
   const attempts = result.attempts;
   const attempt =
-    attempts.find((a) => a.templateId === result.templateId) ??
-    attempts[attempts.length - 1] ??
-    null;
-
-  const label = attempt?.label ?? null;
+    attempts.find((a) => a.templateId === result.templateId) ?? attempts.at(-1);
+  const label = attempt?.label;
   if (!label) return null;
 
   return {

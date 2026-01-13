@@ -7,10 +7,8 @@
  * - Lifecycle settings: Run in Background (tray) and Start on Windows Login.
  * - Avoid modal prompts for default-handler mismatch; prefer tray + UI banner.
  * - Open external http/https links in the system default browser.
- * - Provide a separate Share window (manual + nag) and show a post-route nag
- *   interstitial every N successful routes (NAG_INTERVAL).
- * - Persist nag state in a separate userData file; allow disabling nags.
- * - Share messages use scheme + template label (e.g. "WhatsApp Desktop").
+ * - Provide a separate Share window (manual + nag) and show a post-route nag.
+ * - This app is Windows-only; do not implement macOS lifecycle behavior.
  */
 import path from 'node:path';
 
@@ -18,6 +16,11 @@ import { app, BrowserWindow, ipcMain, type Tray } from 'electron';
 import started from 'electron-squirrel-startup';
 
 import { createTemplateRenderer } from './core/routing/templateRenderer';
+import {
+  getAllowedHttpOrigins,
+  loadMainView,
+  loadShareView,
+} from './main/app/rendererViews';
 import { findUriArg } from './main/argv/findUriArg';
 import { AppConfigStore } from './main/config/appConfigStore';
 import { registerIpcHandlers } from './main/ipc/registerIpcHandlers';
@@ -26,28 +29,23 @@ import { loadBundledPresets } from './main/presets/loadBundledPresets';
 import { setLastRouteError } from './main/routing/lastRouteError';
 import { routeIncomingUri } from './main/routing/routeIncomingUri';
 import { applyRunAtLoginSetting } from './main/settings/applyRunAtLogin';
-import { NAG_INTERVAL } from './main/share/shareNagConstants';
-import { ShareNagStateStore } from './main/share/shareNagStateStore';
-import {
-  deriveShareSubjectFromConfig,
-  deriveShareSubjectFromRouteResult,
-} from './main/share/shareSubject';
-import { buildShareUrl } from './main/share/shareUrls';
-import {
-  type ShareContext,
-  ShareWindowController,
-} from './main/share/shareWindowController';
+import { ShareRuntime } from './main/share/shareRuntime';
 import { createTrayController } from './main/tray/trayController';
 import { applyExternalLinkHandling } from './main/windows/applyExternalLinkHandling';
 import { ensureStartMenuShortcut } from './main/windows/ensureStartMenuShortcut';
 import { maybeNotifyDefaultHandlerMismatch } from './main/windows/maybeNotifyDefaultHandlerMismatch';
-import { openExternalUrl } from './main/windows/openExternalUrl';
 import { ensureCandidateRegistration } from './main/windows/protocolRegistration';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
+
+const RENDERER_VIEWS = {
+  devServerUrl: MAIN_WINDOW_VITE_DEV_SERVER_URL,
+  baseDir: __dirname,
+  viteName: MAIN_WINDOW_VITE_NAME,
+};
 
 let mainWindow: BrowserWindow | null = null;
 let trayActive = false;
@@ -58,32 +56,8 @@ let isQuitting = false;
 let trayRef: Tray | null = null;
 let mismatchNotified = false;
 
-let shareIpcRegistered = false;
-
-function getDevServerOrigin(): string | null {
-  if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) return null;
-  try {
-    return new URL(MAIN_WINDOW_VITE_DEV_SERVER_URL).origin;
-  } catch {
-    return null;
-  }
-}
-
-function getAllowedHttpOrigins(): string[] {
-  const devOrigin = getDevServerOrigin();
-  return devOrigin ? [devOrigin] : [];
-}
-
-async function loadShareView(win: BrowserWindow): Promise<void> {
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    void win.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?view=share`);
-    return;
-  }
-
-  await win.loadFile(
-    path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-    { query: { view: 'share' } },
-  );
+function getDevToolsEnabled(): boolean {
+  return Boolean(RENDERER_VIEWS.devServerUrl);
 }
 
 const createWindow = () => {
@@ -100,22 +74,15 @@ const createWindow = () => {
     },
   });
 
-  // and load the index.html of the app.
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    void mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-  } else {
-    void mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-    );
-  }
+  loadMainView(mainWindow, RENDERER_VIEWS);
 
   // Open the DevTools.
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+  if (getDevToolsEnabled()) {
     mainWindow.webContents.openDevTools();
   }
 
   applyExternalLinkHandling(mainWindow, {
-    allowedHttpOrigins: getAllowedHttpOrigins(),
+    allowedHttpOrigins: getAllowedHttpOrigins(RENDERER_VIEWS.devServerUrl),
   });
 
   mainWindow.on('close', (event) => {
@@ -149,9 +116,7 @@ if (!gotLock) {
 
 let configStore: AppConfigStore | null = null;
 let routeLogStore: RouteLogStore | null = null;
-let shareNagStore: ShareNagStateStore | null = null;
-let shareWindowController: ShareWindowController | null = null;
-let currentShareContext: ShareContext | null = null;
+let shareRuntime: ShareRuntime | null = null;
 
 const renderer = createTemplateRenderer();
 const presets = () => loadBundledPresets(app.getVersion());
@@ -174,13 +139,19 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
   }));
   logStore.setMode(desiredLogMode);
 
-  shareNagStore ??= new ShareNagStateStore({
+  shareRuntime ??= new ShareRuntime({
     userDataDir: app.getPath('userData'),
-  });
-  shareWindowController ??= new ShareWindowController({
     getMainWindow: () => mainWindow,
-    loadShareView,
-    getAllowedHttpOrigins,
+    loadShareView: (win) => loadShareView(win, RENDERER_VIEWS),
+    getAllowedHttpOrigins: () =>
+      getAllowedHttpOrigins(RENDERER_VIEWS.devServerUrl),
+  });
+  shareRuntime.registerIpc(ipcMain, {
+    getConfig: () => {
+      const store = configStore;
+      if (!store) throw new Error('Config store is not ready.');
+      return store.getLoadedConfig();
+    },
   });
 
   registerIpcHandlers({
@@ -192,70 +163,6 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
     isPackaged: app.isPackaged,
     exePath: process.execPath,
   });
-
-  if (!shareIpcRegistered) {
-    shareIpcRegistered = true;
-
-    ipcMain.handle('share:open', async () => {
-      const store = await ensureStoresReady();
-      const nagStore = shareNagStore!;
-      const winController = shareWindowController!;
-
-      const state = await nagStore.read();
-      const fromMru = state.lastSuccessful ?? null;
-
-      let subject =
-        fromMru && fromMru.scheme && fromMru.templateLabel
-          ? { scheme: fromMru.scheme, templateLabel: fromMru.templateLabel }
-          : deriveShareSubjectFromConfig(store.getLoadedConfig());
-
-      subject ??= { scheme: 'TEL', templateLabel: 'a configured app' };
-
-      currentShareContext = {
-        mode: 'manual',
-        scheme: subject.scheme,
-        templateLabel: subject.templateLabel,
-      };
-
-      await winController.open(currentShareContext);
-      return { ok: true as const };
-    });
-
-    ipcMain.handle('share:getContext', async () => {
-      return { context: currentShareContext };
-    });
-
-    ipcMain.handle('share:later', async () => {
-      shareWindowController?.close();
-      return { ok: true as const };
-    });
-
-    ipcMain.handle('share:stopNagging', async () => {
-      await shareNagStore?.setDisabled(true);
-      shareWindowController?.close();
-      return { ok: true as const };
-    });
-
-    ipcMain.handle('share:share', async (_event, platform: unknown) => {
-      const ctx = currentShareContext;
-      if (!ctx) throw new Error('Missing share context.');
-      if (platform !== 'x' && platform !== 'linkedin') {
-        throw new Error('Invalid share platform.');
-      }
-
-      // Close the share window before opening the external share URL so the
-      // browser share ends up on top.
-      shareWindowController?.close();
-
-      const url = buildShareUrl({
-        platform,
-        scheme: ctx.scheme,
-        templateLabel: ctx.templateLabel,
-      });
-      await openExternalUrl(url);
-      return { ok: true as const };
-    });
-  }
 
   applyRunAtLoginSetting(configStore.getLoadedConfig());
 
@@ -285,48 +192,6 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
   return configStore;
 }
 
-async function recordSuccessAndMaybeNag(result: unknown): Promise<void> {
-  const nagStore = shareNagStore;
-  const winController = shareWindowController;
-  const store = configStore;
-  if (!nagStore || !winController || !store) return;
-
-  const subject = deriveShareSubjectFromRouteResult(
-    result as Parameters<typeof deriveShareSubjectFromRouteResult>[0],
-  );
-  if (!subject) return;
-
-  const state = await nagStore.read();
-
-  const nextCount = state.successfulRouteCount + 1;
-  const nextState = {
-    ...state,
-    successfulRouteCount: nextCount,
-    lastSuccessful: {
-      scheme: subject.scheme,
-      templateLabel: subject.templateLabel,
-    },
-  };
-  await nagStore.write(nextState);
-
-  if (nextState.disabled) return;
-  if (nextCount % NAG_INTERVAL !== 0) return;
-
-  // Post-route nag interstitial. The content is generic (no inline message),
-  // but share actions use the scheme + template label for this route.
-  currentShareContext = {
-    mode: 'nag',
-    scheme: subject.scheme,
-    templateLabel: subject.templateLabel,
-  };
-
-  await winController.openNag(currentShareContext);
-
-  // If the share window was dismissed, return to normal flow. (Window close
-  // is treated as "Later".)
-  void store;
-}
-
 async function handleUri(uri: string): Promise<boolean> {
   const store = await ensureStoresReady();
   const result = await routeIncomingUri(store, renderer, uri);
@@ -334,7 +199,10 @@ async function handleUri(uri: string): Promise<boolean> {
   await routeLogStore?.append(result).catch(() => undefined);
 
   if (result.type === 'routed') {
-    await recordSuccessAndMaybeNag(result).catch(() => undefined);
+    if (shareRuntime) {
+      await shareRuntime.onSuccessfulRoute(result).catch(() => undefined);
+    }
+
     // In routing-only mode, avoid modal prompts; show a best-effort tray balloon
     // once per process start if RIB is enabled.
     if (trayRef && !mismatchNotified) {
@@ -430,24 +298,6 @@ void app.whenReady().then(async () => {
   win.focus();
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    if (!trayActive) {
-      app.quit();
-    }
-  }
+  if (!trayActive) app.quit();
 });
-
-app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.

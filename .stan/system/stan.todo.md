@@ -135,3 +135,4 @@
 - Added Share window and replaced header GitHub widget with Share button.
 - Added post-route share nag interstitial with separate userData state (NAG_INTERVAL=3).
 - Decomposed src/ui/App.tsx and src/main.ts; fixed TS/test fallout.
+- Finished src/main.ts decomposition (ShareRuntime + rendererViews), removed macOS lifecycle behavior, and fixed remaining lint issues.
