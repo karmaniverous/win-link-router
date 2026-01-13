@@ -24,6 +24,7 @@ function createApiWithEvaluate(
       ensureRegistration: vi.fn(),
       getSchemeStatuses: vi.fn(),
       openDefaultApps: vi.fn(),
+      openExternal: vi.fn().mockResolvedValue({ ok: true }),
     },
     routing: {
       getLastRouteError: vi.fn(),

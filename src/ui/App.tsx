@@ -7,6 +7,7 @@ import {
   Stack,
   Tabs,
   Title,
+  Tooltip,
 } from '@mantine/core';
 
 import type { SchemeConfig } from '../core/config/appConfig';
@@ -21,6 +22,8 @@ import { SchemeEditor } from './components/SchemeEditor';
 import { SchemesSidebar } from './components/SchemesSidebar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { TestPanel } from './components/TestPanel';
+
+const REPO_URL = 'https://github.com/karmaniverous/win-link-router';
 
 export function App() {
   const api = getWinLinkRouterApi();
@@ -76,6 +79,21 @@ export function App() {
             >
               Default Apps…
             </Button>
+            <Tooltip label="Star this repo on GtHub!" withArrow>
+              <Button
+                size="xs"
+                variant="default"
+                onClick={() =>
+                  void api.windows
+                    .openExternal(REPO_URL)
+                    .catch((err: unknown) => {
+                      controller.setError((err as Error).message);
+                    })
+                }
+              >
+                GitHub
+              </Button>
+            </Tooltip>
             <Button
               size="xs"
               variant="default"

@@ -6,6 +6,7 @@
  * - Support import/export of schemes via JSON files (portable; settings preserved).
  * - Windows integration: registration + default handler status (read-only).
  * - Windows candidate registration is reconciled to match per-scheme config intent.
+ * - UI can open external links (e.g., GitHub repo) via main process.
  */
 import path from 'node:path';
 
@@ -35,6 +36,7 @@ import {
 } from '../routing/lastRouteError';
 import { applyRunAtLoginSetting } from '../settings/applyRunAtLogin';
 import { openWindowsDefaultApps } from '../windows/openDefaultApps';
+import { openExternalUrl } from '../windows/openExternalUrl';
 import {
   ensureCandidateRegistration,
   getAllSchemeStatusesFromConfig,
@@ -169,6 +171,14 @@ export function registerIpcHandlers(opts: {
   ipcMain.handle('windows:openDefaultApps', async (_event, scheme?: string) => {
     await openWindowsDefaultApps({ scheme });
     return { ok: true };
+  });
+
+  ipcMain.handle('windows:openExternal', async (_event, url: unknown) => {
+    if (typeof url !== 'string') {
+      throw new Error('Invalid external URL (expected string).');
+    }
+    await openExternalUrl(url);
+    return { ok: true as const };
   });
 
   ipcMain.handle('routing:getLastRouteError', () => {

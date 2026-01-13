@@ -2,6 +2,7 @@
  * Requirements addressed:
  * - Renderer stays UI-focused and uses preload APIs for OS/Electron side effects.
  * - UI needs config/presets/status/test + routing-failure prefill plumbing.
+ * - UI can open external links (e.g., GitHub repo) via preload + IPC.
  */
 import type { AppConfig, PresetsFile } from '../../core/config/appConfig';
 import type { RouteUriResult } from '../../core/routing/routeUri';
@@ -47,6 +48,7 @@ export interface WinLinkRouterApi {
     ensureRegistration: () => Promise<{ ok: boolean; warnings: string[] }>;
     getSchemeStatuses: () => Promise<SchemeWindowsStatusDto[]>;
     openDefaultApps: (scheme?: string) => Promise<{ ok: true }>;
+    openExternal: (url: string) => Promise<{ ok: true }>;
   };
   routing: {
     getLastRouteError: () => Promise<LastRouteErrorDto | null>;

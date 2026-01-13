@@ -5,6 +5,7 @@
  * - UI must support import/export and shared config settings management.
  * - UI must be able to display Windows registration/default status.
  * - UI must be able to prefill test input after routing failures.
+ * - UI must be able to open external links (e.g., GitHub repo) via main.
  */
 import { contextBridge, ipcRenderer } from 'electron';
 
@@ -26,6 +27,8 @@ contextBridge.exposeInMainWorld('winLinkRouter', {
     getSchemeStatuses: () => ipcRenderer.invoke('windows:getSchemeStatuses'),
     openDefaultApps: (scheme?: string) =>
       ipcRenderer.invoke('windows:openDefaultApps', scheme),
+    openExternal: (url: string) =>
+      ipcRenderer.invoke('windows:openExternal', url),
   },
   routing: {
     getLastRouteError: () => ipcRenderer.invoke('routing:getLastRouteError'),
