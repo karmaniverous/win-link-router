@@ -90,8 +90,14 @@ export function App() {
           <Button
             size="xs"
             variant="default"
+            disabled={controller.loading || controller.readOnly}
             onClick={() =>
-              void api.appConfig.importSchemes().then(controller.reload)
+              void api.appConfig
+                .importSchemes()
+                .then(() => controller.reload())
+                .catch((err: unknown) => {
+                  controller.setError((err as Error).message);
+                })
             }
           >
             Import
@@ -99,7 +105,12 @@ export function App() {
           <Button
             size="xs"
             variant="default"
-            onClick={() => void api.appConfig.exportSchemes()}
+            disabled={controller.loading}
+            onClick={() =>
+              void api.appConfig.exportSchemes().catch((err: unknown) => {
+                controller.setError((err as Error).message);
+              })
+            }
           >
             Export
           </Button>
