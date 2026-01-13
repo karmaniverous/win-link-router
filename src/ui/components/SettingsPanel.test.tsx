@@ -1,47 +1,56 @@
-import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+// @vitest-environment jsdom
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AppConfig } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { MantineTestProvider } from '../test/MantineTestProvider';
 import { SettingsPanel } from './SettingsPanel';
 
-function createDummyApi() {
-  const settingsSet = vi.fn().mockResolvedValue({ ok: true as const });
-  const api: WinLinkRouterApi = {
-    appConfig: {
-      get: vi.fn(),
-      set: vi.fn(),
-      exportSchemes: vi.fn(),
-      importSchemes: vi.fn(),
-    },
-    settings: {
-      set: settingsSet,
-      pickSharedConfigPath: vi.fn(),
-    },
-    presets: {
-      get: vi.fn(),
-    },
-    windows: {
-      ensureRegistration: vi.fn(),
-      getSchemeStatuses: vi.fn(),
-      openDefaultApps: vi.fn(),
-      openExternal: vi.fn().mockResolvedValue({ ok: true }),
-    },
-    routing: {
-      getLastRouteError: vi.fn(),
-      clearLastRouteError: vi.fn(),
-    },
-    routeLog: {
-      get: vi.fn().mockResolvedValue({ entries: [] }),
-      clear: vi.fn().mockResolvedValue({ ok: true as const }),
-    },
-    test: {
-      evaluate: vi.fn(),
-    },
-  };
+afterEach(() => {
+  cleanup();
+});
 
-  return { api, settingsSet };
+function createDummyApi(): {
+  api: WinLinkRouterApi;
+  settingsSet: ReturnType<typeof vi.fn>;
+} {
+  const settingsSet = vi.fn().mockResolvedValue({ ok: true as const });
+  return {
+    api: {
+      appConfig: {
+        get: vi.fn(),
+        set: vi.fn(),
+        exportSchemes: vi.fn(),
+        importSchemes: vi.fn(),
+      },
+      settings: {
+        set: settingsSet as unknown as WinLinkRouterApi['settings']['set'],
+        pickSharedConfigPath: vi.fn(),
+      },
+      presets: {
+        get: vi.fn(),
+      },
+      windows: {
+        ensureRegistration: vi.fn(),
+        getSchemeStatuses: vi.fn(),
+        openDefaultApps: vi.fn(),
+        openExternal: vi.fn().mockResolvedValue({ ok: true }),
+      },
+      routing: {
+        getLastRouteError: vi.fn(),
+        clearLastRouteError: vi.fn(),
+      },
+      routeLog: {
+        get: vi.fn().mockResolvedValue({ entries: [] }),
+        clear: vi.fn().mockResolvedValue({ ok: true as const }),
+      },
+      test: {
+        evaluate: vi.fn(),
+      },
+    },
+    settingsSet,
+  };
 }
 
 function createConfig(overrides: Partial<AppConfig> = {}): AppConfig {
@@ -62,24 +71,33 @@ describe('SettingsPanel', () => {
     const { api } = createDummyApi();
     const config = createConfig();
 
-    const html = renderToStaticMarkup(
+    render(
       <MantineTestProvider>
         <SettingsPanel
           api={api}
           config={config}
           readOnly={false}
-          onDidChangeSettings={() => undefined}
+          onDidChangeSettings={vi.fn()}
         />
       </MantineTestProvider>,
     );
 
-    expect(html).toContain('Run in Background');
-    expect(html).toContain('Start on Windows Login');
-    expect(html).toContain('Use shared config');
-    expect(html).not.toContain('Shared config path');
+    expect(
+      screen.getByRole('switch', { name: /run in background/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('switch', { name: /start on windows login/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('switch', { name: /use shared config/i }),
+    ).toBeTruthy();
+
+    expect(
+      screen.queryByRole('textbox', { name: /shared config path/i }),
+    ).toBeNull();
   });
 
-  it('shows shared config path row when shared config is enabled', () => {
+  it('shows shared config path row when shared config is enabled', async () => {
     const { api } = createDummyApi();
     const config = createConfig({
       settings: {
@@ -88,36 +106,45 @@ describe('SettingsPanel', () => {
       },
     });
 
-    const html = renderToStaticMarkup(
+    render(
       <MantineTestProvider>
         <SettingsPanel
           api={api}
           config={config}
           readOnly={false}
-          onDidChangeSettings={() => undefined}
+          onDidChangeSettings={vi.fn()}
         />
       </MantineTestProvider>,
     );
 
-    expect(html).toContain('Shared config path');
-    expect(html).toContain('C:\\x\\shared.json');
+    const toggle = screen.getByRole<HTMLInputElement>('switch', {
+      name: /use shared config/i,
+    });
+    expect(toggle.checked).toBe(true);
+
+    const input = await screen.findByRole('textbox', {
+      name: /shared config path/i,
+    });
+    expect(input.value).toBe('C:\\x\\shared.json');
   });
 
   it('shows read-only warning when readOnly is true', () => {
     const { api } = createDummyApi();
     const config = createConfig();
 
-    const html = renderToStaticMarkup(
+    render(
       <MantineTestProvider>
         <SettingsPanel
           api={api}
           config={config}
           readOnly={true}
-          onDidChangeSettings={() => undefined}
+          onDidChangeSettings={vi.fn()}
         />
       </MantineTestProvider>,
     );
 
-    expect(html).toContain('Scheme/template editing is read-only.');
+    expect(
+      screen.getByText(/scheme\/template editing is read-only/i),
+    ).toBeTruthy();
   });
 });

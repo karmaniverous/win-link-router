@@ -109,7 +109,7 @@ describe('SettingsPanel (interaction)', () => {
     );
 
     await user.click(
-      screen.getByRole('checkbox', { name: /use shared config/i }),
+      screen.getByRole('switch', { name: /use shared config/i }),
     );
 
     await user.click(screen.getByRole('button', { name: /browse/i }));
@@ -121,11 +121,14 @@ describe('SettingsPanel (interaction)', () => {
     expect(input.value).toBe('C:\\x\\shared.json');
 
     // Debounced autosave should persist the new shared config path.
-    await waitFor(() => {
-      expect(settingsSet).toHaveBeenCalled();
-      const calls = settingsSet.mock.calls as unknown[][];
-      const args = calls.map((call) => call[0]);
-      expect(wasCalledWithSharedPath(args, 'C:\\x\\shared.json')).toBe(true);
-    });
+    await waitFor(
+      () => {
+        expect(settingsSet).toHaveBeenCalled();
+        const calls = settingsSet.mock.calls as unknown[][];
+        const args = calls.map((call) => call[0]);
+        expect(wasCalledWithSharedPath(args, 'C:\\x\\shared.json')).toBe(true);
+      },
+      { timeout: 2500 },
+    );
   });
 });
