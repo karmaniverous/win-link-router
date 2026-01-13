@@ -4,6 +4,7 @@
  *   reconciliation.
  * - Provide scheme-row controls (register toggle, delete) and refresh+reconcile.
  * - Provide a GitHub star button in the header (wireframe-aligned).
+ * - Replace remaining bespoke renderer UI with Mantine primitives as found.
  */
 import {
   Alert,
@@ -13,6 +14,7 @@ import {
   Loader,
   Stack,
   Tabs,
+  Title,
 } from '@mantine/core';
 import GitHubButton from 'react-github-btn';
 
@@ -35,10 +37,17 @@ export function App() {
 
   if (!api) {
     return (
-      <main className="appShell">
-        <h1>win-link-router</h1>
-        <p className="error">Missing preload API.</p>
-      </main>
+      <AppShell padding="md" style={{ height: '100%' }}>
+        <AppShell.Main>
+          <Stack gap="sm">
+            <Title order={2}>win-link-router</Title>
+            <Alert color="red" title="Preload API unavailable">
+              Missing preload API (window.winLinkRouter). Ensure the Electron
+              preload script is configured and contextIsolation is enabled.
+            </Alert>
+          </Stack>
+        </AppShell.Main>
+      </AppShell>
     );
   }
 

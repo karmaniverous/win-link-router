@@ -12,15 +12,3 @@ body {
   padding: 0;
   overflow: hidden;
 }
-
-.muted {
-  color: #666;
-}
-
-.warning {
-  color: #7a4a00;
-}
-
-.error {
-  color: #b00020;
-}
