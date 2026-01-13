@@ -7,13 +7,16 @@
  * - Replace remaining bespoke renderer UI with Mantine primitives as found.
  */
 import {
+  Accordion,
   Alert,
   AppShell,
   Button,
+  Code,
   Group,
   Loader,
   Stack,
   Tabs,
+  Text,
   Title,
 } from '@mantine/core';
 import GitHubButton from 'react-github-btn';
@@ -127,7 +130,9 @@ export function App() {
             {controller.loading ? (
               <Group gap="xs">
                 <Loader size="sm" />
-                <span>Loading…</span>
+                <Text size="sm" c="dimmed">
+                  Loading…
+                </Text>
               </Group>
             ) : null}
             {controller.error ? (
@@ -167,10 +172,14 @@ export function App() {
               onOpenDefaultApps={() => void api.windows.openDefaultApps()}
             />
             {controller.warnings.length ? (
-              <details>
-                <summary>Warnings</summary>
-                <pre>{controller.warnings.join('\n')}</pre>
-              </details>
+              <Accordion variant="separated">
+                <Accordion.Item value="warnings">
+                  <Accordion.Control>Warnings</Accordion.Control>
+                  <Accordion.Panel>
+                    <Code block>{controller.warnings.join('\n')}</Code>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
             ) : null}
             {controller.readOnly ? (
               <Alert color="yellow" title="Read-only config">
