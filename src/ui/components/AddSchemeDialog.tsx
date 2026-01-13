@@ -60,16 +60,6 @@ export function AddSchemeDialog(props: {
   const [selectionTouched, setSelectionTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const nativeSelectData = useMemo(() => {
-    const out: { value: string; label: string }[] = [
-      { value: 'blank', label: 'Blank (no preset)' },
-    ];
-    for (const o of presetOptions) {
-      if (o.kind === 'preset') out.push({ value: o.key, label: o.label });
-    }
-    return out;
-  }, [presetOptions]);
-
   useEffect(() => {
     if (!open) return;
     setRaw('');
@@ -119,6 +109,16 @@ export function AddSchemeDialog(props: {
 
     return out;
   }, [normalized, presets]);
+
+  const nativeSelectData = useMemo(() => {
+    const out: { value: string; label: string }[] = [
+      { value: 'blank', label: 'Blank (no preset)' },
+    ];
+    for (const o of presetOptions) {
+      if (o.kind === 'preset') out.push({ value: o.key, label: o.label });
+    }
+    return out;
+  }, [presetOptions]);
 
   const presetCount = useMemo(() => {
     if (!normalized) return 0;

@@ -110,3 +110,4 @@
 - Fixed Mantine ScrollArea tests by polyfilling ResizeObserver.
 - Added a GitHub header button (tooltip + external open via IPC).
 - Migrated modal/dialog + panels to Mantine primitives.
+- Fixed Add Scheme preset memo initialization order.
