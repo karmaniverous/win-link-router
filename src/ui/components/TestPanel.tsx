@@ -4,6 +4,7 @@
  * - Disabled schemes can still be evaluated, but show a clear banner.
  */
 import {
+  Accordion,
   Alert,
   Code,
   Group,
@@ -156,10 +157,14 @@ export function TestPanel(props: {
         ) : null}
 
         {result?.matchGroups ? (
-          <details>
-            <summary>Match groups</summary>
-            <Code block>{JSON.stringify(result.matchGroups, null, 2)}</Code>
-          </details>
+          <Accordion variant="separated">
+            <Accordion.Item value="matchGroups">
+              <Accordion.Control>Match groups</Accordion.Control>
+              <Accordion.Panel>
+                <Code block>{JSON.stringify(result.matchGroups, null, 2)}</Code>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
         ) : null}
 
         {result?.evaluations.length ? (

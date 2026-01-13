@@ -1,4 +1,5 @@
 import {
+  Accordion,
   Alert,
   Button,
   Code,
@@ -155,10 +156,16 @@ export function RouteLogPanel(props: {
         ) : null}
 
         {entries.length ? (
-          <details>
-            <summary>Show entries</summary>
-            <Code block>{JSON.stringify(entries, null, 2)}</Code>
-          </details>
+          <Accordion variant="separated">
+            <Accordion.Item value="entries">
+              <Accordion.Control>
+                Entries JSON ({String(entries.length)})
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Code block>{JSON.stringify(entries, null, 2)}</Code>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
         ) : (
           <Text size="sm" c="dimmed">
             No routing log entries yet.
