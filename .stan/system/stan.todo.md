@@ -19,7 +19,6 @@
   - Implement per-scheme register/deregister (including deleting ProgId key trees and URLAssociations values).
   - Reconcile registry to match config on app start, config save, and via the schemes refresh button (save-first + reconcile + requery statuses).
   - Remove `RegisteredApplications` entry when no schemes are registered.
-  - In routing-only mode, avoid modal prompts; show tray balloon on mismatch and surface a UI banner next time the window is shown.
 - Lifecycle settings:
   - Add “Run in Background” setting and enforce `SWL ⇒ RIB`.
   - When started at login (SWL ON), start hidden (tray only).
@@ -109,4 +108,6 @@
 - Fixed lint in main login-start detection.
 - Added auto-enable/auto-register defaults for new schemes.
 - Trimmed legacy CSS and Mantine-ized preset select.
-- Made Test tab infer scheme from URI (no selector).- Fixed lint + comment cleanup after Test tab changes.
+- Made Test tab infer scheme from URI (no selector).
+- Fixed lint + comment cleanup after Test tab changes.
+- Replaced mismatch modal with banner + tray balloon.

@@ -24,6 +24,7 @@ import {
   type AppTabId,
   useAppController,
 } from './app/useAppController';
+import { DefaultHandlerMismatchBanner } from './components/DefaultHandlerMismatchBanner';
 import { RouteLogPanel } from './components/RouteLogPanel';
 import { SchemeEditor } from './components/SchemeEditor';
 import { SchemesSidebar } from './components/SchemesSidebar';
@@ -198,6 +199,10 @@ export function App() {
                 </pre>
               </Alert>
             ) : null}
+            <DefaultHandlerMismatchBanner
+              statuses={controller.statuses}
+              onOpenDefaultApps={() => void api.windows.openDefaultApps()}
+            />
             {controller.warnings.length ? (
               <details>
                 <summary>Warnings</summary>

@@ -5,10 +5,11 @@
  * - Persist a minimal per-user routing log for debugging.
  * - Reconcile Windows candidate registration to match per-scheme config intent.
  * - Lifecycle settings: Run in Background (tray) and Start on Windows Login.
+ * - Avoid modal prompts for default-handler mismatch; prefer tray + UI banner.
  */
 import path from 'node:path';
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, type Tray } from 'electron';
 import started from 'electron-squirrel-startup';
 
 import { createTemplateRenderer } from './core/routing/templateRenderer';
@@ -22,7 +23,7 @@ import { routeIncomingUri } from './main/routing/routeIncomingUri';
 import { applyRunAtLoginSetting } from './main/settings/applyRunAtLogin';
 import { createTrayController } from './main/tray/trayController';
 import { ensureStartMenuShortcut } from './main/windows/ensureStartMenuShortcut';
-import { maybePromptDefaultHandlerMismatch } from './main/windows/maybePromptDefaultHandlerMismatch';
+import { maybeNotifyDefaultHandlerMismatch } from './main/windows/maybeNotifyDefaultHandlerMismatch';
 import { ensureCandidateRegistration } from './main/windows/protocolRegistration';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -33,6 +34,11 @@ if (started) {
 let mainWindow: BrowserWindow | null = null;
 let trayActive = false;
 let isQuitting = false;
+
+// Keep a reference to the Tray (when RIB is enabled) so routing-only launches can
+// show best-effort notifications without opening the UI.
+let trayRef: Tray | null = null;
+let mismatchNotified = false;
 
 const createWindow = () => {
   if (mainWindow) return mainWindow;
@@ -158,7 +164,19 @@ async function handleUri(uri: string): Promise<boolean> {
 
   await routeLogStore?.append(result).catch(() => undefined);
 
-  if (result.type === 'routed') return true;
+  if (result.type === 'routed') {
+    // In routing-only mode, avoid modal prompts; show a best-effort tray balloon
+    // once per process start if RIB is enabled.
+    if (trayRef && !mismatchNotified) {
+      mismatchNotified = true;
+      void maybeNotifyDefaultHandlerMismatch({
+        config: store.getLoadedConfig(),
+        exePath: process.execPath,
+        tray: trayRef,
+      }).catch(() => undefined);
+    }
+    return true;
+  }
 
   setLastRouteError({
     when: new Date().toISOString(),
@@ -201,16 +219,18 @@ void app.whenReady().then(async () => {
   const startedAtLogin = loginSettings.wasOpenedAtLogin;
 
   if (runInBackground) {
-    const tray = await createTrayController({
+    const trayController = await createTrayController({
       onToggleMainWindow: toggleMainWindow,
       onQuit: () => {
         isQuitting = true;
         app.quit();
       },
     });
-    trayActive = tray !== null;
+    trayActive = trayController !== null;
+    trayRef = trayController?.tray ?? null;
   } else {
     trayActive = false;
+    trayRef = null;
   }
 
   if (uri) {
@@ -224,19 +244,20 @@ void app.whenReady().then(async () => {
 
   if (runInBackground && loaded.settings.runAtLogin && startedAtLogin) {
     // Start hidden (tray only) when opened at login.
+    if (trayRef && !mismatchNotified) {
+      mismatchNotified = true;
+      void maybeNotifyDefaultHandlerMismatch({
+        config: loaded,
+        exePath: process.execPath,
+        tray: trayRef,
+      }).catch(() => undefined);
+    }
     return;
   }
 
   const win = createWindow();
   win.show();
   win.focus();
-
-  void maybePromptDefaultHandlerMismatch(
-    (configStore ?? (await ensureStoresReady())).getLoadedConfig(),
-    {
-      exePath: process.execPath,
-    },
-  ).catch(() => undefined);
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
