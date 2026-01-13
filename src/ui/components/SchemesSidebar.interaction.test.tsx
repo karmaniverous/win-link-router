@@ -108,8 +108,10 @@ describe('SchemesSidebar (interaction)', () => {
       </MantineTestProvider>,
     );
 
-    const refresh = screen.getByRole('button', { name: /refresh schemes/i });
-    expect(refresh).not.toBeDisabled();
+    const refresh = screen.getByRole<HTMLButtonElement>('button', {
+      name: /refresh schemes/i,
+    });
+    expect(refresh.disabled).toBe(false);
     await user.click(refresh);
     expect(onRefreshAndReconcile).toHaveBeenCalledTimes(1);
   });
