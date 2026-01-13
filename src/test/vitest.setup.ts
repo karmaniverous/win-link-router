@@ -22,4 +22,25 @@ if (typeof window !== 'undefined') {
       };
     };
   }
+
+  // Mantine ScrollArea uses ResizeObserver. jsdom does not provide it by default.
+  if (typeof window.ResizeObserver !== 'function') {
+    class ResizeObserverMock {
+      observe(_target: Element) {
+        // no-op
+      }
+      unobserve(_target: Element) {
+        // no-op
+      }
+      disconnect() {
+        // no-op
+      }
+    }
+
+    window.ResizeObserver =
+      ResizeObserverMock as unknown as typeof ResizeObserver;
+    (
+      globalThis as unknown as { ResizeObserver?: typeof ResizeObserver }
+    ).ResizeObserver = window.ResizeObserver;
+  }
 }

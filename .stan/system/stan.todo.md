@@ -107,3 +107,4 @@
 - Converted SchemesSidebar and SchemeEditor panels to Mantine primitives.
 - Fixed Mantine component tests by adding a Mantine test provider wrapper.
 - Fixed Mantine jsdom tests by polyfilling window.matchMedia.
+- Fixed Mantine ScrollArea tests by polyfilling ResizeObserver.
