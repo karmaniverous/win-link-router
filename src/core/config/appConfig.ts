@@ -4,6 +4,11 @@
  * - Schemes are canonicalized (case-insensitive; stored in a canonical form).
  * - Presets and config record version information derived from app package
  *   version (captured in AppConfig/PresetsFile metadata).
+ * - Scheme enablement (router behavior) is distinct from Windows registration
+ *   (OS interception); registration intent is persisted per scheme.
+ * - Per-user settings include:
+ *   - runInBackground (tray lifecycle),
+ *   - autoEnableNewSchemes and autoRegisterNewSchemes (new-scheme defaults).
  */
 export const APP_CONFIG_SCHEMA_VERSION = 1 as const;
 
@@ -21,7 +26,17 @@ export interface SchemeConfig {
    * Canonical scheme name (e.g. "TEL"), without trailing ":".
    */
   scheme: string;
+  /**
+   * Router behavior switch. If disabled, routing fails for this scheme even if
+   * Windows invoked the app.
+   */
   enabled: boolean;
+  /**
+   * Desired per-user Windows candidate registration state.
+   *
+   * Invariant: registered implies enabled.
+   */
+  registered: boolean;
   extractor: {
     pattern: string;
     flags?: string;
@@ -49,6 +64,11 @@ export interface AppConfig {
   appVersion?: string;
 
   settings: {
+    /**
+     * If true, keep the app running in the system tray after routing and hide
+     * the window on close. If false, the app runs without tray integration.
+     */
+    runInBackground?: boolean;
     runAtLogin: boolean;
     sharedConfigPath?: string | null;
     /**
@@ -57,6 +77,16 @@ export interface AppConfig {
      * - "full": persist raw URIs/targets (more useful, less private).
      */
     routeLogMode?: RouteLogMode;
+    /**
+     * Default for new schemes created from the UI.
+     */
+    autoEnableNewSchemes?: boolean;
+    /**
+     * Default for new schemes created from the UI.
+     *
+     * Invariant: autoRegisterNewSchemes implies autoEnableNewSchemes.
+     */
+    autoRegisterNewSchemes?: boolean;
   };
   schemes: SchemeConfig[];
 }

@@ -1,7 +1,7 @@
 /**
  * Requirements addressed:
  * - On startup / when the UI is opened, warn/prompt the user when Windows is not
- *   pointing enabled schemes to this app.
+ *   pointing enabled + registered schemes to this app.
  * - Provide a shortcut to Windows Default Apps settings.
  */
 import { dialog } from 'electron';
@@ -14,13 +14,20 @@ export async function maybePromptDefaultHandlerMismatch(
   config: AppConfig,
   opts?: { exePath?: string },
 ): Promise<void> {
-  const enabled = config.schemes.filter((s) => s.enabled);
-  if (enabled.length === 0) return;
+  const enabledRegistered = config.schemes.filter(
+    (s) => s.enabled && s.registered,
+  );
+  if (enabledRegistered.length === 0) return;
 
   const statuses = await getAllSchemeStatusesFromConfig(config, {
     exePath: opts?.exePath,
   });
-  const enabledStatuses = statuses.filter((s) => s.enabled);
+  const desiredSchemes = new Set(
+    enabledRegistered.map((s) => s.scheme.toUpperCase()),
+  );
+  const enabledStatuses = statuses.filter((s) =>
+    desiredSchemes.has(s.scheme.toUpperCase()),
+  );
 
   const notDefault = enabledStatuses.filter(
     (s) => s.defaultStatus === 'not-default',
@@ -48,7 +55,7 @@ export async function maybePromptDefaultHandlerMismatch(
   }
 
   const detail = [
-    'Some enabled link types are not currently set to win-link-router in Windows.',
+    'Some enabled + registered link types are not currently set to win-link-router in Windows.',
     '',
     ...lines,
     '',

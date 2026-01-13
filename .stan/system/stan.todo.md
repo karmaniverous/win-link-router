@@ -89,3 +89,4 @@
 - Fixed lint issues in tray controller and reg.exe adapter.
 - Hardened default-status handling for AppX\* UserChoice ProgIds and wrote Start Menu shortcuts that launch the installed exe directly (Programs root + folder).
 - Updated requirements and plan for tabbed UI, scheme enabled/registered split, auto-\* defaults, RIB/SWL lifecycle, and refresh+reconcile behavior.
+- Began implementing scheme.registered + reconcile plumbing (IPC/startup) and narrowed mismatch prompts to enabled+registered schemes.

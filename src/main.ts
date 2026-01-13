@@ -3,6 +3,7 @@
  * - Support normal launch (open UI) and protocol launch (route URI argument).
  * - Single-instance routing (second instance forwards URI to first).
  * - Persist a minimal per-user routing log for debugging.
+ * - Reconcile Windows candidate registration to match per-scheme config intent.
  */
 import path from 'node:path';
 
@@ -134,16 +135,16 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
     }).catch(() => undefined);
   }
 
-  // Best-effort: ensure we're registered as a candidate handler for enabled schemes.
+  // Best-effort: reconcile candidate registration for enabled + registered schemes.
   // This does not set defaults; it only makes the app available in Default Apps.
   void ensureCandidateRegistration({
     isPackaged: app.isPackaged,
     exePath: process.execPath,
     appDisplayName: 'win-link-router',
     appDescription: 'Routes protocol links to configured targets',
-    enabledSchemes: configStore
+    registeredSchemes: configStore
       .getLoadedConfig()
-      .schemes.filter((s) => s.enabled)
+      .schemes.filter((s) => s.enabled && s.registered)
       .map((s) => s.scheme),
   }).catch(() => undefined);
 

@@ -5,7 +5,9 @@
  * - Detect default status robustly via UserChoice ProgId compare (including
  *   Applications\<exe>.exe ProgIds when applicable).
  * - List schemes the app is registered for from its own Capabilities.
- * - Registration must follow enabled schemes (remove stale URLAssociations).
+ * - Registration must follow desired registered schemes (remove stale URLAssociations).
+ * - Deregistration must clean up associated ProgId key trees.
+ * - If no schemes are registered, remove the RegisteredApplications entry.
  */
 import { type AppConfig, normalizeScheme } from '../../core/config/appConfig';
 import { commandReferencesExe } from './commandReferencesExe';
@@ -14,6 +16,7 @@ import {
   type DefaultHandlerStatus,
 } from './defaultHandlerProgId';
 import {
+  regDeleteKey,
   regDeleteValue,
   regListValues,
   regQueryValue,
@@ -53,7 +56,7 @@ export async function ensureCandidateRegistration(opts: {
   exePath: string;
   appDisplayName: string;
   appDescription: string;
-  enabledSchemes: string[];
+  registeredSchemes: string[];
 }): Promise<{ ok: boolean; warnings: string[] }> {
   const warnings: string[] = [];
   if (!opts.isPackaged) {
@@ -68,7 +71,7 @@ export async function ensureCandidateRegistration(opts: {
   }
 
   const desiredSchemeNames = new Set(
-    opts.enabledSchemes.map((s) => normalizeScheme(s).toLowerCase()),
+    opts.registeredSchemes.map((s) => normalizeScheme(s).toLowerCase()),
   );
 
   // Remove stale URLAssociations values so registration matches enabled schemes.
@@ -85,12 +88,34 @@ export async function ensureCandidateRegistration(opts: {
           key: URL_ASSOCIATIONS_KEY,
           name: existingName,
         });
+        // Clean up ProgId key tree for this scheme.
+        await regDeleteKey({
+          hive: 'HKCU',
+          key: progIdKey(progIdForScheme(existingName)),
+        });
       } catch (err) {
         warnings.push(
           `Failed to remove URLAssociation "${existingName}": ${(err as Error).message}`,
         );
       }
     }
+  }
+
+  // If no desired schemes, remove the app registration so it disappears as a
+  // candidate handler in Default Apps.
+  if (desiredSchemeNames.size === 0) {
+    try {
+      await regDeleteValue({
+        hive: 'HKCU',
+        key: REGISTERED_APPLICATIONS_KEY,
+        name: opts.appDisplayName,
+      });
+    } catch (err) {
+      warnings.push(
+        `Failed to remove RegisteredApplications entry: ${(err as Error).message}`,
+      );
+    }
+    return { ok: warnings.length === 0, warnings };
   }
 
   // Register the app as a Default Apps candidate via Capabilities.
@@ -118,7 +143,7 @@ export async function ensureCandidateRegistration(opts: {
   });
 
   // Per-scheme ProgIds + URLAssociations.
-  for (const rawScheme of opts.enabledSchemes) {
+  for (const rawScheme of opts.registeredSchemes) {
     const scheme = normalizeScheme(rawScheme);
     const progId = progIdForScheme(scheme);
 

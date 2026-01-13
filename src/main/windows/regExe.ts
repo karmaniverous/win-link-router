@@ -3,6 +3,7 @@
  * - Windows integration must be robust and based on registry state.
  * - Keep side effects behind a thin adapter (ports & adapters).
  * - Support querying merged class roots (HKCR) and reading (Default) values.
+ * - Support deleting key trees for per-scheme deregistration cleanup.
  */
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -36,6 +37,16 @@ export async function regSetValue(opts: {
   args.push('/d', opts.data);
 
   await execFileAsync('reg.exe', args, { windowsHide: true });
+}
+
+export async function regDeleteKey(opts: {
+  hive: WritableRegistryHive;
+  key: string;
+}): Promise<void> {
+  const fullKey = hiveKey(opts.hive, opts.key);
+  await execFileAsync('reg.exe', ['delete', fullKey, '/f'], {
+    windowsHide: true,
+  });
 }
 
 export async function regDeleteValue(opts: {

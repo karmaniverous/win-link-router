@@ -5,6 +5,7 @@
  * - UI test panel needs per-template rendered output / render errors.
  * - Support import/export of schemes via JSON files (portable; settings preserved).
  * - Windows integration: registration + default handler status (read-only).
+ * - Windows candidate registration is reconciled to match per-scheme config intent.
  */
 import path from 'node:path';
 
@@ -145,15 +146,16 @@ export function registerIpcHandlers(opts: {
 
   ipcMain.handle('windows:ensureRegistration', async () => {
     const config = opts.configStore.getLoadedConfig();
-    const enabledSchemes = config.schemes
-      .filter((s) => s.enabled)
+    const registeredSchemes = config.schemes
+      .filter((s) => s.enabled && s.registered)
       .map((s) => s.scheme);
+
     return ensureCandidateRegistration({
       isPackaged: opts.isPackaged,
       exePath: opts.exePath,
       appDisplayName: 'win-link-router',
       appDescription: 'Routes protocol links to configured targets',
-      enabledSchemes,
+      registeredSchemes,
     });
   });
 

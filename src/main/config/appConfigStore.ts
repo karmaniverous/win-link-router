@@ -5,6 +5,8 @@
  *   on shared file errors).
  * - Validate loaded configuration (Zod) and fall back to a safe default.
  * - Schemes are canonicalized and duplicates are prevented at load time.
+ * - Schemes are sorted canonically by scheme name.
+ * - Scheme enablement is distinct from registration; enforce registered ⇒ enabled.
  * - Even when shared config is broken (read-only), settings must be editable so
  *   users can fix/disable shared mode.
  */
@@ -32,6 +34,29 @@ interface AppConfigLoadResult {
   warnings: string[];
 }
 
+function canonicalizeSettings(
+  settings: AppConfig['settings'],
+): AppConfig['settings'] {
+  const runInBackground = settings.runInBackground ?? false;
+  const runAtLogin = settings.runAtLogin;
+
+  // Enforce SWL ⇒ RIB.
+  const effectiveRunInBackground = runAtLogin ? true : runInBackground;
+
+  const autoEnableNewSchemes = settings.autoEnableNewSchemes ?? true;
+  const autoRegisterNewSchemes = settings.autoRegisterNewSchemes ?? true;
+  const effectiveAutoEnable = autoRegisterNewSchemes
+    ? true
+    : autoEnableNewSchemes;
+
+  return {
+    ...settings,
+    runInBackground: effectiveRunInBackground,
+    autoEnableNewSchemes: effectiveAutoEnable,
+    autoRegisterNewSchemes,
+  };
+}
+
 function canonicalizeSchemes(config: AppConfig, warnings: string[]): AppConfig {
   const seen = new Set<string>();
   const canonicalSchemes: SchemeConfig[] = [];
@@ -44,7 +69,26 @@ function canonicalizeSchemes(config: AppConfig, warnings: string[]): AppConfig {
         continue;
       }
       seen.add(normalized);
-      canonicalSchemes.push({ ...scheme, scheme: normalized });
+
+      // Compatibility default: if registered is missing, treat enabled as the
+      // prior "enabled implies registered" intent.
+      const registered =
+        scheme.registered !== undefined ? scheme.registered : scheme.enabled;
+
+      // Enforce registered ⇒ enabled.
+      const enabled = registered ? true : scheme.enabled;
+      if (registered && !scheme.enabled) {
+        warnings.push(
+          `Scheme "${normalized}" was registered but disabled; it was enabled to satisfy registered ⇒ enabled.`,
+        );
+      }
+
+      canonicalSchemes.push({
+        ...scheme,
+        scheme: normalized,
+        enabled,
+        registered,
+      });
     } catch (err) {
       warnings.push(
         `Invalid scheme "${scheme.scheme}" was dropped: ${toErrorMessage(err)}`,
@@ -52,7 +96,13 @@ function canonicalizeSchemes(config: AppConfig, warnings: string[]): AppConfig {
     }
   }
 
-  return { ...config, schemes: canonicalSchemes };
+  canonicalSchemes.sort((a, b) => a.scheme.localeCompare(b.scheme));
+
+  return {
+    ...config,
+    settings: canonicalizeSettings(config.settings),
+    schemes: canonicalSchemes,
+  };
 }
 
 export class AppConfigStore {
@@ -97,7 +147,7 @@ export class AppConfigStore {
     const localToWrite: AppConfig = {
       ...current,
       appVersion,
-      settings: nextSettings,
+      settings: canonicalizeSettings(nextSettings),
     };
 
     // If disabling shared mode, preserve the currently effective schemes into
@@ -194,7 +244,10 @@ export class AppConfigStore {
     }
 
     const warnings: string[] = [];
-    const canonicalNext = canonicalizeSchemes(next, warnings);
+    const canonicalNext = canonicalizeSchemes(
+      { ...next, settings: canonicalizeSettings(next.settings) },
+      warnings,
+    );
 
     const sharedPath = canonicalNext.settings.sharedConfigPath ?? null;
     if (!sharedPath) {

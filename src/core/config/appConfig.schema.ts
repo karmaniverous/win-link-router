@@ -3,6 +3,10 @@
  * - JSON config + presets validation with safe fallback behavior (schema layer).
  * - Reject global regex flag "g" for determinism.
  * - Ensure extractor regex compiles (pattern + flags).
+ * - Support scheme enablement distinct from desired Windows registration.
+ * - Validate new per-user settings:
+ *   - runInBackground, autoEnableNewSchemes, autoRegisterNewSchemes.
+ * - Enforce autoRegisterNewSchemes ⇒ autoEnableNewSchemes.
  */
 import { z } from 'zod';
 
@@ -53,17 +57,31 @@ const templateConfigSchema = z.object({
 const schemeConfigSchema = z.object({
   scheme: z.string().min(1),
   enabled: z.boolean().default(true),
+  registered: z.boolean().optional().default(false),
   extractor: extractorConfigSchema,
   templates: z.array(templateConfigSchema),
   presetId: z.string().min(1).optional(),
   derivedFromPresetId: z.string().min(1).optional(),
 });
 
-const appSettingsSchema = z.object({
-  runAtLogin: z.boolean().default(false),
-  sharedConfigPath: z.string().min(1).optional().nullable(),
-  routeLogMode: z.enum(['redacted', 'full']).optional().default('redacted'),
-});
+const appSettingsSchema = z
+  .object({
+    runInBackground: z.boolean().optional().default(false),
+    runAtLogin: z.boolean().default(false),
+    sharedConfigPath: z.string().min(1).optional().nullable(),
+    routeLogMode: z.enum(['redacted', 'full']).optional().default('redacted'),
+    autoEnableNewSchemes: z.boolean().optional().default(true),
+    autoRegisterNewSchemes: z.boolean().optional().default(true),
+  })
+  .superRefine(({ autoEnableNewSchemes, autoRegisterNewSchemes }, ctx) => {
+    if (autoRegisterNewSchemes && !autoEnableNewSchemes) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'autoRegisterNewSchemes implies autoEnableNewSchemes.',
+        path: ['autoEnableNewSchemes'],
+      });
+    }
+  });
 
 const appConfigSchema = z.object({
   schemaVersion: z.literal(APP_CONFIG_SCHEMA_VERSION),
