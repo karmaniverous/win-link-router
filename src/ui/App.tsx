@@ -3,7 +3,7 @@
  * - Main view provides scheme list + editor and supports Windows registration
  *   reconciliation.
  * - Provide scheme-row controls (register toggle, delete) and refresh+reconcile.
- * - Provide a GitHub header button to open the repo link externally.
+ * - Provide a GitHub star button in the header (wireframe-aligned).
  */
 import {
   Alert,
@@ -13,8 +13,8 @@ import {
   Loader,
   Stack,
   Tabs,
-  Tooltip,
 } from '@mantine/core';
+import GitHubButton from 'react-github-btn';
 
 import type { SchemeConfig } from '../core/config/appConfig';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
@@ -29,8 +29,6 @@ import { SchemeEditor } from './components/SchemeEditor';
 import { SchemesSidebar } from './components/SchemesSidebar';
 import { SettingsPanel } from './components/SettingsPanel';
 import { TestPanel } from './components/TestPanel';
-
-const REPO_URL = 'https://github.com/karmaniverous/win-link-router';
 
 export function App() {
   const api = getWinLinkRouterApi();
@@ -100,21 +98,15 @@ export function App() {
           >
             Default Apps…
           </Button>
-          <Tooltip label="Star this repo on GitHub!" withArrow>
-            <Button
-              size="xs"
-              variant="default"
-              onClick={() =>
-                void api.windows
-                  .openExternal(REPO_URL)
-                  .catch((err: unknown) => {
-                    controller.setError((err as Error).message);
-                  })
-              }
-            >
-              GitHub
-            </Button>
-          </Tooltip>
+          <GitHubButton
+            href="https://github.com/karmaniverous/win-link-router"
+            data-color-scheme="no-preference: light; light: light; dark: dark;"
+            data-size="large"
+            data-show-count="true"
+            aria-label="Star karmaniverous/win-link-router on GitHub"
+          >
+            Star
+          </GitHubButton>
         </Group>
       </AppShell.Header>
 

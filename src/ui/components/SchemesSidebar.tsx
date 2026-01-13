@@ -71,6 +71,7 @@ export function SchemesSidebar(props: {
     onSelectScheme,
     onRefreshAndReconcile,
     onAddScheme,
+    onSetNewSchemeDefaults,
     onChangeScheme,
     onRemoveScheme,
     onError,

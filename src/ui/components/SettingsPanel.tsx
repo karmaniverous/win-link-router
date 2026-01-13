@@ -12,7 +12,6 @@ import {
   Paper,
   Stack,
   Switch,
-  Text,
   TextInput,
 } from '@mantine/core';
 import { useEffect, useState } from 'react';

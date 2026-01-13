@@ -129,6 +129,7 @@ Durable project requirements (desired end-state).
     - Do not display an in-app app title in the upper-left corner.
     - Do not display an “Ensure Registration” button in the header (registration reconciliation remains available via the Schemes panel refresh control).
     - Tabs should be presented full-width under the header toolbar.
+    - The header must include a GitHub “Star” button with star count (via `react-github-btn`).
   - Separate tabs: Settings, Log, Test.
   - List of configured schemes.
   - For selected scheme: extractor editor, template list editor.
