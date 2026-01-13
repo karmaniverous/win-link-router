@@ -198,7 +198,7 @@ void app.whenReady().then(async () => {
   const runInBackground = loaded.settings.runInBackground ?? false;
 
   const loginSettings = app.getLoginItemSettings();
-  const startedAtLogin = Boolean(loginSettings.wasOpenedAtLogin);
+  const startedAtLogin = loginSettings.wasOpenedAtLogin;
 
   if (runInBackground) {
     const tray = await createTrayController({
