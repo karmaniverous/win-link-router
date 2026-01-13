@@ -119,7 +119,8 @@ describe('SettingsPanel (interaction)', () => {
     // Debounced autosave should persist the new shared config path.
     await waitFor(() => {
       expect(settingsSet).toHaveBeenCalled();
-      const args = settingsSet.mock.calls.map((c) => c[0]);
+      const calls = settingsSet.mock.calls as unknown[][];
+      const args = calls.map((call) => call[0]);
       expect(wasCalledWithSharedPath(args, 'C:\\x\\shared.json')).toBe(true);
     });
   });
