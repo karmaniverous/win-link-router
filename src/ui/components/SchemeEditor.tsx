@@ -130,7 +130,7 @@ export function SchemeEditor(props: {
   };
 
   return (
-    <section className="panel">
+    <section className="panel schemeEditor">
       <ConfirmDialog
         open={removeSchemeOpen}
         title="Remove scheme"
@@ -209,189 +209,193 @@ export function SchemeEditor(props: {
         ) : null}
       </ConfirmDialog>
 
-      <div className="row">
-        <h2>{scheme.scheme}</h2>
-        <div className="rowActions">
-          <button
-            type="button"
-            onClick={() => void api.windows.openDefaultApps(scheme.scheme)}
-          >
-            Set default…
-          </button>
-          {defaultPreset ? (
+      <div className="schemeEditorScroll">
+        <div className="row">
+          <h2>{scheme.scheme}</h2>
+          <div className="rowActions">
+            <button
+              type="button"
+              onClick={() => void api.windows.openDefaultApps(scheme.scheme)}
+            >
+              Set default…
+            </button>
+            {defaultPreset ? (
+              <button
+                type="button"
+                disabled={readOnly}
+                onClick={() => {
+                  const preferredKey =
+                    presetOptions.find(
+                      (p) =>
+                        p.preset.presetId !== undefined &&
+                        p.preset.presetId === scheme.derivedFromPresetId,
+                    )?.key ?? presetOptions[0]?.key;
+                  if (preferredKey) setResetPresetKey(preferredKey);
+                  setResetOpen(true);
+                }}
+              >
+                Reset to preset
+              </button>
+            ) : null}
             <button
               type="button"
               disabled={readOnly}
               onClick={() => {
-                const preferredKey =
-                  presetOptions.find(
-                    (p) =>
-                      p.preset.presetId !== undefined &&
-                      p.preset.presetId === scheme.derivedFromPresetId,
-                  )?.key ?? presetOptions[0]?.key;
-                if (preferredKey) setResetPresetKey(preferredKey);
-                setResetOpen(true);
+                setRemoveSchemeOpen(true);
               }}
             >
-              Reset to preset
+              Remove
             </button>
-          ) : null}
-          <button
-            type="button"
-            disabled={readOnly}
-            onClick={() => {
-              setRemoveSchemeOpen(true);
-            }}
-          >
-            Remove
-          </button>
-        </div>
-      </div>
-
-      <label className="field">
-        <span>Enabled</span>
-        <input
-          type="checkbox"
-          checked={scheme.enabled}
-          disabled={readOnly}
-          onChange={(e) => {
-            onChangeScheme(
-              { ...scheme, enabled: e.target.checked },
-              { ensureRegistration: true },
-            );
-          }}
-        />
-      </label>
-
-      <h3>Extractor</h3>
-      <label className="field">
-        <span>Pattern</span>
-        <input
-          value={scheme.extractor.pattern}
-          disabled={readOnly}
-          onChange={(e) => {
-            onChangeScheme({
-              ...scheme,
-              extractor: { ...scheme.extractor, pattern: e.target.value },
-            });
-          }}
-        />
-      </label>
-      <label className="field">
-        <span>Flags</span>
-        <input
-          value={scheme.extractor.flags ?? ''}
-          disabled={readOnly}
-          onChange={(e) => {
-            onChangeScheme({
-              ...scheme,
-              extractor: { ...scheme.extractor, flags: e.target.value },
-            });
-          }}
-        />
-      </label>
-      {extractorError ? <p className="error">{extractorError}</p> : null}
-
-      <h3>Templates</h3>
-      <div className="row">
-        <p className="muted">
-          Order matters; the app tries the first enabled template that opens
-          successfully.
-        </p>
-        <div className="rowActions">
-          <button type="button" disabled={readOnly} onClick={addTemplate}>
-            Add template
-          </button>
-        </div>
-      </div>
-
-      {scheme.templates.length === 0 ? (
-        <p className="muted">
-          No templates yet. Add at least one enabled template to route links.
-        </p>
-      ) : null}
-
-      <div className="stack">
-        {scheme.templates.map((t, idx) => (
-          <div key={t.id} className="card">
-            <div className="row">
-              <strong>{t.label || '(untitled)'}</strong>
-              <div className="rowActions">
-                <button
-                  type="button"
-                  disabled={readOnly || idx === 0}
-                  onClick={() => {
-                    onChangeScheme({
-                      ...scheme,
-                      templates: swap(scheme.templates, idx, idx - 1),
-                    });
-                  }}
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  disabled={readOnly || idx === scheme.templates.length - 1}
-                  onClick={() => {
-                    onChangeScheme({
-                      ...scheme,
-                      templates: swap(scheme.templates, idx, idx + 1),
-                    });
-                  }}
-                >
-                  ↓
-                </button>
-                <button
-                  type="button"
-                  disabled={readOnly}
-                  onClick={() => {
-                    setRemoveTemplateId(t.id);
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
-
-            <label className="field">
-              <span>Enabled</span>
-              <input
-                type="checkbox"
-                checked={t.enabled}
-                disabled={readOnly}
-                onChange={(e) => {
-                  updateTemplate(t.id, { enabled: e.target.checked });
-                }}
-              />
-            </label>
-
-            <label className="field">
-              <span>Label</span>
-              <input
-                value={t.label}
-                disabled={readOnly}
-                onChange={(e) => {
-                  updateTemplate(t.id, { label: e.target.value });
-                }}
-              />
-            </label>
-
-            <label className="field">
-              <span>Template</span>
-              <input
-                value={t.template}
-                disabled={readOnly}
-                onChange={(e) => {
-                  updateTemplate(t.id, { template: e.target.value });
-                }}
-              />
-            </label>
-
-            {!t.template.trim() ? (
-              <p className="warning">Template is empty and will not save.</p>
-            ) : null}
           </div>
-        ))}
+        </div>
+
+        <label className="field">
+          <span>Enabled</span>
+          <input
+            type="checkbox"
+            checked={scheme.enabled}
+            disabled={readOnly}
+            onChange={(e) => {
+              onChangeScheme(
+                { ...scheme, enabled: e.target.checked },
+                { ensureRegistration: true },
+              );
+            }}
+          />
+        </label>
+
+        <h3>Extractor</h3>
+        <label className="field">
+          <span>Pattern</span>
+          <textarea
+            rows={3}
+            value={scheme.extractor.pattern}
+            disabled={readOnly}
+            onChange={(e) => {
+              onChangeScheme({
+                ...scheme,
+                extractor: { ...scheme.extractor, pattern: e.target.value },
+              });
+            }}
+          />
+        </label>
+        <label className="field">
+          <span>Flags</span>
+          <input
+            value={scheme.extractor.flags ?? ''}
+            disabled={readOnly}
+            onChange={(e) => {
+              onChangeScheme({
+                ...scheme,
+                extractor: { ...scheme.extractor, flags: e.target.value },
+              });
+            }}
+          />
+        </label>
+        {extractorError ? <p className="error">{extractorError}</p> : null}
+
+        <h3>Templates</h3>
+        <div className="row">
+          <p className="muted">
+            Order matters; the app tries the first enabled template that opens
+            successfully.
+          </p>
+          <div className="rowActions">
+            <button type="button" disabled={readOnly} onClick={addTemplate}>
+              Add template
+            </button>
+          </div>
+        </div>
+
+        {scheme.templates.length === 0 ? (
+          <p className="muted">
+            No templates yet. Add at least one enabled template to route links.
+          </p>
+        ) : null}
+
+        <div className="stack">
+          {scheme.templates.map((t, idx) => (
+            <div key={t.id} className="card">
+              <div className="row">
+                <strong>{t.label || '(untitled)'}</strong>
+                <div className="rowActions">
+                  <button
+                    type="button"
+                    disabled={readOnly || idx === 0}
+                    onClick={() => {
+                      onChangeScheme({
+                        ...scheme,
+                        templates: swap(scheme.templates, idx, idx - 1),
+                      });
+                    }}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    disabled={readOnly || idx === scheme.templates.length - 1}
+                    onClick={() => {
+                      onChangeScheme({
+                        ...scheme,
+                        templates: swap(scheme.templates, idx, idx + 1),
+                      });
+                    }}
+                  >
+                    ↓
+                  </button>
+                  <button
+                    type="button"
+                    disabled={readOnly}
+                    onClick={() => {
+                      setRemoveTemplateId(t.id);
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+
+              <label className="field">
+                <span>Enabled</span>
+                <input
+                  type="checkbox"
+                  checked={t.enabled}
+                  disabled={readOnly}
+                  onChange={(e) => {
+                    updateTemplate(t.id, { enabled: e.target.checked });
+                  }}
+                />
+              </label>
+
+              <label className="field">
+                <span>Label</span>
+                <input
+                  value={t.label}
+                  disabled={readOnly}
+                  onChange={(e) => {
+                    updateTemplate(t.id, { label: e.target.value });
+                  }}
+                />
+              </label>
+
+              <label className="field">
+                <span>Template</span>
+                <textarea
+                  rows={3}
+                  value={t.template}
+                  disabled={readOnly}
+                  onChange={(e) => {
+                    updateTemplate(t.id, { template: e.target.value });
+                  }}
+                />
+              </label>
+
+              {!t.template.trim() ? (
+                <p className="warning">Template is empty and will not save.</p>
+              ) : null}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -7,10 +7,12 @@ import type {
 } from '../core/config/appConfig';
 import type { WinLinkRouterApi } from './api/winLinkRouterApi';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
+import { RouteLogPanel } from './components/RouteLogPanel';
 import { SchemeEditor } from './components/SchemeEditor';
 import { SchemesSidebar } from './components/SchemesSidebar';
-import { SettingsAndLogPanel } from './components/SettingsPanel';
+import { SettingsPanel } from './components/SettingsPanel';
 import { Spinner } from './components/Spinner';
+import { Tabs } from './components/Tabs';
 import { TestPanel } from './components/TestPanel';
 import {
   formatRouteFailureBanner,
@@ -65,6 +67,9 @@ export function App() {
   const [selectedScheme, setSelectedScheme] = useState<string | null>(null);
   const [testUri, setTestUri] = useState('');
   const [routeErrorBanner, setRouteErrorBanner] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'settings' | 'log' | 'test'>(
+    'settings',
+  );
 
   const [statuses, setStatuses] = useState<
     {
@@ -179,6 +184,7 @@ export function App() {
             if (inferredScheme) setSelectedScheme(inferredScheme);
             setTestUri(last.uri);
             setRouteErrorBanner(formatRouteFailureBanner(last.result));
+            setActiveTab('test');
           }
           await api.routing.clearLastRouteError();
         }
@@ -196,7 +202,7 @@ export function App() {
 
   if (!api) {
     return (
-      <main>
+      <main className="appShell">
         <h1>win-link-router</h1>
         <p className="error">Missing preload API.</p>
       </main>
@@ -204,7 +210,7 @@ export function App() {
   }
 
   return (
-    <main>
+    <main className="appShell">
       <header className="topbar">
         <h1>win-link-router</h1>
         <div className="topbarActions">
@@ -257,55 +263,50 @@ export function App() {
         </div>
       </header>
 
-      {loading ? <Spinner label="Loading…" /> : null}
-      {error ? <p className="error">{error}</p> : null}
-      {routeErrorBanner ? <p className="error">{routeErrorBanner}</p> : null}
-      {registrationResult ? (
-        <section className="panel">
-          <div className="row">
-            <strong>
-              Registration{' '}
-              {registrationResult.kind === 'ok' ? 'updated' : 'warning'}
-            </strong>
-            <div className="rowActions">
-              <button
-                type="button"
-                onClick={() => {
-                  setRegistrationResult(null);
-                }}
-              >
-                Dismiss
-              </button>
+      <div className="appBanners" role="region" aria-label="Status">
+        {loading ? <Spinner label="Loading…" /> : null}
+        {error ? <p className="error">{error}</p> : null}
+        {routeErrorBanner ? <p className="error">{routeErrorBanner}</p> : null}
+        {registrationResult ? (
+          <section className="panel">
+            <div className="row">
+              <strong>
+                Registration{' '}
+                {registrationResult.kind === 'ok' ? 'updated' : 'warning'}
+              </strong>
+              <div className="rowActions">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegistrationResult(null);
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
-          </div>
-          <pre
-            className={registrationResult.kind === 'ok' ? 'muted' : 'warning'}
-          >
-            {registrationResult.message}
-          </pre>
-        </section>
-      ) : null}
-      {warnings.length ? (
-        <details>
-          <summary>Warnings</summary>
-          <pre>{warnings.join('\n')}</pre>
-        </details>
-      ) : null}
-      {readOnly ? (
-        <p className="warning">
-          Config is read-only (shared config error). Settings can still be
-          updated to fix the shared config path.
-        </p>
-      ) : null}
+            <pre
+              className={registrationResult.kind === 'ok' ? 'muted' : 'warning'}
+            >
+              {registrationResult.message}
+            </pre>
+          </section>
+        ) : null}
+        {warnings.length ? (
+          <details>
+            <summary>Warnings</summary>
+            <pre>{warnings.join('\n')}</pre>
+          </details>
+        ) : null}
+        {readOnly ? (
+          <p className="warning">
+            Config is read-only (shared config error). Settings can still be
+            updated to fix the shared config path.
+          </p>
+        ) : null}
+      </div>
 
-      <SettingsAndLogPanel
-        api={api}
-        config={config}
-        readOnly={readOnly}
-        onDidChangeSettings={() => void reload(api)}
-      />
-
-      <div className="layout">
+      <div className="appBody">
         <SchemesSidebar
           loading={loading}
           readOnly={readOnly}
@@ -335,49 +336,77 @@ export function App() {
           }}
         />
 
-        <section className="content">
-          <SchemeEditor
-            api={api}
-            presets={presets}
-            readOnly={readOnly}
-            scheme={
-              config?.schemes.find((s) => s.scheme === selectedScheme) ?? null
-            }
-            onChangeScheme={(next, opts) => {
-              if (!config) return;
-              const updated: AppConfig = {
-                ...config,
-                schemes: config.schemes.map((s) =>
-                  s.scheme === next.scheme ? next : s,
-                ),
-              };
-              setConfig(updated);
-              configRef.current = updated;
-              scheduleSave(opts);
-            }}
-            onRemoveScheme={(schemeToRemove) => {
-              if (!config) return;
-              const updated: AppConfig = {
-                ...config,
-                schemes: config.schemes.filter(
-                  (s) => s.scheme !== schemeToRemove,
-                ),
-              };
-              setConfig(updated);
-              configRef.current = updated;
-              if (selectedScheme === schemeToRemove) {
-                setSelectedScheme(updated.schemes[0]?.scheme ?? null);
-              }
-              scheduleSave({ ensureRegistration: true });
-            }}
+        <section className="contentColumn">
+          <Tabs
+            value={activeTab}
+            onChange={setActiveTab}
+            tabs={[
+              { id: 'settings', label: 'Settings' },
+              { id: 'log', label: 'Log' },
+              { id: 'test', label: 'Test' },
+            ]}
           />
 
-          <TestPanel
-            api={api}
-            scheme={selectedScheme}
-            testUri={testUri}
-            onChangeTestUri={setTestUri}
-          />
+          <div className="contentScroll">
+            <div className="tabPanel" role="region" aria-label="Tab panel">
+              {activeTab === 'settings' ? (
+                <SettingsPanel
+                  api={api}
+                  config={config}
+                  readOnly={readOnly}
+                  onDidChangeSettings={() => void reload(api)}
+                />
+              ) : null}
+              {activeTab === 'log' ? <RouteLogPanel api={api} /> : null}
+              {activeTab === 'test' ? (
+                <TestPanel
+                  api={api}
+                  scheme={selectedScheme}
+                  testUri={testUri}
+                  onChangeTestUri={setTestUri}
+                />
+              ) : null}
+            </div>
+
+            <div className="editorPanel">
+              <SchemeEditor
+                api={api}
+                presets={presets}
+                readOnly={readOnly}
+                scheme={
+                  config?.schemes.find((s) => s.scheme === selectedScheme) ??
+                  null
+                }
+                onChangeScheme={(next, opts) => {
+                  if (!config) return;
+                  const updated: AppConfig = {
+                    ...config,
+                    schemes: config.schemes.map((s) =>
+                      s.scheme === next.scheme ? next : s,
+                    ),
+                  };
+                  setConfig(updated);
+                  configRef.current = updated;
+                  scheduleSave(opts);
+                }}
+                onRemoveScheme={(schemeToRemove) => {
+                  if (!config) return;
+                  const updated: AppConfig = {
+                    ...config,
+                    schemes: config.schemes.filter(
+                      (s) => s.scheme !== schemeToRemove,
+                    ),
+                  };
+                  setConfig(updated);
+                  configRef.current = updated;
+                  if (selectedScheme === schemeToRemove) {
+                    setSelectedScheme(updated.schemes[0]?.scheme ?? null);
+                  }
+                  scheduleSave({ ensureRegistration: true });
+                }}
+              />
+            </div>
+          </div>
         </section>
       </div>
     </main>

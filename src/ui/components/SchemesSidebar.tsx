@@ -100,58 +100,60 @@ export function SchemesSidebar(props: {
         }}
       />
 
-      {showLoading ? <Spinner label="Loading schemes…" /> : null}
+      <div className="sidebarScroll">
+        {showLoading ? <Spinner label="Loading schemes…" /> : null}
 
-      {config ? (
-        <ul className="list">
-          {config.schemes.map((s) => {
-            const status = statusByScheme.get(s.scheme) ?? null;
-            const label = formatSchemeStatusLabel({
-              scheme: s.scheme,
-              enabled: s.enabled,
-              status,
-            });
-            return (
-              <li key={s.scheme}>
-                <button
-                  type="button"
-                  className={selectedScheme === s.scheme ? 'selected' : ''}
-                  onClick={() => {
-                    onSelectScheme(s.scheme);
-                  }}
-                >
-                  {label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
+        {config ? (
+          <ul className="list">
+            {config.schemes.map((s) => {
+              const status = statusByScheme.get(s.scheme) ?? null;
+              const label = formatSchemeStatusLabel({
+                scheme: s.scheme,
+                enabled: s.enabled,
+                status,
+              });
+              return (
+                <li key={s.scheme}>
+                  <button
+                    type="button"
+                    className={selectedScheme === s.scheme ? 'selected' : ''}
+                    onClick={() => {
+                      onSelectScheme(s.scheme);
+                    }}
+                  >
+                    {label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
 
-      {!config?.schemes.length ? (
-        <p className="muted">No schemes configured yet.</p>
-      ) : null}
+        {!config?.schemes.length ? (
+          <p className="muted">No schemes configured yet.</p>
+        ) : null}
 
-      {selectedStatus ? (
-        <details>
-          <summary>Windows status details</summary>
-          <div className="stack">
-            <div className="card">
-              <div className="cardRow">
-                <strong>{selectedStatus.scheme}</strong>
-                <span className="muted">{selectedStatus.defaultStatus}</span>
-              </div>
-              <div className="muted">
-                Expected ProgId: <code>{selectedStatus.expectedProgId}</code>
-              </div>
-              <div className="muted">
-                Actual ProgId:{' '}
-                <code>{selectedStatus.actualProgId ?? '(null)'}</code>
+        {selectedStatus ? (
+          <details>
+            <summary>Windows status details</summary>
+            <div className="stack">
+              <div className="card">
+                <div className="cardRow">
+                  <strong>{selectedStatus.scheme}</strong>
+                  <span className="muted">{selectedStatus.defaultStatus}</span>
+                </div>
+                <div className="muted">
+                  Expected ProgId: <code>{selectedStatus.expectedProgId}</code>
+                </div>
+                <div className="muted">
+                  Actual ProgId:{' '}
+                  <code>{selectedStatus.actualProgId ?? '(null)'}</code>
+                </div>
               </div>
             </div>
-          </div>
-        </details>
-      ) : null}
+          </details>
+        ) : null}
+      </div>
     </aside>
   );
 }
