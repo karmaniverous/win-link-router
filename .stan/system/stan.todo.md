@@ -129,4 +129,4 @@
 - Wireframe: inline Flags + conditional shared picker row.
 - Fixed SettingsPanel tests to use jsdom + role="switch" (Mantine) and avoid SSR-only assertions for useEffect-driven UI.
 - Amendment: avoid type assertions in tests; use findByRole<HTMLInputElement>() so lint --fix does not remove needed typing.
-- Replaced remaining non-Mantine preload-error UI and removed unused legacy CSS status classes.
+- Replaced remaining non-Mantine preload-error UI and removed unused legacy CSS status classes.- Fixed App.test to wrap App in MantineProvider via MantineTestProvider.
