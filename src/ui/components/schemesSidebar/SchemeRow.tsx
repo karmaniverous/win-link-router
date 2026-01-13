@@ -27,6 +27,7 @@ import {
   IconRegistered,
   IconTrash,
 } from '@tabler/icons-react';
+import type { ReactNode } from 'react';
 
 import type { SchemeConfig } from '../../../core/config/appConfig';
 
@@ -49,7 +50,7 @@ function iconColor(token: 'green' | 'red' | 'yellow' | 'dimmed'): string {
 function renderDefaultStatusIcon(opts: {
   schemeEnabled: boolean;
   status: SchemeWindowsStatusLike | null;
-}): { icon: JSX.Element; tooltip: string } {
+}): { icon: ReactNode; tooltip: string } {
   if (!opts.schemeEnabled) {
     return {
       icon: <IconMinus size={16} style={{ color: iconColor('dimmed') }} />,

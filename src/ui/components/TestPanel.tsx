@@ -10,6 +10,7 @@ import {
   Box,
   Code,
   Group,
+  Paper,
   ScrollArea,
   Stack,
   Text,

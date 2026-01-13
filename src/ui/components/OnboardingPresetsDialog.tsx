@@ -6,15 +6,7 @@
  * - Preselect the TEL WhatsApp preset when available.
  * - Avoid window.confirm/prompt; use in-app dialogs.
  */
-import {
-  Alert,
-  Button,
-  Group,
-  Radio,
-  ScrollArea,
-  Stack,
-  Text,
-} from '@mantine/core';
+import { Alert, Button, Radio, ScrollArea, Stack, Text } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { PresetsFile, SchemeConfig } from '../../core/config/appConfig';

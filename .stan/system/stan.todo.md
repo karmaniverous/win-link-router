@@ -128,6 +128,7 @@
 - Allowed schemes refresh in read-only mode (reload-only; no reconcile).
 - Fixed SchemesSidebar refresh test to avoid jest-dom matchers (use .disabled).
 - Clarified Schemes refresh tooltip copy in read-only mode (refresh-only; no reconcile).
-- Trimmed renderer CSS and replaced remaining minor bespoke wrappers with Mantine primitives.- Standardized icon-only controls using Tabler icons (no glyphs).
+- Trimmed renderer CSS and replaced remaining minor bespoke wrappers with Mantine primitives.- Standardized icon-only controls using Tabler icons (no glyphs).
 - Added first-run onboarding preset selection (empty config + not completed).
-- Updated Log/Test tabs to full-width, unboxed layout with direct output.
+- Updated Log/Test tabs to full-width, unboxed layout with direct output.
+- Fixed lint/typecheck regressions after Tabler/onboarding changes.
