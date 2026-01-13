@@ -127,4 +127,5 @@
 - Ensure Tabs.List stretches full width (wireframe polish).
 - Removed unused scheme status label helper + test.
 - Wireframe: inline Flags + conditional shared picker row.
-- Fixed SettingsPanel tests to use jsdom + role="switch" (Mantine) and avoid SSR-only assertions for useEffect-driven UI.
+- Fixed SettingsPanel tests to use jsdom + role="switch" (Mantine) and avoid SSR-only assertions for useEffect-driven UI.
+- Amendment: avoid type assertions in tests; use findByRole<HTMLInputElement>() so lint --fix does not remove needed typing.

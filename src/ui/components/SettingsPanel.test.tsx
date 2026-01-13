@@ -122,7 +122,7 @@ describe('SettingsPanel', () => {
     });
     expect(toggle.checked).toBe(true);
 
-    const input = await screen.findByRole('textbox', {
+    const input = await screen.findByRole<HTMLInputElement>('textbox', {
       name: /shared config path/i,
     });
     expect(input.value).toBe('C:\\x\\shared.json');
