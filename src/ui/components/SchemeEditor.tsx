@@ -1,3 +1,4 @@
+import { Button, Group, Paper, ScrollArea, Stack, Title } from '@mantine/core';
 import { useMemo, useState } from 'react';
 
 import type { PresetsFile, SchemeConfig } from '../../core/config/appConfig';
@@ -26,10 +27,12 @@ export function SchemeEditor(props: {
 
   if (!scheme) {
     return (
-      <section className="panel">
-        <h2>Scheme</h2>
-        <p className="muted">Select a scheme to edit.</p>
-      </section>
+      <Paper withBorder radius="md" p="md">
+        <Title order={2} size="h4" m={0}>
+          Scheme
+        </Title>
+        <div style={{ marginTop: 8 }}>Select a scheme to edit.</div>
+      </Paper>
     );
   }
 
@@ -61,7 +64,7 @@ export function SchemeEditor(props: {
       : null;
 
   return (
-    <section className="panel schemeEditor">
+    <Paper withBorder radius="md" p="md" style={{ height: '100%' }}>
       <ConfirmDialog
         open={removeSchemeOpen}
         title="Remove scheme"
@@ -140,19 +143,23 @@ export function SchemeEditor(props: {
         ) : null}
       </ConfirmDialog>
 
-      <div className="schemeEditorScroll">
-        <div className="row">
-          <h2>{scheme.scheme}</h2>
-          <div className="rowActions">
-            <button
-              type="button"
+      <Stack gap="sm" style={{ height: '100%' }}>
+        <Group justify="space-between" align="center">
+          <Title order={2} size="h4" m={0}>
+            {scheme.scheme}
+          </Title>
+          <Group gap="xs" wrap="wrap">
+            <Button
+              size="xs"
+              variant="default"
               onClick={() => void api.windows.openDefaultApps(scheme.scheme)}
             >
               Set default…
-            </button>
+            </Button>
             {defaultPreset ? (
-              <button
-                type="button"
+              <Button
+                size="xs"
+                variant="default"
                 disabled={readOnly}
                 onClick={() => {
                   const preferredKey =
@@ -166,35 +173,40 @@ export function SchemeEditor(props: {
                 }}
               >
                 Reset to preset
-              </button>
+              </Button>
             ) : null}
-            <button
-              type="button"
+            <Button
+              size="xs"
+              variant="default"
               disabled={readOnly}
               onClick={() => {
                 setRemoveSchemeOpen(true);
               }}
             >
               Remove
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Group>
+        </Group>
 
-        <SchemeEditorExtractor
-          scheme={scheme}
-          readOnly={readOnly}
-          onChangeScheme={onChangeScheme}
-        />
+        <ScrollArea style={{ flex: 1 }} type="auto">
+          <Stack gap="md" pr="xs">
+            <SchemeEditorExtractor
+              scheme={scheme}
+              readOnly={readOnly}
+              onChangeScheme={onChangeScheme}
+            />
 
-        <SchemeEditorTemplates
-          scheme={scheme}
-          readOnly={readOnly}
-          onChangeScheme={onChangeScheme}
-          onRequestRemoveTemplate={(templateId) => {
-            setRemoveTemplateId(templateId);
-          }}
-        />
-      </div>
-    </section>
+            <SchemeEditorTemplates
+              scheme={scheme}
+              readOnly={readOnly}
+              onChangeScheme={onChangeScheme}
+              onRequestRemoveTemplate={(templateId) => {
+                setRemoveTemplateId(templateId);
+              }}
+            />
+          </Stack>
+        </ScrollArea>
+      </Stack>
+    </Paper>
   );
 }

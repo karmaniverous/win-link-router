@@ -4,6 +4,18 @@
  *   reorder.
  * - Template string input is a textarea (3 rows).
  */
+import {
+  ActionIcon,
+  Button,
+  Group,
+  Paper,
+  Stack,
+  Switch,
+  Text,
+  Textarea,
+  TextInput,
+} from '@mantine/core';
+
 import type {
   SchemeConfig,
   TemplateConfig,
@@ -39,35 +51,35 @@ export function SchemeEditorTemplates(props: {
   };
 
   return (
-    <>
-      <h3>Templates</h3>
-      <div className="row">
-        <p className="muted">
-          Order matters; the app tries the first enabled template that opens
-          successfully.
-        </p>
-        <div className="rowActions">
-          <button type="button" disabled={readOnly} onClick={addTemplate}>
-            Add template
-          </button>
-        </div>
-      </div>
+    <Stack gap="sm">
+      <Group justify="space-between" align="center">
+        <Text fw={600}>Templates</Text>
+        <Button size="xs" disabled={readOnly} onClick={addTemplate}>
+          Add template
+        </Button>
+      </Group>
+
+      <Text size="sm" c="dimmed">
+        Order matters; the app tries the first enabled template that opens
+        successfully.
+      </Text>
 
       {scheme.templates.length === 0 ? (
-        <p className="muted">
+        <Text size="sm" c="dimmed">
           No templates yet. Add at least one enabled template to route links.
-        </p>
+        </Text>
       ) : null}
 
-      <div className="stack">
+      <Stack gap="sm">
         {scheme.templates.map((t, idx) => (
-          <div key={t.id} className="card">
-            <div className="row">
-              <strong>{t.label || '(untitled)'}</strong>
-              <div className="rowActions">
-                <button
-                  type="button"
+          <Paper key={t.id} withBorder radius="md" p="sm">
+            <Group justify="space-between" align="center" mb="xs">
+              <Text fw={600}>{t.label || '(untitled)'}</Text>
+              <Group gap={6}>
+                <ActionIcon
+                  variant="default"
                   disabled={readOnly || idx === 0}
+                  aria-label="Move template up"
                   onClick={() => {
                     onChangeScheme({
                       ...scheme,
@@ -76,10 +88,11 @@ export function SchemeEditorTemplates(props: {
                   }}
                 >
                   ↑
-                </button>
-                <button
-                  type="button"
+                </ActionIcon>
+                <ActionIcon
+                  variant="default"
                   disabled={readOnly || idx === scheme.templates.length - 1}
+                  aria-label="Move template down"
                   onClick={() => {
                     onChangeScheme({
                       ...scheme,
@@ -88,60 +101,58 @@ export function SchemeEditorTemplates(props: {
                   }}
                 >
                   ↓
-                </button>
-                <button
-                  type="button"
+                </ActionIcon>
+                <ActionIcon
+                  variant="default"
                   disabled={readOnly}
+                  aria-label="Remove template"
                   onClick={() => {
                     onRequestRemoveTemplate(t.id);
                   }}
                 >
-                  Remove
-                </button>
-              </div>
-            </div>
+                  –
+                </ActionIcon>
+              </Group>
+            </Group>
 
-            <label className="field">
-              <span>Enabled</span>
-              <input
-                type="checkbox"
+            <Stack gap="xs">
+              <Switch
+                label="Enabled"
                 checked={t.enabled}
                 disabled={readOnly}
                 onChange={(e) => {
-                  updateTemplate(t.id, { enabled: e.target.checked });
+                  updateTemplate(t.id, { enabled: e.currentTarget.checked });
                 }}
               />
-            </label>
 
-            <label className="field">
-              <span>Label</span>
-              <input
+              <TextInput
+                label="Label"
                 value={t.label}
                 disabled={readOnly}
                 onChange={(e) => {
-                  updateTemplate(t.id, { label: e.target.value });
+                  updateTemplate(t.id, { label: e.currentTarget.value });
                 }}
               />
-            </label>
 
-            <label className="field">
-              <span>Template</span>
-              <textarea
+              <Textarea
+                label="Template"
                 rows={3}
                 value={t.template}
                 disabled={readOnly}
                 onChange={(e) => {
-                  updateTemplate(t.id, { template: e.target.value });
+                  updateTemplate(t.id, { template: e.currentTarget.value });
                 }}
               />
-            </label>
 
-            {!t.template.trim() ? (
-              <p className="warning">Template is empty and will not save.</p>
-            ) : null}
-          </div>
+              {!t.template.trim() ? (
+                <Text size="sm" c="yellow">
+                  Template is empty and will not save.
+                </Text>
+              ) : null}
+            </Stack>
+          </Paper>
         ))}
-      </div>
-    </>
+      </Stack>
+    </Stack>
   );
 }

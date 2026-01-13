@@ -104,3 +104,4 @@
 - Added Mantine dependencies and wired MantineProvider in the renderer root.
 - Fixed tab component typing to restore typecheck (pre-Mantine Tabs swap).
 - Converted app shell + tabs chrome to Mantine primitives (AppShell/Tabs).
+- Converted SchemesSidebar and SchemeEditor panels to Mantine primitives.

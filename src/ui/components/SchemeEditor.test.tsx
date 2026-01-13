@@ -87,7 +87,7 @@ describe('SchemeEditor', () => {
       />,
     );
 
-    expect(html).toContain('<h2>TEL</h2>');
+    expect(html).toContain('TEL');
     expect(html).toContain('Extractor');
     expect(html).toContain('Templates');
     expect(html).toContain('WhatsApp Desktop');

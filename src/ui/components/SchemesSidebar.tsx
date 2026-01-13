@@ -1,3 +1,15 @@
+import {
+  ActionIcon,
+  Code,
+  Group,
+  Loader,
+  NavLink,
+  Paper,
+  ScrollArea,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
 import { useMemo, useState } from 'react';
 
 import type {
@@ -7,7 +19,6 @@ import type {
 } from '../../core/config/appConfig';
 import { AddSchemeDialog } from './AddSchemeDialog';
 import { formatSchemeStatusLabel } from './formatSchemeStatusLabel';
-import { Spinner } from './Spinner';
 
 /**
  * Requirements addressed:
@@ -66,94 +77,101 @@ export function SchemesSidebar(props: {
   const showLoading = loading || !config || !presets;
 
   return (
-    <aside className="sidebar">
-      <div className="row">
-        <h2>Schemes</h2>
-        <div className="rowActions">
-          <button
+    <Paper withBorder radius="md" p="sm" style={{ height: '100%' }}>
+      <Stack gap="sm" style={{ height: '100%' }}>
+        <Group justify="space-between" align="center">
+          <Title order={2} size="h4" m={0}>
+            Schemes
+          </Title>
+          <ActionIcon
             type="button"
             aria-label="Add scheme"
+            variant="default"
             disabled={!canAdd}
             onClick={() => {
               setAddOpen(true);
             }}
           >
             +
-          </button>
-        </div>
-      </div>
+          </ActionIcon>
+        </Group>
 
-      <AddSchemeDialog
-        open={addOpen}
-        presets={presets}
-        existingSchemes={existingSchemes}
-        onCancel={() => {
-          setAddOpen(false);
-        }}
-        onAdd={(scheme: SchemeConfig) => {
-          if (config?.schemes.some((s) => s.scheme === scheme.scheme)) {
-            onError(`Scheme ${scheme.scheme} already exists.`);
-            return;
-          }
-          onAddScheme(scheme);
-          setAddOpen(false);
-        }}
-      />
+        <AddSchemeDialog
+          open={addOpen}
+          presets={presets}
+          existingSchemes={existingSchemes}
+          onCancel={() => {
+            setAddOpen(false);
+          }}
+          onAdd={(scheme: SchemeConfig) => {
+            if (config?.schemes.some((s) => s.scheme === scheme.scheme)) {
+              onError(`Scheme ${scheme.scheme} already exists.`);
+              return;
+            }
+            onAddScheme(scheme);
+            setAddOpen(false);
+          }}
+        />
 
-      <div className="sidebarScroll">
-        {showLoading ? <Spinner label="Loading schemes…" /> : null}
+        <ScrollArea style={{ flex: 1 }} type="auto">
+          <Stack gap={4} pr="xs">
+            {showLoading ? (
+              <Group gap="xs">
+                <Loader size="sm" />
+                <Text size="sm" c="dimmed">
+                  Loading schemes…
+                </Text>
+              </Group>
+            ) : null}
 
-        {config ? (
-          <ul className="list">
-            {config.schemes.map((s) => {
-              const status = statusByScheme.get(s.scheme) ?? null;
-              const label = formatSchemeStatusLabel({
-                scheme: s.scheme,
-                enabled: s.enabled,
-                status,
-              });
-              return (
-                <li key={s.scheme}>
-                  <button
-                    type="button"
-                    className={selectedScheme === s.scheme ? 'selected' : ''}
-                    onClick={() => {
-                      onSelectScheme(s.scheme);
-                    }}
-                  >
-                    {label}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
+            {config
+              ? config.schemes.map((s) => {
+                  const status = statusByScheme.get(s.scheme) ?? null;
+                  const label = formatSchemeStatusLabel({
+                    scheme: s.scheme,
+                    enabled: s.enabled,
+                    status,
+                  });
 
-        {!config?.schemes.length ? (
-          <p className="muted">No schemes configured yet.</p>
-        ) : null}
+                  return (
+                    <NavLink
+                      key={s.scheme}
+                      label={label}
+                      active={selectedScheme === s.scheme}
+                      onClick={() => {
+                        onSelectScheme(s.scheme);
+                      }}
+                    />
+                  );
+                })
+              : null}
 
-        {selectedStatus ? (
-          <details>
-            <summary>Windows status details</summary>
-            <div className="stack">
-              <div className="card">
-                <div className="cardRow">
-                  <strong>{selectedStatus.scheme}</strong>
-                  <span className="muted">{selectedStatus.defaultStatus}</span>
-                </div>
-                <div className="muted">
-                  Expected ProgId: <code>{selectedStatus.expectedProgId}</code>
-                </div>
-                <div className="muted">
+            {!config?.schemes.length ? (
+              <Text size="sm" c="dimmed">
+                No schemes configured yet.
+              </Text>
+            ) : null}
+
+            {selectedStatus ? (
+              <Paper withBorder radius="md" p="sm">
+                <Group justify="space-between" align="center" mb={6}>
+                  <Text fw={600}>{selectedStatus.scheme}</Text>
+                  <Text size="sm" c="dimmed">
+                    {selectedStatus.defaultStatus}
+                  </Text>
+                </Group>
+                <Text size="sm" c="dimmed">
+                  Expected ProgId: <Code>{selectedStatus.expectedProgId}</Code>
+                </Text>
+                <Text size="sm" c="dimmed">
                   Actual ProgId:{' '}
-                  <code>{selectedStatus.actualProgId ?? '(null)'}</code>
-                </div>
-              </div>
-            </div>
-          </details>
-        ) : null}
-      </div>
-    </aside>
+                  <Code>{selectedStatus.actualProgId ?? '(null)'}</Code>
+                </Text>
+              </Paper>
+            ) : null}
+          </Stack>
+        </ScrollArea>
+      </Stack>
+    </Paper>
   );
 }
