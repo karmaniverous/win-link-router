@@ -1,44 +1,48 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AppConfig } from '../../core/config/appConfig';
 
-const handlers = new Map<
-  string,
-  (event: unknown, ...args: unknown[]) => unknown
->();
+type IpcHandler = (event: unknown, ...args: unknown[]) => unknown;
 
-vi.mock('electron', () => {
-  return {
-    app: {
-      getPath: vi.fn(),
-      getVersion: vi.fn(),
-      setLoginItemSettings: vi.fn(),
-    },
-    dialog: {
-      showSaveDialog: vi.fn(),
-      showOpenDialog: vi.fn(),
-    },
-    ipcMain: {
-      handle: vi.fn((channel: unknown, handler: unknown) => {
-        if (typeof channel !== 'string') return;
-        if (typeof handler !== 'function') return;
-        handlers.set(
-          channel,
-          handler as (event: unknown, ...args: unknown[]) => unknown,
-        );
-      }),
-    },
-  };
-});
+const handlers = new Map<string, IpcHandler>();
+let ensureCandidateRegistrationMock: ReturnType<typeof vi.fn>;
 
-vi.mock('../windows/protocolRegistration', () => {
-  return {
-    ensureCandidateRegistration: vi
-      .fn()
-      .mockResolvedValue({ ok: true, warnings: [] }),
-    getAllSchemeStatusesFromConfig: vi.fn(),
-  };
-});
+function installMocks() {
+  handlers.clear();
+  vi.resetModules();
+
+  ensureCandidateRegistrationMock = vi
+    .fn()
+    .mockResolvedValue({ ok: true, warnings: [] });
+
+  vi.doMock('electron', () => {
+    return {
+      app: {
+        getPath: vi.fn(),
+        getVersion: vi.fn(),
+        setLoginItemSettings: vi.fn(),
+      },
+      dialog: {
+        showSaveDialog: vi.fn(),
+        showOpenDialog: vi.fn(),
+      },
+      ipcMain: {
+        handle: vi.fn((channel: unknown, handler: unknown) => {
+          if (typeof channel !== 'string') return;
+          if (typeof handler !== 'function') return;
+          handlers.set(channel, handler as IpcHandler);
+        }),
+      },
+    };
+  });
+
+  vi.doMock('../windows/protocolRegistration', () => {
+    return {
+      ensureCandidateRegistration: ensureCandidateRegistrationMock,
+      getAllSchemeStatusesFromConfig: vi.fn(),
+    };
+  });
+}
 
 function createConfig(): AppConfig {
   return {
@@ -86,20 +90,22 @@ function createConfig(): AppConfig {
 }
 
 describe('registerIpcHandlers', () => {
-  it('reconciles candidate registration on appConfig:set when packaged', async () => {
-    handlers.clear();
+  beforeEach(() => {
+    installMocks();
+    vi.clearAllMocks();
+  });
 
+  it('reconciles candidate registration on appConfig:set when packaged', async () => {
     const { registerIpcHandlers } = await import('./registerIpcHandlers');
-    const { ensureCandidateRegistration } =
-      await import('../windows/protocolRegistration');
 
     let loaded = createConfig();
 
     const configStore = {
       load: vi.fn(),
       getLoadedConfig: vi.fn(() => loaded),
-      save: vi.fn(async (next: AppConfig) => {
+      save: vi.fn((next: AppConfig) => {
         loaded = next;
+        return Promise.resolve();
       }),
       saveSettings: vi.fn(),
     };
@@ -134,27 +140,24 @@ describe('registerIpcHandlers', () => {
 
     await handler?.({}, loaded);
 
-    expect(ensureCandidateRegistration).toHaveBeenCalledTimes(1);
-    const arg = (
-      ensureCandidateRegistration as unknown as { mock: { calls: unknown[][] } }
-    ).mock.calls[0]?.[0] as { registeredSchemes?: unknown };
+    expect(ensureCandidateRegistrationMock).toHaveBeenCalledTimes(1);
+    const arg = ensureCandidateRegistrationMock.mock.calls[0]?.[0] as {
+      registeredSchemes?: unknown;
+    };
     expect(arg.registeredSchemes).toEqual(['TEL']);
   });
 
   it('does not reconcile candidate registration on appConfig:set when not packaged', async () => {
-    handlers.clear();
-
     const { registerIpcHandlers } = await import('./registerIpcHandlers');
-    const { ensureCandidateRegistration } =
-      await import('../windows/protocolRegistration');
 
     let loaded = createConfig();
 
     const configStore = {
       load: vi.fn(),
       getLoadedConfig: vi.fn(() => loaded),
-      save: vi.fn(async (next: AppConfig) => {
+      save: vi.fn((next: AppConfig) => {
         loaded = next;
+        return Promise.resolve();
       }),
       saveSettings: vi.fn(),
     };
@@ -189,6 +192,6 @@ describe('registerIpcHandlers', () => {
 
     await handler?.({}, loaded);
 
-    expect(ensureCandidateRegistration).toHaveBeenCalledTimes(0);
+    expect(ensureCandidateRegistrationMock).toHaveBeenCalledTimes(0);
   });
 });
