@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const execFileMock = vi.fn(
   (file: unknown, args: unknown, optsOrCb: unknown, cbMaybe?: unknown) => {
@@ -20,6 +20,10 @@ vi.mock('node:child_process', () => {
 });
 
 describe('regExe', () => {
+  beforeEach(() => {
+    execFileMock.mockClear();
+  });
+
   it('regDeleteKey uses reg.exe delete <key> /f', async () => {
     const { regDeleteKey } = await import('./regExe');
     await regDeleteKey({ hive: 'HKCU', key: 'Software\\Classes\\x' });

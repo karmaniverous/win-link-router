@@ -68,10 +68,7 @@ function canonicalizeSchemes(config: AppConfig, warnings: string[]): AppConfig {
       }
       seen.add(normalized);
 
-      // Compatibility default: if registered is missing, treat enabled as the
-      // prior "enabled implies registered" intent.
-      const registered =
-        scheme.registered !== undefined ? scheme.registered : scheme.enabled;
+      const registered = scheme.registered;
 
       // Enforce registered ⇒ enabled.
       const enabled = registered ? true : scheme.enabled;

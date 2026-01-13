@@ -4,6 +4,7 @@
  * - Reject global regex flag "g" for determinism.
  * - Ensure extractor regex compiles (pattern + flags).
  * - Support scheme enablement distinct from desired Windows registration.
+ * - Back-compat: if scheme.registered is missing, treat it as scheme.enabled.
  * - Validate new per-user settings:
  *   - runInBackground, autoEnableNewSchemes, autoRegisterNewSchemes.
  * - Enforce autoRegisterNewSchemes ⇒ autoEnableNewSchemes.
@@ -54,15 +55,20 @@ const templateConfigSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
-const schemeConfigSchema = z.object({
-  scheme: z.string().min(1),
-  enabled: z.boolean().default(true),
-  registered: z.boolean().optional().default(false),
-  extractor: extractorConfigSchema,
-  templates: z.array(templateConfigSchema),
-  presetId: z.string().min(1).optional(),
-  derivedFromPresetId: z.string().min(1).optional(),
-});
+const schemeConfigSchema = z
+  .object({
+    scheme: z.string().min(1),
+    enabled: z.boolean().default(true),
+    registered: z.boolean().optional(),
+    extractor: extractorConfigSchema,
+    templates: z.array(templateConfigSchema),
+    presetId: z.string().min(1).optional(),
+    derivedFromPresetId: z.string().min(1).optional(),
+  })
+  .transform((scheme) => ({
+    ...scheme,
+    registered: scheme.registered ?? scheme.enabled,
+  }));
 
 const appSettingsSchema = z
   .object({
