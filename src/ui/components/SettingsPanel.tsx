@@ -2,6 +2,8 @@
  * Requirements addressed:
  * - Lifecycle settings: Run in Background (RIB) and Start on Windows Login (SWL).
  * - Enforce SWL ⇒ RIB in the UI (cannot disable RIB while SWL is enabled).
+ * - New scheme defaults: auto-enable and auto-register (auto-register implies
+ *   auto-enable).
  */
 import {
   Alert,
@@ -29,6 +31,8 @@ export function SettingsPanel(props: {
 
   const [runInBackground, setRunInBackground] = useState(false);
   const [runAtLogin, setRunAtLogin] = useState(false);
+  const [autoEnableNewSchemes, setAutoEnableNewSchemes] = useState(true);
+  const [autoRegisterNewSchemes, setAutoRegisterNewSchemes] = useState(true);
   const [sharedConfigPath, setSharedConfigPath] = useState<string>('');
   const [routeLogMode, setRouteLogMode] = useState<RouteLogMode>('redacted');
 
@@ -36,12 +40,22 @@ export function SettingsPanel(props: {
     if (!config) return;
     setRunInBackground(config.settings.runInBackground ?? false);
     setRunAtLogin(config.settings.runAtLogin);
+    setAutoEnableNewSchemes(config.settings.autoEnableNewSchemes ?? true);
+    setAutoRegisterNewSchemes(config.settings.autoRegisterNewSchemes ?? true);
     setSharedConfigPath(config.settings.sharedConfigPath ?? '');
     setRouteLogMode(config.settings.routeLogMode ?? 'redacted');
   }, [config]);
 
   const debouncedRunInBackground = useDebouncedValue(runInBackground, 400);
   const debouncedRunAtLogin = useDebouncedValue(runAtLogin, 400);
+  const debouncedAutoEnableNewSchemes = useDebouncedValue(
+    autoEnableNewSchemes,
+    400,
+  );
+  const debouncedAutoRegisterNewSchemes = useDebouncedValue(
+    autoRegisterNewSchemes,
+    400,
+  );
   const debouncedSharedPath = useDebouncedValue(sharedConfigPath, 400);
   const debouncedRouteLogMode = useDebouncedValue(routeLogMode, 400);
 
@@ -54,6 +68,13 @@ export function SettingsPanel(props: {
     const currentShared = config.settings.sharedConfigPath ?? null;
     const currentRunInBackground = config.settings.runInBackground ?? false;
     const currentRunAtLogin = config.settings.runAtLogin;
+    const currentAutoEnable = config.settings.autoEnableNewSchemes ?? true;
+    const currentAutoRegister = config.settings.autoRegisterNewSchemes ?? true;
+
+    const desiredAutoRegister = debouncedAutoRegisterNewSchemes;
+    const desiredAutoEnable = desiredAutoRegister
+      ? true
+      : debouncedAutoEnableNewSchemes;
     const desiredRouteLogMode = debouncedRouteLogMode;
     const currentRouteLogMode = config.settings.routeLogMode ?? 'redacted';
 
@@ -61,6 +82,8 @@ export function SettingsPanel(props: {
       desiredShared === currentShared &&
       debouncedRunInBackground === currentRunInBackground &&
       debouncedRunAtLogin === currentRunAtLogin &&
+      desiredAutoEnable === currentAutoEnable &&
+      desiredAutoRegister === currentAutoRegister &&
       desiredRouteLogMode === currentRouteLogMode
     ) {
       return;
@@ -71,6 +94,8 @@ export function SettingsPanel(props: {
       .set({
         runInBackground: debouncedRunInBackground,
         runAtLogin: debouncedRunAtLogin,
+        autoEnableNewSchemes: desiredAutoEnable,
+        autoRegisterNewSchemes: desiredAutoRegister,
         sharedConfigPath: desiredShared,
         routeLogMode: desiredRouteLogMode,
       })
@@ -81,6 +106,8 @@ export function SettingsPanel(props: {
     config,
     debouncedRunInBackground,
     debouncedRunAtLogin,
+    debouncedAutoEnableNewSchemes,
+    debouncedAutoRegisterNewSchemes,
     debouncedSharedPath,
     debouncedRouteLogMode,
     onDidChangeSettings,
@@ -115,6 +142,35 @@ export function SettingsPanel(props: {
         {runAtLogin ? (
           <Text size="sm" c="dimmed">
             Start on Windows Login requires Run in Background.
+          </Text>
+        ) : null}
+
+        <Title order={3} size="h5" m={0} mt="sm">
+          New scheme defaults
+        </Title>
+
+        <Switch
+          label="Auto-enable new schemes"
+          checked={autoRegisterNewSchemes ? true : autoEnableNewSchemes}
+          disabled={autoRegisterNewSchemes}
+          onChange={(e) => {
+            setAutoEnableNewSchemes(e.currentTarget.checked);
+          }}
+        />
+
+        <Switch
+          label="Auto-register new schemes"
+          checked={autoRegisterNewSchemes}
+          onChange={(e) => {
+            const next = e.currentTarget.checked;
+            setAutoRegisterNewSchemes(next);
+            if (next) setAutoEnableNewSchemes(true);
+          }}
+        />
+
+        {autoRegisterNewSchemes ? (
+          <Text size="sm" c="dimmed">
+            Auto-register implies auto-enable.
           </Text>
         ) : null}
 

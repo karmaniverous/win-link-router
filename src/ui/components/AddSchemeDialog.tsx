@@ -1,3 +1,8 @@
+/**
+ * Requirements addressed:
+ * - New schemes should respect per-user defaults for enable/register.
+ * - Enforce registered ⇒ enabled when creating new schemes.
+ */
 import {
   Alert,
   Button,
@@ -18,6 +23,14 @@ import { Modal } from './Modal';
  * - If presets exist for a scheme, allow selecting which preset to use.
  * - Prefer Mantine primitives for inputs and dialog actions.
  */
+function applyNewSchemeDefaults(
+  scheme: SchemeConfig,
+  defaults: { enabled: boolean; registered: boolean },
+): SchemeConfig {
+  const enabled = defaults.registered ? true : defaults.enabled;
+  return { ...scheme, enabled, registered: defaults.registered };
+}
+
 function createBlankScheme(scheme: string): SchemeConfig {
   return {
     scheme,
@@ -50,10 +63,12 @@ export function AddSchemeDialog(props: {
   open: boolean;
   presets: PresetsFile | null;
   existingSchemes: string[];
+  defaults?: { enabled: boolean; registered: boolean };
   onCancel: () => void;
   onAdd: (scheme: SchemeConfig) => void;
 }) {
   const { open, presets, existingSchemes, onCancel, onAdd } = props;
+  const defaults = props.defaults ?? { enabled: true, registered: true };
 
   const [raw, setRaw] = useState('');
   const [selectedOptionKey, setSelectedOptionKey] = useState<string>('blank');
@@ -171,13 +186,11 @@ export function AddSchemeDialog(props: {
 
     const next =
       option.kind === 'blank'
-        ? createBlankScheme(normalized)
-        : {
-            ...cloneFromPreset(option.preset),
-            scheme: normalized,
-            enabled: true,
-            registered: true,
-          };
+        ? applyNewSchemeDefaults(createBlankScheme(normalized), defaults)
+        : applyNewSchemeDefaults(
+            { ...cloneFromPreset(option.preset), scheme: normalized },
+            defaults,
+          );
 
     onAdd(next);
   };

@@ -113,4 +113,4 @@
 - Fixed Add Scheme preset memo initialization order.
 - Added scheme row controls + refresh/reconcile.
 - Added RIB/SWL settings + startup lifecycle behavior.
-- Fixed lint in main login-start detection.
+- Fixed lint in main login-start detection.- Added auto-enable/auto-register defaults for new schemes.

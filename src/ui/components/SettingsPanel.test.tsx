@@ -74,6 +74,8 @@ describe('SettingsPanel', () => {
 
     expect(html).toContain('Run in Background');
     expect(html).toContain('Start on Windows Login');
+    expect(html).toContain('Auto-enable new schemes');
+    expect(html).toContain('Auto-register new schemes');
     expect(html).toContain('Shared config path (optional)');
     expect(html).toContain('Store full routing log');
   });

@@ -180,10 +180,25 @@ export function SchemesSidebar(props: {
           </Group>
         </Group>
 
+        {/*
+         * Requirements addressed:
+         * - New schemes should respect per-user defaults for enable/register.
+         * - Enforce autoRegister ⇒ autoEnable at the point we build defaults.
+         */}
+        {/*
+         * Note: Add Scheme is already gated on config+presets being loaded.
+         */}
+
         <AddSchemeDialog
           open={addOpen}
           presets={presets}
           existingSchemes={existingSchemes}
+          defaults={{
+            registered: config?.settings.autoRegisterNewSchemes ?? true,
+            enabled:
+              (config?.settings.autoRegisterNewSchemes ?? true) ||
+              (config?.settings.autoEnableNewSchemes ?? true),
+          }}
           onCancel={() => {
             setAddOpen(false);
           }}
