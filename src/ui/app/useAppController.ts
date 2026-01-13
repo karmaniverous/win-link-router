@@ -21,13 +21,13 @@ import {
 } from '../routing/routeFailureUi';
 import { validateConfigBeforeSave } from './validateConfigBeforeSave';
 
-export const APP_TABS = [
+export type AppTabId = 'settings' | 'log' | 'test';
+
+export const APP_TABS: readonly { id: AppTabId; label: string }[] = [
   { id: 'settings', label: 'Settings' },
   { id: 'log', label: 'Log' },
   { id: 'test', label: 'Test' },
-] as const;
-
-export type AppTabId = (typeof APP_TABS)[number]['id'];
+];
 
 export function useAppController(api: WinLinkRouterApi) {
   const cancelledRef = useRef(false);

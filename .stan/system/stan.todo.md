@@ -3,8 +3,6 @@
 ## Next up
 
 - Mantine migration (pause bespoke UI work):
-  - Choose and pin Mantine major version that supports React 19.
-  - Add Mantine packages to the renderer and wire `MantineProvider` at the renderer root.
   - Convert the pinned layout shell to Mantine primitives:
     - App shell layout (pinned header + tabs)
     - Scroll regions for scheme list, log, templates, and test output
@@ -102,3 +100,4 @@
 - Added pinned layout scaffolding with Settings/Log/Test tabs and converted extractor/template inputs to 3-row textareas.
 - Decomposed App and SchemeEditor modules to stay under the 300 LOC limit.
 - Decision: adopt Mantine as the renderer UI component library.
+- Added Mantine dependencies and wired MantineProvider in the renderer root.
