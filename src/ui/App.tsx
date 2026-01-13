@@ -287,20 +287,32 @@ export function App() {
                 </Group>
               </Stack>
             </Tabs.Panel>
-            <Tabs.Panel value="log" pt="xs" style={{ minHeight: 0, flex: 1 }}>
-              <RouteLogPanel
-                api={api}
-                config={controller.config}
-                onDidChangeSettings={() => void controller.reload()}
-              />
+            <Tabs.Panel
+              value="log"
+              pt="xs"
+              style={{ minHeight: 0, flex: 1, display: 'flex' }}
+            >
+              <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+                <RouteLogPanel
+                  api={api}
+                  config={controller.config}
+                  onDidChangeSettings={() => void controller.reload()}
+                />
+              </div>
             </Tabs.Panel>
-            <Tabs.Panel value="test" pt="xs" style={{ minHeight: 0, flex: 1 }}>
-              <TestPanel
-                api={api}
-                config={controller.config}
-                testUri={controller.testUri}
-                onChangeTestUri={controller.setTestUri}
-              />
+            <Tabs.Panel
+              value="test"
+              pt="xs"
+              style={{ minHeight: 0, flex: 1, display: 'flex' }}
+            >
+              <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+                <TestPanel
+                  api={api}
+                  config={controller.config}
+                  testUri={controller.testUri}
+                  onChangeTestUri={controller.setTestUri}
+                />
+              </div>
             </Tabs.Panel>
           </Tabs>
         </Stack>

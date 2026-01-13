@@ -6,6 +6,7 @@ import {
   Group,
   Loader,
   Paper,
+  ScrollArea,
   Stack,
   Switch,
   Text,
@@ -60,7 +61,12 @@ export function RouteLogPanel(props: {
   const lastSeq = entries.length ? entries[entries.length - 1]?.seq : null;
 
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper
+      withBorder
+      radius="md"
+      p="md"
+      style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+    >
       <ConfirmDialog
         open={confirmClearOpen}
         title="Clear routing log"
@@ -80,7 +86,7 @@ export function RouteLogPanel(props: {
         }}
       />
 
-      <Stack gap="sm">
+      <Stack gap="sm" style={{ flex: 1, minHeight: 0 }}>
         <Group justify="space-between" align="center">
           <Title order={2} size="h4" m={0}>
             Routing log
@@ -106,71 +112,75 @@ export function RouteLogPanel(props: {
           </Group>
         </Group>
 
-        <Switch
-          label="Redact new log entries"
-          checked={routeLogMode === 'redacted'}
-          disabled={loading || modeBusy}
-          onChange={(e) => {
-            const nextMode: RouteLogMode = e.currentTarget.checked
-              ? 'redacted'
-              : 'full';
-            setModeBusy(true);
-            void api.settings
-              .set({ routeLogMode: nextMode })
-              .then(() => {
-                onDidChangeSettings?.();
-              })
-              .catch((err: unknown) => {
-                setError((err as Error).message);
-              })
-              .finally(() => {
-                setModeBusy(false);
-              });
-          }}
-        />
+        <ScrollArea style={{ flex: 1 }} type="auto">
+          <Stack gap="sm" pr="xs">
+            <Switch
+              label="Redact new log entries"
+              checked={routeLogMode === 'redacted'}
+              disabled={loading || modeBusy}
+              onChange={(e) => {
+                const nextMode: RouteLogMode = e.currentTarget.checked
+                  ? 'redacted'
+                  : 'full';
+                setModeBusy(true);
+                void api.settings
+                  .set({ routeLogMode: nextMode })
+                  .then(() => {
+                    onDidChangeSettings?.();
+                  })
+                  .catch((err: unknown) => {
+                    setError((err as Error).message);
+                  })
+                  .finally(() => {
+                    setModeBusy(false);
+                  });
+              }}
+            />
 
-        <Text size="sm" c="dimmed">
-          {routeLogMode === 'redacted'
-            ? 'Redacted mode stores scheme-level info only (recommended).'
-            : 'Full mode stores raw URIs/targets (less private).'}
-        </Text>
-
-        <Text size="sm" c="dimmed">
-          Entries: {entries.length}
-          {lastSeq !== null ? ` (latest seq: ${String(lastSeq)})` : ''}
-        </Text>
-
-        {loading ? (
-          <Group gap="xs">
-            <Loader size="sm" />
             <Text size="sm" c="dimmed">
-              Loading…
+              {routeLogMode === 'redacted'
+                ? 'Redacted mode stores scheme-level info only (recommended).'
+                : 'Full mode stores raw URIs/targets (less private).'}
             </Text>
-          </Group>
-        ) : null}
 
-        {error ? (
-          <Alert color="red" title="Error">
-            {error}
-          </Alert>
-        ) : null}
+            <Text size="sm" c="dimmed">
+              Entries: {entries.length}
+              {lastSeq !== null ? ` (latest seq: ${String(lastSeq)})` : ''}
+            </Text>
 
-        {entries.length ? (
-          <Accordion variant="separated">
-            <Accordion.Item value="entries">
-              <Accordion.Control>
-                Entries JSON ({String(entries.length)})
-              </Accordion.Control>
-              <Accordion.Panel>
-                <Code block>{JSON.stringify(entries, null, 2)}</Code>
-              </Accordion.Panel>
-            </Accordion.Item>
-          </Accordion>
-        ) : (
-          <Text size="sm" c="dimmed">
-            No routing log entries yet.
-          </Text>
-        )}
+            {loading ? (
+              <Group gap="xs">
+                <Loader size="sm" />
+                <Text size="sm" c="dimmed">
+                  Loading…
+                </Text>
+              </Group>
+            ) : null}
+
+            {error ? (
+              <Alert color="red" title="Error">
+                {error}
+              </Alert>
+            ) : null}
+
+            {entries.length ? (
+              <Accordion variant="separated">
+                <Accordion.Item value="entries">
+                  <Accordion.Control>
+                    Entries JSON ({String(entries.length)})
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Code block>{JSON.stringify(entries, null, 2)}</Code>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
+            ) : (
+              <Text size="sm" c="dimmed">
+                No routing log entries yet.
+              </Text>
+            )}
+          </Stack>
+        </ScrollArea>
       </Stack>
     </Paper>
   );
