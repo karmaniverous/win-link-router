@@ -15,7 +15,7 @@ import {
 } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 
-import type { AppConfig, SchemeConfig } from '../../core/config/appConfig';
+import type { AppConfig } from '../../core/config/appConfig';
 import { normalizeScheme } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
