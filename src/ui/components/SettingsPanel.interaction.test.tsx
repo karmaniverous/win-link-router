@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -76,10 +76,22 @@ function createApi(opts: {
   return { api, settingsSet: settingsSet as ReturnType<typeof vi.fn> };
 }
 
+function wasCalledWithSharedPath(
+  calls: unknown[],
+  expectedPath: string,
+): boolean {
+  for (const call of calls) {
+    if (typeof call !== 'object' || call === null) continue;
+    const rec = call as Record<string, unknown>;
+    if (typeof rec.sharedConfigPath !== 'string') continue;
+    if (rec.sharedConfigPath === expectedPath) return true;
+  }
+  return false;
+}
+
 describe('SettingsPanel (interaction)', () => {
   it('can browse for a shared config path and persist it', async () => {
-    vi.useFakeTimers();
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const user = userEvent.setup();
 
     const { api, settingsSet } = createApi({
       pickResult: { cancelled: false, filePath: 'C:\\x\\shared.json' },
@@ -99,17 +111,16 @@ describe('SettingsPanel (interaction)', () => {
     await user.click(screen.getByRole('button', { name: /browse/i }));
 
     expect(api.settings.pickSharedConfigPath).toHaveBeenCalledTimes(1);
-    expect(
-      screen.getByRole('textbox', { name: /shared config path/i }),
-    ).toHaveValue('C:\\x\\shared.json');
+    const input = screen.getByRole('textbox', {
+      name: /shared config path/i,
+    });
+    expect(input.value).toBe('C:\\x\\shared.json');
 
-    // Allow debounced autosave to fire.
-    vi.advanceTimersByTime(600);
-    expect(settingsSet).toHaveBeenCalled();
-    expect(
-      settingsSet.mock.calls.some((c) =>
-        String(c[0]).includes('sharedConfigPath'),
-      ),
-    ).toBe(true);
+    // Debounced autosave should persist the new shared config path.
+    await waitFor(() => {
+      expect(settingsSet).toHaveBeenCalled();
+      const args = settingsSet.mock.calls.map((c) => c[0]);
+      expect(wasCalledWithSharedPath(args, 'C:\\x\\shared.json')).toBe(true);
+    });
   });
 });
