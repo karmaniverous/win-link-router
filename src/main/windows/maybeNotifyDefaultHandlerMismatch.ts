@@ -17,8 +17,10 @@ export async function maybeNotifyDefaultHandlerMismatch(opts: {
   config: AppConfig;
   exePath?: string;
   tray: Tray | null;
+  platform?: NodeJS.Platform;
 }): Promise<{ notified: boolean }> {
-  if (process.platform !== 'win32') return { notified: false };
+  const platform = opts.platform ?? process.platform;
+  if (platform !== 'win32') return { notified: false };
   if (!opts.tray) return { notified: false };
   if (typeof opts.tray.displayBalloon !== 'function')
     return { notified: false };

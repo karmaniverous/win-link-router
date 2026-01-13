@@ -111,3 +111,4 @@
 - Made Test tab infer scheme from URI (no selector).
 - Fixed lint + comment cleanup after Test tab changes.
 - Replaced mismatch modal with banner + tray balloon.
+- Added tests for mismatch banner + tray notification.
