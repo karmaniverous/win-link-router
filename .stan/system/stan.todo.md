@@ -132,6 +132,7 @@
 - Amendment: avoid type assertions in tests; use findByRole<HTMLInputElement>() so lint --fix does not remove needed typing.
 - Replaced remaining non-Mantine preload-error UI and removed unused legacy CSS status classes.
 - Fixed App.test to wrap App in MantineProvider via MantineTestProvider.
+- Avoided unnecessary reload when the Import dialog is cancelled.
 - Replaced the remaining warnings <details> UI with Mantine Accordion + Code.
 - Replaced registration result <pre> output with Mantine Code.
 - Replaced remaining <details> disclosures in Log/Test with Mantine Accordion.

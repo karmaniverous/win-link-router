@@ -94,7 +94,10 @@ export function App() {
             onClick={() =>
               void api.appConfig
                 .importSchemes()
-                .then(() => controller.reload())
+                .then((res) => {
+                  if (res.cancelled) return;
+                  return controller.reload();
+                })
                 .catch((err: unknown) => {
                   controller.setError((err as Error).message);
                 })
