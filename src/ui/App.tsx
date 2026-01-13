@@ -10,6 +10,7 @@ import {
   Accordion,
   Alert,
   AppShell,
+  Box,
   Button,
   Code,
   Group,
@@ -111,7 +112,7 @@ export function App() {
           >
             Default Apps…
           </Button>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Box style={{ display: 'flex', alignItems: 'center' }}>
             <GitHubButton
               href="https://github.com/karmaniverous/win-link-router"
               data-color-scheme="no-preference: light; light: light; dark: dark;"
@@ -121,7 +122,7 @@ export function App() {
             >
               Star
             </GitHubButton>
-          </div>
+          </Box>
         </Group>
       </AppShell.Header>
 

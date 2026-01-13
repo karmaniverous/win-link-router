@@ -5,6 +5,7 @@
  * - Prefer Mantine primitives over bespoke form controls.
  * - Wireframe alignment: scheme enable/disable uses a power-button control in
  *   the scheme header (not inside the extractor section).
+ *   the scheme header (not inside the extractor section).
  */
 import {
   ActionIcon,
@@ -50,7 +51,9 @@ export function SchemeEditor(props: {
         <Title order={2} size="h4" m={0}>
           Scheme
         </Title>
-        <div style={{ marginTop: 8 }}>Select a scheme to edit.</div>
+        <Text size="sm" c="dimmed" mt="xs">
+          Select a scheme to edit.
+        </Text>
       </Paper>
     );
   }

@@ -3,9 +3,7 @@
 ## Next up
 
 - UX polish:
-  - Review Schemes refresh action copy to reflect read-only behavior (refresh-only vs refresh + reconcile).
-  - Replace remaining bespoke form controls with Mantine primitives as found.
-  - Continue trimming legacy renderer CSS (`src/index.css`) when no longer used.
+  - Consider standardizing glyph icons (optional) to a cohesive icon set.
 
 ## Completed (recent)
 
@@ -127,3 +125,5 @@
 - Reconciled candidate registration when sharedConfigPath changes via settings:set.
 - Allowed schemes refresh in read-only mode (reload-only; no reconcile).
 - Fixed SchemesSidebar refresh test to avoid jest-dom matchers (use .disabled).
+- Clarified Schemes refresh tooltip copy in read-only mode (refresh-only; no reconcile).
+- Trimmed renderer CSS and replaced remaining minor bespoke wrappers with Mantine primitives.

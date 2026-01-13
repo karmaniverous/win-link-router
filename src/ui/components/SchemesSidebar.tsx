@@ -1,6 +1,7 @@
 /**
  * Requirements addressed:
  * - Scheme list and add/remove/edit UX uses in-app dialogs (no window.prompt).
+ * - Refresh copy reflects read-only behavior (refresh-only; no reconcile).
  */
 import {
   ActionIcon,
@@ -100,6 +101,10 @@ export function SchemesSidebar(props: {
     ? true
     : autoEnableNewSchemes;
 
+  const refreshTooltip = readOnly
+    ? 'Refresh (reconcile disabled in read-only mode)'
+    : 'Refresh + reconcile';
+
   return (
     <Paper withBorder radius="md" p="sm" style={{ height: '100%' }}>
       <ConfirmDialog
@@ -123,7 +128,7 @@ export function SchemesSidebar(props: {
             Schemes
           </Title>
           <Group gap="xs">
-            <Tooltip label="Refresh + reconcile" withArrow>
+            <Tooltip label={refreshTooltip} withArrow>
               <ActionIcon
                 type="button"
                 aria-label="Refresh schemes"
