@@ -2,18 +2,11 @@
 
 ## Next up
 
-- Mantine migration (pause bespoke UI work):
-  - Convert remaining bespoke UI panels to Mantine primitives:
-    - Schemes sidebar rows (icons, toggles, tooltips)
-    - Scheme editor extractor/templates UI
-    - Log panel + test panel polish
-  - Replace bespoke UI primitives with Mantine equivalents incrementally:
-    - dialogs/confirmations (move off bespoke Modal/ConfirmDialog as needed)
-    - spinner/loader, buttons, inputs, toggles
-  - Adjust renderer tests toward jsdom + Testing Library where Mantine is involved.
+- UX polish:
+  - Replace remaining bespoke form controls with Mantine primitives as found.
+  - Continue trimming legacy renderer CSS (`src/index.css`) when no longer used.
 
 - UI redesign (tabs + pinned layout):
-  - Trim legacy CSS layout scaffolding as Mantine AppShell replaces it.
   - Keep extractor/template inputs as 3-row textareas (Mantine `Textarea`).
 - Scheme model/UI overhaul (enabled vs registered):
   - Persist `scheme.registered` as desired Windows registration state.
@@ -113,4 +106,6 @@
 - Fixed Add Scheme preset memo initialization order.
 - Added scheme row controls + refresh/reconcile.
 - Added RIB/SWL settings + startup lifecycle behavior.
-- Fixed lint in main login-start detection.- Added auto-enable/auto-register defaults for new schemes.
+- Fixed lint in main login-start detection.
+- Added auto-enable/auto-register defaults for new schemes.
+- Trimmed legacy CSS and Mantine-ized preset select.

@@ -2,8 +2,17 @@
  * Requirements addressed:
  * - Disabled schemes must have editing controls disabled (except re-enable).
  * - Registration changes should trigger best-effort reconciliation.
+ * - Prefer Mantine primitives over bespoke form controls.
  */
-import { Button, Group, Paper, ScrollArea, Stack, Title } from '@mantine/core';
+import {
+  Button,
+  Group,
+  NativeSelect,
+  Paper,
+  ScrollArea,
+  Stack,
+  Title,
+} from '@mantine/core';
 import { useMemo, useState } from 'react';
 
 import type { PresetsFile, SchemeConfig } from '../../core/config/appConfig';
@@ -131,22 +140,15 @@ export function SchemeEditor(props: {
         }}
       >
         {presetOptions.length > 1 ? (
-          <label className="field">
-            <span>Preset</span>
-            <select
-              value={resetPresetKey}
-              onChange={(e) => {
-                setResetPresetKey(e.target.value);
-              }}
-              aria-label="Preset"
-            >
-              {presetOptions.map((p) => (
-                <option key={p.key} value={p.key}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <NativeSelect
+            label="Preset"
+            aria-label="Preset"
+            value={resetPresetKey}
+            onChange={(e) => {
+              setResetPresetKey(e.currentTarget.value);
+            }}
+            data={presetOptions.map((p) => ({ value: p.key, label: p.label }))}
+          />
         ) : null}
       </ConfirmDialog>
 
