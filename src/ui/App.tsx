@@ -1,12 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-
-import type {
-  AppConfig,
-  PresetsFile,
-  SchemeConfig,
-} from '../core/config/appConfig';
-import type { WinLinkRouterApi } from './api/winLinkRouterApi';
+import type { SchemeConfig } from '../core/config/appConfig';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
+import { useAppController } from './app/useAppController';
+import { APP_TABS } from './app/useAppController';
 import { RouteLogPanel } from './components/RouteLogPanel';
 import { SchemeEditor } from './components/SchemeEditor';
 import { SchemesSidebar } from './components/SchemesSidebar';
@@ -14,191 +9,9 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { Spinner } from './components/Spinner';
 import { Tabs } from './components/Tabs';
 import { TestPanel } from './components/TestPanel';
-import {
-  formatRouteFailureBanner,
-  inferSchemeForRouteFailure,
-} from './routing/routeFailureUi';
-
-function validateConfigBeforeSave(config: AppConfig): string | null {
-  for (const scheme of config.schemes) {
-    const flags = scheme.extractor.flags ?? '';
-    if (flags.includes('g')) {
-      return `Cannot save: ${scheme.scheme} extractor flags must not include "g".`;
-    }
-
-    try {
-      RegExp(scheme.extractor.pattern, flags);
-    } catch (err) {
-      return `Cannot save: ${scheme.scheme} extractor regex is invalid: ${
-        (err as Error).message
-      }`;
-    }
-
-    for (const tpl of scheme.templates) {
-      if (!tpl.template.trim()) {
-        return `Cannot save: ${scheme.scheme} template "${tpl.label}" is empty.`;
-      }
-    }
-  }
-
-  return null;
-}
 
 export function App() {
   const api = getWinLinkRouterApi();
-
-  const cancelledRef = useRef(false);
-  const saveTimerRef = useRef<number | null>(null);
-  const configRef = useRef<AppConfig | null>(null);
-  const ensureRegistrationRef = useRef(false);
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [registrationResult, setRegistrationResult] = useState<{
-    kind: 'ok' | 'warn';
-    message: string;
-  } | null>(null);
-
-  const [config, setConfig] = useState<AppConfig | null>(null);
-  const [readOnly, setReadOnly] = useState(false);
-  const [warnings, setWarnings] = useState<string[]>([]);
-  const [presets, setPresets] = useState<PresetsFile | null>(null);
-
-  const [selectedScheme, setSelectedScheme] = useState<string | null>(null);
-  const [testUri, setTestUri] = useState('');
-  const [routeErrorBanner, setRouteErrorBanner] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'settings' | 'log' | 'test'>(
-    'settings',
-  );
-
-  const [statuses, setStatuses] = useState<
-    {
-      scheme: string;
-      enabled: boolean;
-      registered: boolean;
-      defaultStatus: 'default' | 'not-default' | 'unknown';
-      expectedProgId: string;
-      actualProgId?: string | null;
-    }[]
-  >([]);
-
-  const reload = useCallback(async (api: WinLinkRouterApi) => {
-    const cfg = await api.appConfig.get();
-    setConfig(cfg.config);
-    setReadOnly(cfg.readOnly);
-    setWarnings(cfg.warnings);
-    configRef.current = cfg.config;
-
-    const p = await api.presets.get();
-    setPresets(p);
-
-    const sts = await api.windows.getSchemeStatuses();
-    setStatuses(
-      sts.map((s) => ({
-        scheme: s.scheme,
-        enabled: s.enabled,
-        registered: s.registered,
-        defaultStatus: s.defaultStatus,
-        expectedProgId: s.expectedProgId,
-        actualProgId: s.actualProgId,
-      })),
-    );
-
-    setSelectedScheme((prev) => {
-      if (prev) return prev;
-      return cfg.config.schemes[0]?.scheme ?? null;
-    });
-  }, []);
-
-  const scheduleSave = useCallback(
-    (opts: { ensureRegistration?: boolean } = {}) => {
-      if (!api) return;
-      if (readOnly) return;
-      ensureRegistrationRef.current =
-        ensureRegistrationRef.current || Boolean(opts.ensureRegistration);
-
-      if (saveTimerRef.current) {
-        window.clearTimeout(saveTimerRef.current);
-      }
-      saveTimerRef.current = window.setTimeout(() => {
-        const latest = configRef.current;
-        if (!latest) return;
-
-        const validationError = validateConfigBeforeSave(latest);
-        if (validationError) {
-          setError(validationError);
-          return;
-        }
-
-        void api.appConfig
-          .set(latest)
-          .then(async () => {
-            if (ensureRegistrationRef.current) {
-              ensureRegistrationRef.current = false;
-              const res = await api.windows.ensureRegistration();
-              if (res.warnings.length) {
-                setRegistrationResult({
-                  kind: 'warn',
-                  message: res.warnings.join('\n'),
-                });
-              } else {
-                setRegistrationResult({
-                  kind: 'ok',
-                  message: 'Registration updated.',
-                });
-              }
-            }
-          })
-          .then(() => {
-            setError(null);
-            return reload(api);
-          })
-          .catch((err: unknown) => {
-            setError((err as Error).message);
-          });
-      }, 450);
-    },
-    [api, readOnly, reload],
-  );
-
-  useEffect(() => {
-    if (!api) {
-      setError('Missing preload API (window.winLinkRouter).');
-      setLoading(false);
-      return;
-    }
-
-    cancelledRef.current = false;
-    void (async () => {
-      try {
-        await reload(api);
-
-        const last = await api.routing.getLastRouteError();
-        if (last) {
-          const inferredScheme = inferSchemeForRouteFailure({
-            uri: last.uri,
-            result: last.result,
-          });
-
-          if (!cancelledRef.current) {
-            if (inferredScheme) setSelectedScheme(inferredScheme);
-            setTestUri(last.uri);
-            setRouteErrorBanner(formatRouteFailureBanner(last.result));
-            setActiveTab('test');
-          }
-          await api.routing.clearLastRouteError();
-        }
-      } catch (err) {
-        if (!cancelledRef.current) setError((err as Error).message);
-      } finally {
-        if (!cancelledRef.current) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelledRef.current = true;
-    };
-  }, [api, reload]);
 
   if (!api) {
     return (
@@ -209,6 +22,8 @@ export function App() {
     );
   }
 
+  const controller = useAppController(api);
+
   return (
     <main className="appShell">
       <header className="topbar">
@@ -217,7 +32,7 @@ export function App() {
           <button
             type="button"
             onClick={() =>
-              void api.appConfig.importSchemes().then(() => reload(api))
+              void api.appConfig.importSchemes().then(controller.reload)
             }
           >
             Import
@@ -241,20 +56,20 @@ export function App() {
                 .ensureRegistration()
                 .then((res) => {
                   if (res.warnings.length) {
-                    setRegistrationResult({
+                    controller.setRegistrationResult({
                       kind: 'warn',
                       message: res.warnings.join('\n'),
                     });
                   } else {
-                    setRegistrationResult({
+                    controller.setRegistrationResult({
                       kind: 'ok',
                       message: 'Registration updated.',
                     });
                   }
-                  return reload(api);
+                  return controller.reload();
                 })
                 .catch((err: unknown) => {
-                  setError((err as Error).message);
+                  controller.setError((err as Error).message);
                 })
             }
           >
@@ -264,21 +79,25 @@ export function App() {
       </header>
 
       <div className="appBanners" role="region" aria-label="Status">
-        {loading ? <Spinner label="Loading…" /> : null}
-        {error ? <p className="error">{error}</p> : null}
-        {routeErrorBanner ? <p className="error">{routeErrorBanner}</p> : null}
-        {registrationResult ? (
+        {controller.loading ? <Spinner label="Loading…" /> : null}
+        {controller.error ? <p className="error">{controller.error}</p> : null}
+        {controller.routeErrorBanner ? (
+          <p className="error">{controller.routeErrorBanner}</p>
+        ) : null}
+        {controller.registrationResult ? (
           <section className="panel">
             <div className="row">
               <strong>
                 Registration{' '}
-                {registrationResult.kind === 'ok' ? 'updated' : 'warning'}
+                {controller.registrationResult.kind === 'ok'
+                  ? 'updated'
+                  : 'warning'}
               </strong>
               <div className="rowActions">
                 <button
                   type="button"
                   onClick={() => {
-                    setRegistrationResult(null);
+                    controller.setRegistrationResult(null);
                   }}
                 >
                   Dismiss
@@ -286,19 +105,23 @@ export function App() {
               </div>
             </div>
             <pre
-              className={registrationResult.kind === 'ok' ? 'muted' : 'warning'}
+              className={
+                controller.registrationResult.kind === 'ok'
+                  ? 'muted'
+                  : 'warning'
+              }
             >
-              {registrationResult.message}
+              {controller.registrationResult.message}
             </pre>
           </section>
         ) : null}
-        {warnings.length ? (
+        {controller.warnings.length ? (
           <details>
             <summary>Warnings</summary>
-            <pre>{warnings.join('\n')}</pre>
+            <pre>{controller.warnings.join('\n')}</pre>
           </details>
         ) : null}
-        {readOnly ? (
+        {controller.readOnly ? (
           <p className="warning">
             Config is read-only (shared config error). Settings can still be
             updated to fix the shared config path.
@@ -308,62 +131,47 @@ export function App() {
 
       <div className="appBody">
         <SchemesSidebar
-          loading={loading}
-          readOnly={readOnly}
-          config={config}
-          presets={presets}
-          statuses={statuses}
-          selectedScheme={selectedScheme}
-          onSelectScheme={setSelectedScheme}
+          loading={controller.loading}
+          readOnly={controller.readOnly}
+          config={controller.config}
+          presets={controller.presets}
+          statuses={controller.statuses}
+          selectedScheme={controller.selectedScheme}
+          onSelectScheme={controller.setSelectedScheme}
           onError={(message) => {
-            setError(message);
+            controller.setError(message);
           }}
           onAddScheme={(schemeConfig: SchemeConfig) => {
-            if (!config) return;
-            if (config.schemes.some((s) => s.scheme === schemeConfig.scheme)) {
-              setError(`Scheme ${schemeConfig.scheme} already exists.`);
-              return;
-            }
-
-            const next: AppConfig = {
-              ...config,
-              schemes: [...config.schemes, schemeConfig],
-            };
-            setConfig(next);
-            configRef.current = next;
-            setSelectedScheme(schemeConfig.scheme);
-            scheduleSave({ ensureRegistration: true });
+            controller.onAddScheme(schemeConfig);
           }}
         />
 
         <section className="contentColumn">
           <Tabs
-            value={activeTab}
-            onChange={setActiveTab}
-            tabs={[
-              { id: 'settings', label: 'Settings' },
-              { id: 'log', label: 'Log' },
-              { id: 'test', label: 'Test' },
-            ]}
+            value={controller.activeTab}
+            onChange={controller.setActiveTab}
+            tabs={APP_TABS}
           />
 
           <div className="contentScroll">
             <div className="tabPanel" role="region" aria-label="Tab panel">
-              {activeTab === 'settings' ? (
+              {controller.activeTab === 'settings' ? (
                 <SettingsPanel
                   api={api}
-                  config={config}
-                  readOnly={readOnly}
-                  onDidChangeSettings={() => void reload(api)}
+                  config={controller.config}
+                  readOnly={controller.readOnly}
+                  onDidChangeSettings={() => void controller.reload()}
                 />
               ) : null}
-              {activeTab === 'log' ? <RouteLogPanel api={api} /> : null}
-              {activeTab === 'test' ? (
+              {controller.activeTab === 'log' ? (
+                <RouteLogPanel api={api} />
+              ) : null}
+              {controller.activeTab === 'test' ? (
                 <TestPanel
                   api={api}
-                  scheme={selectedScheme}
-                  testUri={testUri}
-                  onChangeTestUri={setTestUri}
+                  scheme={controller.selectedScheme}
+                  testUri={controller.testUri}
+                  onChangeTestUri={controller.setTestUri}
                 />
               ) : null}
             </div>
@@ -371,38 +179,18 @@ export function App() {
             <div className="editorPanel">
               <SchemeEditor
                 api={api}
-                presets={presets}
-                readOnly={readOnly}
+                presets={controller.presets}
+                readOnly={controller.readOnly}
                 scheme={
-                  config?.schemes.find((s) => s.scheme === selectedScheme) ??
-                  null
+                  controller.config?.schemes.find(
+                    (s) => s.scheme === controller.selectedScheme,
+                  ) ?? null
                 }
                 onChangeScheme={(next, opts) => {
-                  if (!config) return;
-                  const updated: AppConfig = {
-                    ...config,
-                    schemes: config.schemes.map((s) =>
-                      s.scheme === next.scheme ? next : s,
-                    ),
-                  };
-                  setConfig(updated);
-                  configRef.current = updated;
-                  scheduleSave(opts);
+                  controller.onChangeScheme(next, opts);
                 }}
                 onRemoveScheme={(schemeToRemove) => {
-                  if (!config) return;
-                  const updated: AppConfig = {
-                    ...config,
-                    schemes: config.schemes.filter(
-                      (s) => s.scheme !== schemeToRemove,
-                    ),
-                  };
-                  setConfig(updated);
-                  configRef.current = updated;
-                  if (selectedScheme === schemeToRemove) {
-                    setSelectedScheme(updated.schemes[0]?.scheme ?? null);
-                  }
-                  scheduleSave({ ensureRegistration: true });
+                  controller.onRemoveScheme(schemeToRemove);
                 }}
               />
             </div>

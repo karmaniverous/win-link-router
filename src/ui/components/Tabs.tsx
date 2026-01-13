@@ -4,7 +4,7 @@
  * - Window chrome should be pinned; tabs are part of pinned chrome.
  */
 export function Tabs<T extends string>(props: {
-  tabs: { id: T; label: string }[];
+  tabs: readonly { id: T; label: string }[];
   value: T;
   onChange: (next: T) => void;
 }) {
