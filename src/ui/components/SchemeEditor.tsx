@@ -1,3 +1,8 @@
+/**
+ * Requirements addressed:
+ * - Disabled schemes must have editing controls disabled (except re-enable).
+ * - Registration changes should trigger best-effort reconciliation.
+ */
 import { Button, Group, Paper, ScrollArea, Stack, Title } from '@mantine/core';
 import { useMemo, useState } from 'react';
 
@@ -62,6 +67,8 @@ export function SchemeEditor(props: {
     removeTemplateId !== null
       ? (scheme.templates.find((t) => t.id === removeTemplateId) ?? null)
       : null;
+
+  const editingDisabled = readOnly || !scheme.enabled;
 
   return (
     <Paper withBorder radius="md" p="md" style={{ height: '100%' }}>
@@ -160,7 +167,7 @@ export function SchemeEditor(props: {
               <Button
                 size="xs"
                 variant="default"
-                disabled={readOnly}
+                disabled={editingDisabled}
                 onClick={() => {
                   const preferredKey =
                     presetOptions.find(
@@ -193,12 +200,13 @@ export function SchemeEditor(props: {
             <SchemeEditorExtractor
               scheme={scheme}
               readOnly={readOnly}
+              editingDisabled={editingDisabled}
               onChangeScheme={onChangeScheme}
             />
 
             <SchemeEditorTemplates
               scheme={scheme}
-              readOnly={readOnly}
+              readOnly={editingDisabled}
               onChangeScheme={onChangeScheme}
               onRequestRemoveTemplate={(templateId) => {
                 setRemoveTemplateId(templateId);

@@ -57,6 +57,9 @@ describe('SchemesSidebar (interaction)', () => {
             statuses={[]}
             selectedScheme={null}
             onSelectScheme={vi.fn()}
+            onRefreshAndReconcile={vi.fn()}
+            onChangeScheme={vi.fn()}
+            onRemoveScheme={vi.fn()}
             onAddScheme={onAddScheme}
             onError={onError}
           />

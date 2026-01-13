@@ -2,6 +2,7 @@
  * Requirements addressed:
  * - Scheme editor provides extractor editing.
  * - Extractor pattern input is a textarea (3 rows).
+ * - Disabled schemes must block editing except re-enable; registered ⇒ enabled.
  */
 import { Alert, Stack, Switch, Textarea, TextInput } from '@mantine/core';
 
@@ -11,12 +12,13 @@ import { getExtractorError } from './getExtractorError';
 export function SchemeEditorExtractor(props: {
   scheme: SchemeConfig;
   readOnly: boolean;
+  editingDisabled: boolean;
   onChangeScheme: (
     next: SchemeConfig,
     opts?: { ensureRegistration?: boolean },
   ) => void;
 }) {
-  const { scheme, readOnly, onChangeScheme } = props;
+  const { scheme, readOnly, editingDisabled, onChangeScheme } = props;
   const extractorError = getExtractorError(scheme.extractor);
 
   return (
@@ -26,8 +28,13 @@ export function SchemeEditorExtractor(props: {
         checked={scheme.enabled}
         disabled={readOnly}
         onChange={(e) => {
+          const nextEnabled = e.currentTarget.checked;
           onChangeScheme(
-            { ...scheme, enabled: e.currentTarget.checked },
+            {
+              ...scheme,
+              enabled: nextEnabled,
+              registered: nextEnabled ? scheme.registered : false,
+            },
             { ensureRegistration: true },
           );
         }}
@@ -37,7 +44,7 @@ export function SchemeEditorExtractor(props: {
         label="Extractor pattern"
         rows={3}
         value={scheme.extractor.pattern}
-        disabled={readOnly}
+        disabled={editingDisabled}
         onChange={(e) => {
           onChangeScheme({
             ...scheme,
@@ -49,7 +56,7 @@ export function SchemeEditorExtractor(props: {
       <TextInput
         label="Extractor flags"
         value={scheme.extractor.flags ?? ''}
-        disabled={readOnly}
+        disabled={editingDisabled}
         onChange={(e) => {
           onChangeScheme({
             ...scheme,

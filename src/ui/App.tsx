@@ -1,3 +1,10 @@
+/**
+ * Requirements addressed:
+ * - Main view provides scheme list + editor and supports Windows registration
+ *   reconciliation.
+ * - Provide scheme-row controls (register toggle, delete) and refresh+reconcile.
+ * - Provide a GitHub header button to open the repo link externally.
+ */
 import {
   Alert,
   AppShell,
@@ -38,6 +45,28 @@ export function App() {
   }
 
   const controller = useAppController(api);
+
+  const ensureRegistrationAndReload = () => {
+    return api.windows
+      .ensureRegistration()
+      .then((res) => {
+        if (res.warnings.length) {
+          controller.setRegistrationResult({
+            kind: 'warn',
+            message: res.warnings.join('\n'),
+          });
+        } else {
+          controller.setRegistrationResult({
+            kind: 'ok',
+            message: 'Registration updated.',
+          });
+        }
+        return controller.reload();
+      })
+      .catch((err: unknown) => {
+        controller.setError((err as Error).message);
+      });
+  };
 
   const onTabChange = (value: string | null) => {
     if (!value) return;
@@ -97,27 +126,7 @@ export function App() {
             <Button
               size="xs"
               variant="default"
-              onClick={() =>
-                void api.windows
-                  .ensureRegistration()
-                  .then((res) => {
-                    if (res.warnings.length) {
-                      controller.setRegistrationResult({
-                        kind: 'warn',
-                        message: res.warnings.join('\n'),
-                      });
-                    } else {
-                      controller.setRegistrationResult({
-                        kind: 'ok',
-                        message: 'Registration updated.',
-                      });
-                    }
-                    return controller.reload();
-                  })
-                  .catch((err: unknown) => {
-                    controller.setError((err as Error).message);
-                  })
-              }
+              onClick={() => void ensureRegistrationAndReload()}
             >
               Ensure Registration
             </Button>
@@ -134,6 +143,11 @@ export function App() {
           statuses={controller.statuses}
           selectedScheme={controller.selectedScheme}
           onSelectScheme={controller.setSelectedScheme}
+          onRefreshAndReconcile={() => void ensureRegistrationAndReload()}
+          onChangeScheme={(next, opts) => {
+            controller.onChangeScheme(next, opts);
+          }}
+          onRemoveScheme={controller.onRemoveScheme}
           onError={(message) => {
             controller.setError(message);
           }}
