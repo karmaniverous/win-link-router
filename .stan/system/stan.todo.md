@@ -14,7 +14,7 @@
   - Enforce `registered ⇒ enabled` and update UI to disable registration when disabled.
   - Canonically sort schemes by scheme name (persisted ordering).
   - Add new per-user settings: auto-register new schemes and auto-enable new schemes, enforcing `autoRegister ⇒ autoEnable` in the UI.
-  - Implement scheme row icons (info tooltip, register toggle, default status, delete) and disable editing for disabled schemes (except re-enable).
+  - Polish scheme row controls (enabled toggle, disabled icon states, icon polish).
 - Windows registration reconciliation:
   - Implement per-scheme register/deregister (including deleting ProgId key trees and URLAssociations values).
   - Reconcile registry to match config on app start, config save, and via the schemes refresh button (save-first + reconcile + requery statuses).
@@ -111,4 +111,6 @@
 - Made Test tab infer scheme from URI (no selector).
 - Fixed lint + comment cleanup after Test tab changes.
 - Replaced mismatch modal with banner + tray balloon.
-- Added tests for mismatch banner + tray notification.- Fixed typecheck in tray mismatch notification test.
+- Added tests for mismatch banner + tray notification.
+- Fixed typecheck in tray mismatch notification test.
+- Decomposed SchemesSidebar row rendering and added enable toggle.
