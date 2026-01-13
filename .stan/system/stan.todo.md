@@ -3,26 +3,9 @@
 ## Next up
 
 - UX polish:
+  - Review Schemes refresh action copy to reflect read-only behavior (refresh-only vs refresh + reconcile).
   - Replace remaining bespoke form controls with Mantine primitives as found.
   - Continue trimming legacy renderer CSS (`src/index.css`) when no longer used.
-
-- UI redesign (tabs + pinned layout):
-  - Keep extractor/template inputs as 3-row textareas (Mantine `Textarea`).
-- Scheme model/UI overhaul (enabled vs registered):
-  - Persist `scheme.registered` as desired Windows registration state.
-  - Keep `scheme.enabled` as a separate router behavior switch.
-  - Enforce `registered ⇒ enabled` and update UI to disable registration when disabled.
-  - Canonically sort schemes by scheme name (persisted ordering).
-  - Add new per-user settings: auto-register new schemes and auto-enable new schemes, enforcing `autoRegister ⇒ autoEnable` in the UI.
-  - Polish scheme row controls (enabled toggle, disabled icon states, icon polish).
-- Windows registration reconciliation:
-  - Implement per-scheme register/deregister (including deleting ProgId key trees and URLAssociations values).
-  - Reconcile registry to match config on app start, config save, and via the schemes refresh button (save-first + reconcile + requery statuses).
-  - Remove `RegisteredApplications` entry when no schemes are registered.
-- Lifecycle settings:
-  - Add “Run in Background” setting and enforce `SWL ⇒ RIB`.
-  - When started at login (SWL ON), start hidden (tray only).
-  - Ensure routing-only protocol launches do not load the UI on success.
 
 ## Completed (recent)
 
