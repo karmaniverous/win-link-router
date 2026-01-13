@@ -3,10 +3,12 @@
  * - Main window provides separate tabs: Settings, Log, Test.
  * - Window chrome should be pinned; tabs are part of pinned chrome.
  */
-export function Tabs<T extends string>(props: {
-  tabs: readonly { id: T; label: string }[];
-  value: T;
-  onChange: (next: T) => void;
+export function Tabs<
+  const TTabs extends readonly { id: string; label: string }[],
+>(props: {
+  tabs: TTabs;
+  value: TTabs[number]['id'];
+  onChange: (next: TTabs[number]['id']) => void;
 }) {
   const { tabs, value, onChange } = props;
 

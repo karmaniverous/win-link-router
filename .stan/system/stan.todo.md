@@ -100,4 +100,4 @@
 - Added pinned layout scaffolding with Settings/Log/Test tabs and converted extractor/template inputs to 3-row textareas.
 - Decomposed App and SchemeEditor modules to stay under the 300 LOC limit.
 - Decision: adopt Mantine as the renderer UI component library.
-- Added Mantine dependencies and wired MantineProvider in the renderer root.
+- Added Mantine dependencies and wired MantineProvider in the renderer root.- Fixed tab component typing to restore typecheck (pre-Mantine Tabs swap).

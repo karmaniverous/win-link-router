@@ -149,7 +149,9 @@ export function App() {
         <section className="contentColumn">
           <Tabs
             value={controller.activeTab}
-            onChange={controller.setActiveTab}
+            onChange={(next) => {
+              controller.setActiveTab(next);
+            }}
             tabs={APP_TABS}
           />
 
