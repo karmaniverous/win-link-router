@@ -4,6 +4,7 @@
  * - Single-instance routing (second instance forwards URI to first).
  * - Persist a minimal per-user routing log for debugging.
  * - Reconcile Windows candidate registration to match per-scheme config intent.
+ * - Lifecycle settings: Run in Background (tray) and Start on Windows Login.
  */
 import path from 'node:path';
 
@@ -192,19 +193,37 @@ app.on('second-instance', (_event, argv) => {
 
 void app.whenReady().then(async () => {
   const uri = findUriArg(process.argv);
-  await ensureStoresReady();
+  const store = await ensureStoresReady();
+  const loaded = store.getLoadedConfig();
+  const runInBackground = loaded.settings.runInBackground ?? false;
 
-  const tray = await createTrayController({
-    onToggleMainWindow: toggleMainWindow,
-    onQuit: () => {
-      isQuitting = true;
-      app.quit();
-    },
-  });
-  trayActive = tray !== null;
+  const loginSettings = app.getLoginItemSettings();
+  const startedAtLogin = Boolean(loginSettings.wasOpenedAtLogin);
+
+  if (runInBackground) {
+    const tray = await createTrayController({
+      onToggleMainWindow: toggleMainWindow,
+      onQuit: () => {
+        isQuitting = true;
+        app.quit();
+      },
+    });
+    trayActive = tray !== null;
+  } else {
+    trayActive = false;
+  }
 
   if (uri) {
-    await handleUri(uri);
+    const ok = await handleUri(uri);
+    if (ok && !runInBackground) {
+      isQuitting = true;
+      app.quit();
+    }
+    return;
+  }
+
+  if (runInBackground && loaded.settings.runAtLogin && startedAtLogin) {
+    // Start hidden (tray only) when opened at login.
     return;
   }
 

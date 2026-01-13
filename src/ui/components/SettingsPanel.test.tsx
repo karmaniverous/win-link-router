@@ -72,7 +72,8 @@ describe('SettingsPanel', () => {
       </MantineTestProvider>,
     );
 
-    expect(html).toContain('Run at login');
+    expect(html).toContain('Run in Background');
+    expect(html).toContain('Start on Windows Login');
     expect(html).toContain('Shared config path (optional)');
     expect(html).toContain('Store full routing log');
   });

@@ -1,3 +1,8 @@
+/**
+ * Requirements addressed:
+ * - Lifecycle settings: Run in Background (RIB) and Start on Windows Login (SWL).
+ * - Enforce SWL ⇒ RIB in the UI (cannot disable RIB while SWL is enabled).
+ */
 import {
   Alert,
   Paper,
@@ -22,17 +27,20 @@ export function SettingsPanel(props: {
 }) {
   const { api, config, readOnly, onDidChangeSettings } = props;
 
+  const [runInBackground, setRunInBackground] = useState(false);
   const [runAtLogin, setRunAtLogin] = useState(false);
   const [sharedConfigPath, setSharedConfigPath] = useState<string>('');
   const [routeLogMode, setRouteLogMode] = useState<RouteLogMode>('redacted');
 
   useEffect(() => {
     if (!config) return;
+    setRunInBackground(config.settings.runInBackground ?? false);
     setRunAtLogin(config.settings.runAtLogin);
     setSharedConfigPath(config.settings.sharedConfigPath ?? '');
     setRouteLogMode(config.settings.routeLogMode ?? 'redacted');
   }, [config]);
 
+  const debouncedRunInBackground = useDebouncedValue(runInBackground, 400);
   const debouncedRunAtLogin = useDebouncedValue(runAtLogin, 400);
   const debouncedSharedPath = useDebouncedValue(sharedConfigPath, 400);
   const debouncedRouteLogMode = useDebouncedValue(routeLogMode, 400);
@@ -44,12 +52,14 @@ export function SettingsPanel(props: {
       ? debouncedSharedPath.trim()
       : null;
     const currentShared = config.settings.sharedConfigPath ?? null;
+    const currentRunInBackground = config.settings.runInBackground ?? false;
     const currentRunAtLogin = config.settings.runAtLogin;
     const desiredRouteLogMode = debouncedRouteLogMode;
     const currentRouteLogMode = config.settings.routeLogMode ?? 'redacted';
 
     if (
       desiredShared === currentShared &&
+      debouncedRunInBackground === currentRunInBackground &&
       debouncedRunAtLogin === currentRunAtLogin &&
       desiredRouteLogMode === currentRouteLogMode
     ) {
@@ -59,6 +69,7 @@ export function SettingsPanel(props: {
     // In read-only mode we still allow settings changes to fix shared mode.
     void api.settings
       .set({
+        runInBackground: debouncedRunInBackground,
         runAtLogin: debouncedRunAtLogin,
         sharedConfigPath: desiredShared,
         routeLogMode: desiredRouteLogMode,
@@ -68,6 +79,7 @@ export function SettingsPanel(props: {
   }, [
     api.settings,
     config,
+    debouncedRunInBackground,
     debouncedRunAtLogin,
     debouncedSharedPath,
     debouncedRouteLogMode,
@@ -82,12 +94,29 @@ export function SettingsPanel(props: {
         </Title>
 
         <Switch
-          label="Run at login"
-          checked={runAtLogin}
+          label="Run in Background"
+          checked={runInBackground}
+          disabled={runAtLogin}
           onChange={(e) => {
-            setRunAtLogin(e.currentTarget.checked);
+            setRunInBackground(e.currentTarget.checked);
           }}
         />
+
+        <Switch
+          label="Start on Windows Login"
+          checked={runAtLogin}
+          onChange={(e) => {
+            const next = e.currentTarget.checked;
+            setRunAtLogin(next);
+            if (next) setRunInBackground(true);
+          }}
+        />
+
+        {runAtLogin ? (
+          <Text size="sm" c="dimmed">
+            Start on Windows Login requires Run in Background.
+          </Text>
+        ) : null}
 
         <TextInput
           label="Shared config path (optional)"
@@ -95,7 +124,7 @@ export function SettingsPanel(props: {
           onChange={(e) => {
             setSharedConfigPath(e.currentTarget.value);
           }}
-          placeholder="C:\path\to\shared-config.json"
+          placeholder="C:\\path\\to\\shared-config.json"
         />
 
         <Switch
