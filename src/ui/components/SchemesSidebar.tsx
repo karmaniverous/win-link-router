@@ -128,7 +128,7 @@ export function SchemesSidebar(props: {
                 type="button"
                 aria-label="Refresh schemes"
                 variant="default"
-                disabled={loading || readOnly || !config}
+                disabled={loading || !config}
                 onClick={() => {
                   onRefreshAndReconcile();
                 }}

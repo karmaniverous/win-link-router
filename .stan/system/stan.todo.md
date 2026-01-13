@@ -141,4 +141,4 @@
 - Removed unused SettingsAndLogPanel export to keep SettingsPanel focused.
 - Reconciled Windows candidate registration on config save (packaged-only).
 - Fixed registerIpcHandlers tests to use doMock/resetModules and avoid require-await violations.
-- Reconciled candidate registration when sharedConfigPath changes via settings:set.
+- Reconciled candidate registration when sharedConfigPath changes via settings:set.- Allowed schemes refresh in read-only mode (reload-only; no reconcile).

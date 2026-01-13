@@ -83,4 +83,34 @@ describe('SchemesSidebar (interaction)', () => {
       w.prompt = originalPrompt;
     }
   });
+
+  it('allows refreshing schemes in read-only mode', async () => {
+    const user = userEvent.setup();
+    const onRefreshAndReconcile = vi.fn();
+
+    render(
+      <MantineTestProvider>
+        <SchemesSidebar
+          loading={false}
+          readOnly={true}
+          config={createConfig()}
+          presets={createPresets()}
+          statuses={[]}
+          selectedScheme={null}
+          onSelectScheme={vi.fn()}
+          onRefreshAndReconcile={onRefreshAndReconcile}
+          onSetNewSchemeDefaults={vi.fn()}
+          onChangeScheme={vi.fn()}
+          onRemoveScheme={vi.fn()}
+          onAddScheme={vi.fn()}
+          onError={vi.fn()}
+        />
+      </MantineTestProvider>,
+    );
+
+    const refresh = screen.getByRole('button', { name: /refresh schemes/i });
+    expect(refresh).not.toBeDisabled();
+    await user.click(refresh);
+    expect(onRefreshAndReconcile).toHaveBeenCalledTimes(1);
+  });
 });

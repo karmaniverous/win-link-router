@@ -57,6 +57,11 @@ export function App() {
   const controller = useAppController(api);
 
   const ensureRegistrationAndReload = () => {
+    if (controller.readOnly) {
+      return controller.reload().catch((err: unknown) => {
+        controller.setError((err as Error).message);
+      });
+    }
     return controller.saveNow({ ensureRegistration: true });
   };
 
