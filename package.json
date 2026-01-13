@@ -17,6 +17,7 @@
     "handlebars": "^4.7.8",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-github-btn": "^1.4.0",
     "zod": "^4.3.5"
   },
   "description": "My Electron application description",

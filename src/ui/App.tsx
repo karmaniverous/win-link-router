@@ -13,7 +13,6 @@ import {
   Loader,
   Stack,
   Tabs,
-  Title,
   Tooltip,
 } from '@mantine/core';
 
@@ -75,91 +74,52 @@ export function App() {
   };
 
   return (
-    <AppShell
-      header={{ height: 64 }}
-      navbar={{ width: 320, breakpoint: 'sm' }}
-      padding="md"
-    >
+    <AppShell header={{ height: 64 }} padding="md">
       <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between">
-          <Title order={1} size="h3">
-            win-link-router
-          </Title>
-          <Group gap="xs" wrap="wrap">
+        <Group h="100%" px="md" justify="flex-end" gap="xs" wrap="wrap">
+          <Button
+            size="xs"
+            variant="default"
+            onClick={() =>
+              void api.appConfig.importSchemes().then(controller.reload)
+            }
+          >
+            Import
+          </Button>
+          <Button
+            size="xs"
+            variant="default"
+            onClick={() => void api.appConfig.exportSchemes()}
+          >
+            Export
+          </Button>
+          <Button
+            size="xs"
+            variant="default"
+            onClick={() => void api.windows.openDefaultApps()}
+          >
+            Default Apps…
+          </Button>
+          <Tooltip label="Star this repo on GitHub!" withArrow>
             <Button
               size="xs"
               variant="default"
               onClick={() =>
-                void api.appConfig.importSchemes().then(controller.reload)
+                void api.windows
+                  .openExternal(REPO_URL)
+                  .catch((err: unknown) => {
+                    controller.setError((err as Error).message);
+                  })
               }
             >
-              Import
+              GitHub
             </Button>
-            <Button
-              size="xs"
-              variant="default"
-              onClick={() => void api.appConfig.exportSchemes()}
-            >
-              Export
-            </Button>
-            <Button
-              size="xs"
-              variant="default"
-              onClick={() => void api.windows.openDefaultApps()}
-            >
-              Default Apps…
-            </Button>
-            <Tooltip label="Star this repo on GitHub!" withArrow>
-              <Button
-                size="xs"
-                variant="default"
-                onClick={() =>
-                  void api.windows
-                    .openExternal(REPO_URL)
-                    .catch((err: unknown) => {
-                      controller.setError((err as Error).message);
-                    })
-                }
-              >
-                GitHub
-              </Button>
-            </Tooltip>
-            <Button
-              size="xs"
-              variant="default"
-              onClick={() => void ensureRegistrationAndReload()}
-            >
-              Ensure Registration
-            </Button>
-          </Group>
+          </Tooltip>
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="xs">
-        <SchemesSidebar
-          loading={controller.loading}
-          readOnly={controller.readOnly}
-          config={controller.config}
-          presets={controller.presets}
-          statuses={controller.statuses}
-          selectedScheme={controller.selectedScheme}
-          onSelectScheme={controller.setSelectedScheme}
-          onRefreshAndReconcile={() => void ensureRegistrationAndReload()}
-          onChangeScheme={(next, opts) => {
-            controller.onChangeScheme(next, opts);
-          }}
-          onRemoveScheme={controller.onRemoveScheme}
-          onError={(message) => {
-            controller.setError(message);
-          }}
-          onAddScheme={(schemeConfig: SchemeConfig) => {
-            controller.onAddScheme(schemeConfig);
-          }}
-        />
-      </AppShell.Navbar>
-
       <AppShell.Main>
-        <Stack gap="md" style={{ minHeight: 0 }}>
+        <Stack gap="md" style={{ minHeight: 0, height: '100%' }}>
           <Stack gap="xs" role="region" aria-label="Status">
             {controller.loading ? (
               <Group gap="xs">
@@ -217,8 +177,17 @@ export function App() {
             ) : null}
           </Stack>
 
-          <Tabs value={controller.activeTab} onChange={onTabChange}>
-            <Tabs.List>
+          <Tabs
+            value={controller.activeTab}
+            onChange={onTabChange}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 0,
+              flex: 1,
+            }}
+          >
+            <Tabs.List grow>
               {APP_TABS.map((t) => (
                 <Tabs.Tab key={t.id} value={t.id}>
                   {t.label}
@@ -226,22 +195,87 @@ export function App() {
               ))}
             </Tabs.List>
 
-            <Tabs.Panel value="settings" pt="xs">
-              <SettingsPanel
-                api={api}
-                config={controller.config}
-                readOnly={controller.readOnly}
-                onDidChangeSettings={() => void controller.reload()}
-              />
+            <Tabs.Panel
+              value="settings"
+              pt="xs"
+              style={{ minHeight: 0, flex: 1 }}
+            >
+              <Stack gap="sm" style={{ height: '100%', minHeight: 0 }}>
+                <SettingsPanel
+                  api={api}
+                  config={controller.config}
+                  readOnly={controller.readOnly}
+                  onDidChangeSettings={() => void controller.reload()}
+                />
+
+                <Group
+                  align="stretch"
+                  wrap="nowrap"
+                  gap="md"
+                  style={{ minHeight: 0, flex: 1 }}
+                >
+                  <div style={{ width: 320, minHeight: 0, display: 'flex' }}>
+                    <SchemesSidebar
+                      loading={controller.loading}
+                      readOnly={controller.readOnly}
+                      config={controller.config}
+                      presets={controller.presets}
+                      statuses={controller.statuses}
+                      selectedScheme={controller.selectedScheme}
+                      onSelectScheme={controller.setSelectedScheme}
+                      onRefreshAndReconcile={() =>
+                        void ensureRegistrationAndReload()
+                      }
+                      onSetNewSchemeDefaults={(patch) => {
+                        void api.settings
+                          .set(patch)
+                          .then(() => controller.reload())
+                          .catch((err: unknown) => {
+                            controller.setError((err as Error).message);
+                          });
+                      }}
+                      onChangeScheme={(next, opts) => {
+                        controller.onChangeScheme(next, opts);
+                      }}
+                      onRemoveScheme={controller.onRemoveScheme}
+                      onError={(message) => {
+                        controller.setError(message);
+                      }}
+                      onAddScheme={(schemeConfig: SchemeConfig) => {
+                        controller.onAddScheme(schemeConfig);
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+                    <SchemeEditor
+                      api={api}
+                      presets={controller.presets}
+                      readOnly={controller.readOnly}
+                      scheme={
+                        controller.config?.schemes.find(
+                          (s) => s.scheme === controller.selectedScheme,
+                        ) ?? null
+                      }
+                      onChangeScheme={(next, opts) => {
+                        controller.onChangeScheme(next, opts);
+                      }}
+                      onRemoveScheme={(schemeToRemove) => {
+                        controller.onRemoveScheme(schemeToRemove);
+                      }}
+                    />
+                  </div>
+                </Group>
+              </Stack>
             </Tabs.Panel>
-            <Tabs.Panel value="log" pt="xs">
+            <Tabs.Panel value="log" pt="xs" style={{ minHeight: 0, flex: 1 }}>
               <RouteLogPanel
                 api={api}
                 config={controller.config}
                 onDidChangeSettings={() => void controller.reload()}
               />
             </Tabs.Panel>
-            <Tabs.Panel value="test" pt="xs">
+            <Tabs.Panel value="test" pt="xs" style={{ minHeight: 0, flex: 1 }}>
               <TestPanel
                 api={api}
                 config={controller.config}
@@ -250,27 +284,6 @@ export function App() {
               />
             </Tabs.Panel>
           </Tabs>
-
-          <div style={{ flex: 1, minHeight: 0 }}>
-            <div style={{ height: '100%' }}>
-              <SchemeEditor
-                api={api}
-                presets={controller.presets}
-                readOnly={controller.readOnly}
-                scheme={
-                  controller.config?.schemes.find(
-                    (s) => s.scheme === controller.selectedScheme,
-                  ) ?? null
-                }
-                onChangeScheme={(next, opts) => {
-                  controller.onChangeScheme(next, opts);
-                }}
-                onRemoveScheme={(schemeToRemove) => {
-                  controller.onRemoveScheme(schemeToRemove);
-                }}
-              />
-            </div>
-          </div>
         </Stack>
       </AppShell.Main>
     </AppShell>

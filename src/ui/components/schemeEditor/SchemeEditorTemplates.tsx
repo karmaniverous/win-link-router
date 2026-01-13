@@ -10,10 +10,10 @@ import {
   Group,
   Paper,
   Stack,
-  Switch,
   Text,
   Textarea,
   TextInput,
+  Tooltip,
 } from '@mantine/core';
 
 import type {
@@ -76,6 +76,24 @@ export function SchemeEditorTemplates(props: {
             <Group justify="space-between" align="center" mb="xs">
               <Text fw={600}>{t.label || '(untitled)'}</Text>
               <Group gap={6}>
+                <Tooltip
+                  label={t.enabled ? 'Disable template' : 'Enable template'}
+                  withArrow
+                >
+                  <ActionIcon
+                    variant="default"
+                    disabled={readOnly}
+                    aria-label="Toggle template enabled"
+                    onClick={() => {
+                      if (readOnly) return;
+                      updateTemplate(t.id, { enabled: !t.enabled });
+                    }}
+                  >
+                    <Text span fw={700} c={t.enabled ? 'green' : 'dimmed'}>
+                      ⏻
+                    </Text>
+                  </ActionIcon>
+                </Tooltip>
                 <ActionIcon
                   variant="default"
                   disabled={readOnly || idx === 0}
@@ -116,15 +134,6 @@ export function SchemeEditorTemplates(props: {
             </Group>
 
             <Stack gap="xs">
-              <Switch
-                label="Enabled"
-                checked={t.enabled}
-                disabled={readOnly}
-                onChange={(e) => {
-                  updateTemplate(t.id, { enabled: e.currentTarget.checked });
-                }}
-              />
-
               <TextInput
                 label="Label"
                 value={t.label}

@@ -58,6 +58,7 @@ describe('SchemesSidebar (interaction)', () => {
             selectedScheme={null}
             onSelectScheme={vi.fn()}
             onRefreshAndReconcile={vi.fn()}
+            onSetNewSchemeDefaults={vi.fn()}
             onChangeScheme={vi.fn()}
             onRemoveScheme={vi.fn()}
             onAddScheme={onAddScheme}

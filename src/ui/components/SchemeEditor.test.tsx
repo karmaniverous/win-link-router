@@ -100,7 +100,7 @@ describe('SchemeEditor', () => {
     expect(html).toContain('WhatsApp Desktop');
   });
 
-  it('renders enabled checkbox for templates', () => {
+  it('renders power controls for scheme and templates', () => {
     const scheme = createScheme();
     const html = renderToStaticMarkup(
       <MantineTestProvider>
@@ -115,9 +115,8 @@ describe('SchemeEditor', () => {
       </MantineTestProvider>,
     );
 
-    // Expect at least one checkbox for scheme.enabled and one for template.enabled.
-    const checkboxCount = (html.match(/type="checkbox"/g) ?? []).length;
-    expect(checkboxCount).toBeGreaterThanOrEqual(2);
+    expect(html).toContain('aria-label="Toggle scheme enabled"');
+    expect(html).toContain('aria-label="Toggle template enabled"');
   });
 
   it('shows an inline error when extractor regex is invalid', () => {

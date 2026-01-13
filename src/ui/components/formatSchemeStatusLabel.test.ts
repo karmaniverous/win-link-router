@@ -3,23 +3,23 @@ import { describe, expect, it } from 'vitest';
 import { formatSchemeStatusLabel } from './formatSchemeStatusLabel';
 
 describe('formatSchemeStatusLabel', () => {
-  it('formats default/registered status', () => {
+  it('returns just the scheme name (status is icon-only)', () => {
     expect(
       formatSchemeStatusLabel({
         scheme: 'TEL',
         enabled: true,
         status: { defaultStatus: 'default', registered: true },
       }),
-    ).toBe('TEL — Default, Registered');
+    ).toBe('TEL');
   });
 
-  it('includes disabled + unknowns when missing status', () => {
+  it('does not embed disabled/default/registration text', () => {
     expect(
       formatSchemeStatusLabel({
         scheme: 'MAILTO',
         enabled: false,
         status: null,
       }),
-    ).toBe('MAILTO — disabled, Default unknown, Registration unknown');
+    ).toBe('MAILTO');
   });
 });

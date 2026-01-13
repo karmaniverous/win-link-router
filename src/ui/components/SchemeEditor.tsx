@@ -3,15 +3,20 @@
  * - Disabled schemes must have editing controls disabled (except re-enable).
  * - Registration changes should trigger best-effort reconciliation.
  * - Prefer Mantine primitives over bespoke form controls.
+ * - Wireframe alignment: scheme enable/disable uses a power-button control in
+ *   the scheme header (not inside the extractor section).
  */
 import {
+  ActionIcon,
   Button,
   Group,
   NativeSelect,
   Paper,
   ScrollArea,
   Stack,
+  Text,
   Title,
+  Tooltip,
 } from '@mantine/core';
 import { useMemo, useState } from 'react';
 
@@ -154,9 +159,40 @@ export function SchemeEditor(props: {
 
       <Stack gap="sm" style={{ height: '100%' }}>
         <Group justify="space-between" align="center">
-          <Title order={2} size="h4" m={0}>
-            {scheme.scheme}
-          </Title>
+          <Group gap="xs" align="center">
+            <Title order={2} size="h4" m={0}>
+              {scheme.scheme}
+            </Title>
+
+            <Tooltip
+              label={scheme.enabled ? 'Disable scheme' : 'Enable scheme'}
+              withArrow
+            >
+              <ActionIcon
+                variant="default"
+                aria-label="Toggle scheme enabled"
+                disabled={readOnly}
+                onClick={() => {
+                  if (readOnly) return;
+
+                  const nextEnabled = !scheme.enabled;
+                  onChangeScheme(
+                    {
+                      ...scheme,
+                      enabled: nextEnabled,
+                      registered: nextEnabled ? scheme.registered : false,
+                    },
+                    { ensureRegistration: true },
+                  );
+                }}
+              >
+                <Text span fw={700} c={scheme.enabled ? 'green' : 'dimmed'}>
+                  ⏻
+                </Text>
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+
           <Group gap="xs" wrap="wrap">
             <Button
               size="xs"

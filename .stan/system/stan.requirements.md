@@ -125,6 +125,10 @@ Durable project requirements (desired end-state).
 ## UI requirements
 
 - The main window must provide:
+  - A header toolbar aligned to the wireframe:
+    - Do not display an in-app app title in the upper-left corner.
+    - Do not display an “Ensure Registration” button in the header (registration reconciliation remains available via the Schemes panel refresh control).
+    - Tabs should be presented full-width under the header toolbar.
   - Separate tabs: Settings, Log, Test.
   - List of configured schemes.
   - For selected scheme: extractor editor, template list editor.
@@ -135,6 +139,9 @@ Durable project requirements (desired end-state).
     - Whether the app is the current Windows default handler (“Default”, “Not default”, or “Unknown”).
   - Controls to open Windows Default Apps for the user to set the default.
 - The UI must autosave configuration changes without an explicit Save action.
+  - Layout must align to the wireframe:
+    - Schemes and Scheme Detail panels appear only in the Settings tab and are presented side-by-side.
+    - The Scheme Detail panel must be scrollable when its content exceeds the viewport height.
 
 - The UI must provide a loading indicator for slow-start content:
   - Show a spinner/“Loading…” while config/presets/statuses are loading.
@@ -162,6 +169,7 @@ Durable project requirements (desired end-state).
   - Window chrome (header + tabs) should be pinned; the window should not scroll as a whole in typical use.
   - Only dedicated scroll regions should scroll:
     - scheme list
+    - scheme detail
     - templates list
     - log view
     - test output (as needed)
@@ -171,9 +179,13 @@ Durable project requirements (desired end-state).
   - Schemes must be displayed in canonical name-sorted order (A→Z).
   - Selecting a scheme shows its editor panel; selection is independent of enablement and registration state.
   - Disabled schemes must be visually greyed out and their editing controls disabled (except the ability to re-enable).
+  - Scheme list labels should include only the scheme name (status is conveyed via icons/tooltip).
   - Registration/default status icons must support unknown and disabled states:
     - Unknown: show an orange “?” state.
     - Disabled: show a greyed/disabled state.
+  - Enable/disable controls:
+    - Schemes use a power-button control.
+    - Templates use a power-button control (not a checkbox/switch) to enable/disable.
 
 ### Test UI (debugging / validation)
 

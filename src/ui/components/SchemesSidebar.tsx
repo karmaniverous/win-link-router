@@ -9,6 +9,7 @@ import {
   Paper,
   ScrollArea,
   Stack,
+  Switch,
   Text,
   Title,
   Tooltip,
@@ -22,7 +23,6 @@ import type {
 } from '../../core/config/appConfig';
 import { AddSchemeDialog } from './AddSchemeDialog';
 import { ConfirmDialog } from './ConfirmDialog';
-import { formatSchemeStatusLabel } from './formatSchemeStatusLabel';
 import { SchemeRow } from './schemesSidebar/SchemeRow';
 
 /**
@@ -50,6 +50,10 @@ export function SchemesSidebar(props: {
   onSelectScheme: (scheme: string) => void;
   onRefreshAndReconcile: () => void;
   onAddScheme: (scheme: SchemeConfig) => void;
+  onSetNewSchemeDefaults: (patch: {
+    autoEnableNewSchemes?: boolean;
+    autoRegisterNewSchemes?: boolean;
+  }) => void;
   onChangeScheme: (
     next: SchemeConfig,
     opts?: { ensureRegistration?: boolean },
@@ -87,6 +91,13 @@ export function SchemesSidebar(props: {
 
   const canAdd = !readOnly && !loading && Boolean(config) && Boolean(presets);
   const showLoading = loading || !config || !presets;
+
+  const autoRegisterNewSchemes =
+    config?.settings.autoRegisterNewSchemes ?? true;
+  const autoEnableNewSchemes = config?.settings.autoEnableNewSchemes ?? true;
+  const effectiveAutoEnable = autoRegisterNewSchemes
+    ? true
+    : autoEnableNewSchemes;
 
   return (
     <Paper withBorder radius="md" p="sm" style={{ height: '100%' }}>
@@ -140,6 +151,38 @@ export function SchemesSidebar(props: {
           </Group>
         </Group>
 
+        <Group gap="md" wrap="wrap">
+          <Switch
+            size="sm"
+            label="Auto-register"
+            checked={autoRegisterNewSchemes}
+            disabled={readOnly || !config}
+            onChange={(e) => {
+              const next = e.currentTarget.checked;
+              onSetNewSchemeDefaults({
+                autoRegisterNewSchemes: next,
+                autoEnableNewSchemes: next ? true : effectiveAutoEnable,
+              });
+            }}
+          />
+          <Switch
+            size="sm"
+            label="Auto-enable"
+            checked={effectiveAutoEnable}
+            disabled={readOnly || !config || autoRegisterNewSchemes}
+            onChange={(e) => {
+              onSetNewSchemeDefaults({
+                autoEnableNewSchemes: e.currentTarget.checked,
+              });
+            }}
+          />
+          {autoRegisterNewSchemes ? (
+            <Text size="xs" c="dimmed">
+              Auto-register implies auto-enable.
+            </Text>
+          ) : null}
+        </Group>
+
         {/*
          * Requirements addressed:
          * - New schemes should respect per-user defaults for enable/register.
@@ -186,11 +229,7 @@ export function SchemesSidebar(props: {
             {config
               ? config.schemes.map((s) => {
                   const status = statusByScheme.get(s.scheme) ?? null;
-                  const label = formatSchemeStatusLabel({
-                    scheme: s.scheme,
-                    enabled: s.enabled,
-                    status,
-                  });
+                  const label = s.scheme;
 
                   return (
                     <SchemeRow

@@ -2,8 +2,8 @@
  * Requirements addressed:
  * - Lifecycle settings: Run in Background (RIB) and Start on Windows Login (SWL).
  * - Enforce SWL ⇒ RIB in the UI (cannot disable RIB while SWL is enabled).
- * - New scheme defaults: auto-enable and auto-register (auto-register implies
- *   auto-enable).
+ * - Shared config mode: browse + enable toggle in a compact, inline layout
+ *   to preserve vertical space (wireframe-aligned).
  */
 import {
   Alert,
@@ -14,11 +14,10 @@ import {
   Switch,
   Text,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
 
-import type { AppConfig, RouteLogMode } from '../../core/config/appConfig';
+import type { AppConfig } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { RouteLogPanel } from './RouteLogPanel';
@@ -33,37 +32,22 @@ export function SettingsPanel(props: {
 
   const [runInBackground, setRunInBackground] = useState(false);
   const [runAtLogin, setRunAtLogin] = useState(false);
-  const [autoEnableNewSchemes, setAutoEnableNewSchemes] = useState(true);
-  const [autoRegisterNewSchemes, setAutoRegisterNewSchemes] = useState(true);
   const [useSharedConfig, setUseSharedConfig] = useState(false);
   const [sharedConfigPath, setSharedConfigPath] = useState<string>('');
-  const [routeLogMode, setRouteLogMode] = useState<RouteLogMode>('redacted');
 
   useEffect(() => {
     if (!config) return;
     setRunInBackground(config.settings.runInBackground ?? false);
     setRunAtLogin(config.settings.runAtLogin);
-    setAutoEnableNewSchemes(config.settings.autoEnableNewSchemes ?? true);
-    setAutoRegisterNewSchemes(config.settings.autoRegisterNewSchemes ?? true);
     const shared = config.settings.sharedConfigPath ?? '';
     setUseSharedConfig(Boolean(shared));
     setSharedConfigPath(shared);
-    setRouteLogMode(config.settings.routeLogMode ?? 'redacted');
   }, [config]);
 
   const debouncedRunInBackground = useDebouncedValue(runInBackground, 400);
   const debouncedRunAtLogin = useDebouncedValue(runAtLogin, 400);
-  const debouncedAutoEnableNewSchemes = useDebouncedValue(
-    autoEnableNewSchemes,
-    400,
-  );
-  const debouncedAutoRegisterNewSchemes = useDebouncedValue(
-    autoRegisterNewSchemes,
-    400,
-  );
   const debouncedUseSharedConfig = useDebouncedValue(useSharedConfig, 400);
   const debouncedSharedPath = useDebouncedValue(sharedConfigPath, 400);
-  const debouncedRouteLogMode = useDebouncedValue(routeLogMode, 400);
 
   useEffect(() => {
     if (!config) return;
@@ -76,23 +60,11 @@ export function SettingsPanel(props: {
       : null;
     const currentRunInBackground = config.settings.runInBackground ?? false;
     const currentRunAtLogin = config.settings.runAtLogin;
-    const currentAutoEnable = config.settings.autoEnableNewSchemes ?? true;
-    const currentAutoRegister = config.settings.autoRegisterNewSchemes ?? true;
-
-    const desiredAutoRegister = debouncedAutoRegisterNewSchemes;
-    const desiredAutoEnable = desiredAutoRegister
-      ? true
-      : debouncedAutoEnableNewSchemes;
-    const desiredRouteLogMode = debouncedRouteLogMode;
-    const currentRouteLogMode = config.settings.routeLogMode ?? 'redacted';
 
     if (
       desiredShared === currentShared &&
       debouncedRunInBackground === currentRunInBackground &&
-      debouncedRunAtLogin === currentRunAtLogin &&
-      desiredAutoEnable === currentAutoEnable &&
-      desiredAutoRegister === currentAutoRegister &&
-      desiredRouteLogMode === currentRouteLogMode
+      debouncedRunAtLogin === currentRunAtLogin
     ) {
       return;
     }
@@ -102,10 +74,7 @@ export function SettingsPanel(props: {
       .set({
         runInBackground: debouncedRunInBackground,
         runAtLogin: debouncedRunAtLogin,
-        autoEnableNewSchemes: desiredAutoEnable,
-        autoRegisterNewSchemes: desiredAutoRegister,
         sharedConfigPath: desiredShared,
-        routeLogMode: desiredRouteLogMode,
       })
       .then(onDidChangeSettings)
       .catch(() => undefined);
@@ -114,117 +83,76 @@ export function SettingsPanel(props: {
     config,
     debouncedRunInBackground,
     debouncedRunAtLogin,
-    debouncedAutoEnableNewSchemes,
-    debouncedAutoRegisterNewSchemes,
     debouncedUseSharedConfig,
     debouncedSharedPath,
-    debouncedRouteLogMode,
     onDidChangeSettings,
   ]);
 
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper withBorder radius="md" p="sm">
       <Stack gap="sm">
-        <Title order={2} size="h4" m={0}>
-          Settings
-        </Title>
-
-        <Switch
-          label="Run in Background"
-          checked={runInBackground}
-          disabled={runAtLogin}
-          onChange={(e) => {
-            setRunInBackground(e.currentTarget.checked);
-          }}
-        />
-
-        <Switch
-          label="Start on Windows Login"
-          checked={runAtLogin}
-          onChange={(e) => {
-            const next = e.currentTarget.checked;
-            setRunAtLogin(next);
-            if (next) setRunInBackground(true);
-          }}
-        />
-
-        {runAtLogin ? (
-          <Text size="sm" c="dimmed">
-            Start on Windows Login requires Run in Background.
-          </Text>
-        ) : null}
-
-        <Title order={3} size="h5" m={0} mt="sm">
-          New scheme defaults
-        </Title>
-
-        <Switch
-          label="Auto-enable new schemes"
-          checked={autoRegisterNewSchemes ? true : autoEnableNewSchemes}
-          disabled={autoRegisterNewSchemes}
-          onChange={(e) => {
-            setAutoEnableNewSchemes(e.currentTarget.checked);
-          }}
-        />
-
-        <Switch
-          label="Auto-register new schemes"
-          checked={autoRegisterNewSchemes}
-          onChange={(e) => {
-            const next = e.currentTarget.checked;
-            setAutoRegisterNewSchemes(next);
-            if (next) setAutoEnableNewSchemes(true);
-          }}
-        />
-
-        {autoRegisterNewSchemes ? (
-          <Text size="sm" c="dimmed">
-            Auto-register implies auto-enable.
-          </Text>
-        ) : null}
-
-        <Title order={3} size="h5" m={0} mt="sm">
-          Shared config
-        </Title>
-
-        <Switch
-          label="Use shared config"
-          checked={useSharedConfig}
-          onChange={(e) => {
-            const next = e.currentTarget.checked;
-            setUseSharedConfig(next);
-            if (!next) {
-              setSharedConfigPath('');
-            }
-          }}
-        />
-
-        <Group align="flex-end" wrap="nowrap">
-          <TextInput
-            label="Shared config path (optional)"
-            style={{ flex: 1 }}
-            value={sharedConfigPath}
-            disabled={!useSharedConfig}
+        <Group align="flex-end" gap="md" wrap="wrap">
+          <Switch
+            label="Run in Background"
+            checked={runInBackground}
+            disabled={runAtLogin}
             onChange={(e) => {
-              setSharedConfigPath(e.currentTarget.value);
+              setRunInBackground(e.currentTarget.checked);
             }}
-            placeholder="C:\\path\\to\\shared-config.json"
           />
-          <Button
-            variant="default"
-            onClick={() => {
-              void api.settings
-                .pickSharedConfigPath()
-                .then((res) => {
-                  if (res.cancelled) return;
-                  setUseSharedConfig(true);
-                  setSharedConfigPath(res.filePath);
-                })
-                .catch(() => undefined);
+
+          <Switch
+            label="Start on Windows Login"
+            checked={runAtLogin}
+            onChange={(e) => {
+              const next = e.currentTarget.checked;
+              setRunAtLogin(next);
+              if (next) setRunInBackground(true);
             }}
+          />
+
+          <Switch
+            label="Use shared config"
+            checked={useSharedConfig}
+            onChange={(e) => {
+              const next = e.currentTarget.checked;
+              setUseSharedConfig(next);
+              if (!next) setSharedConfigPath('');
+            }}
+          />
+
+          <Group
+            align="flex-end"
+            wrap="nowrap"
+            gap="xs"
+            style={{ flex: 1, minWidth: 360 }}
           >
-            Browse…
-          </Button>
+            <TextInput
+              label="Shared config path"
+              style={{ flex: 1 }}
+              value={sharedConfigPath}
+              disabled={!useSharedConfig}
+              onChange={(e) => {
+                setSharedConfigPath(e.currentTarget.value);
+              }}
+              placeholder="C:\\path\\to\\shared-config.json"
+            />
+            <Button
+              variant="default"
+              onClick={() => {
+                void api.settings
+                  .pickSharedConfigPath()
+                  .then((res) => {
+                    if (res.cancelled) return;
+                    setUseSharedConfig(true);
+                    setSharedConfigPath(res.filePath);
+                  })
+                  .catch(() => undefined);
+              }}
+            >
+              Browse…
+            </Button>
+          </Group>
         </Group>
 
         {useSharedConfig && !sharedConfigPath.trim() ? (
@@ -232,19 +160,6 @@ export function SettingsPanel(props: {
             Choose a JSON file path to enable shared mode.
           </Alert>
         ) : null}
-
-        <Switch
-          label="Redact new log entries"
-          checked={routeLogMode === 'redacted'}
-          onChange={(e) => {
-            setRouteLogMode(e.currentTarget.checked ? 'redacted' : 'full');
-          }}
-        />
-
-        <Text size="sm" c="dimmed">
-          Redacted mode stores scheme-level info only. Disable redaction to
-          store full URIs/targets (less private).
-        </Text>
 
         {readOnly ? (
           <Alert color="yellow" title="Read-only schemes">
