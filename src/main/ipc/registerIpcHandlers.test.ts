@@ -194,4 +194,106 @@ describe('registerIpcHandlers', () => {
 
     expect(ensureCandidateRegistrationMock).toHaveBeenCalledTimes(0);
   });
+
+  it('reconciles on settings:set when sharedConfigPath changes (packaged)', async () => {
+    const { registerIpcHandlers } = await import('./registerIpcHandlers');
+
+    let loaded = createConfig();
+
+    const configStore = {
+      load: vi.fn(),
+      getLoadedConfig: vi.fn(() => loaded),
+      save: vi.fn((next: AppConfig) => {
+        loaded = next;
+        return Promise.resolve();
+      }),
+      saveSettings: vi.fn((nextSettings: AppConfig['settings']) => {
+        loaded = { ...loaded, settings: nextSettings };
+        return Promise.resolve();
+      }),
+    };
+
+    const logStore = {
+      setMode: vi.fn(),
+      read: vi.fn(),
+      clear: vi.fn(),
+      append: vi.fn(),
+    };
+
+    registerIpcHandlers({
+      configStore: configStore as unknown as Parameters<
+        typeof registerIpcHandlers
+      >[0]['configStore'],
+      logStore: logStore as unknown as Parameters<
+        typeof registerIpcHandlers
+      >[0]['logStore'],
+      getPresets: () => ({
+        schemaVersion: 1,
+        appVersion: '0.0.0',
+        presets: [],
+      }),
+      renderer: { render: () => 'x' },
+      appVersion: '0.0.0',
+      isPackaged: true,
+      exePath: 'C:\\x\\win-link-router.exe',
+    });
+
+    const handler = handlers.get('settings:set');
+    expect(handler).toBeTruthy();
+
+    await handler?.({}, { sharedConfigPath: 'C:\\x\\shared.json' });
+
+    expect(ensureCandidateRegistrationMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reconcile on settings:set when sharedConfigPath is unchanged', async () => {
+    const { registerIpcHandlers } = await import('./registerIpcHandlers');
+
+    let loaded = createConfig();
+
+    const configStore = {
+      load: vi.fn(),
+      getLoadedConfig: vi.fn(() => loaded),
+      save: vi.fn((next: AppConfig) => {
+        loaded = next;
+        return Promise.resolve();
+      }),
+      saveSettings: vi.fn((nextSettings: AppConfig['settings']) => {
+        loaded = { ...loaded, settings: nextSettings };
+        return Promise.resolve();
+      }),
+    };
+
+    const logStore = {
+      setMode: vi.fn(),
+      read: vi.fn(),
+      clear: vi.fn(),
+      append: vi.fn(),
+    };
+
+    registerIpcHandlers({
+      configStore: configStore as unknown as Parameters<
+        typeof registerIpcHandlers
+      >[0]['configStore'],
+      logStore: logStore as unknown as Parameters<
+        typeof registerIpcHandlers
+      >[0]['logStore'],
+      getPresets: () => ({
+        schemaVersion: 1,
+        appVersion: '0.0.0',
+        presets: [],
+      }),
+      renderer: { render: () => 'x' },
+      appVersion: '0.0.0',
+      isPackaged: true,
+      exePath: 'C:\\x\\win-link-router.exe',
+    });
+
+    const handler = handlers.get('settings:set');
+    expect(handler).toBeTruthy();
+
+    await handler?.({}, { runAtLogin: true });
+
+    expect(ensureCandidateRegistrationMock).toHaveBeenCalledTimes(0);
+  });
 });

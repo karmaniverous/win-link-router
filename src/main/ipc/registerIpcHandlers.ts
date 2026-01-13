@@ -8,6 +8,7 @@
  * - Windows candidate registration is reconciled to match per-scheme config intent:
  *   - on explicit Ensure Registration, and
  *   - on config save (best-effort, packaged-only).
+ *   - on shared-config-path changes via settings:set (best-effort, packaged-only).
  * - UI can open external links (e.g., GitHub repo) via main process.
  */
 import path from 'node:path';
@@ -157,6 +158,7 @@ export function registerIpcHandlers(opts: {
 
   ipcMain.handle('settings:set', async (_event, patch: unknown) => {
     const current = opts.configStore.getLoadedConfig();
+    const beforeShared = current.settings.sharedConfigPath ?? null;
     const parsed = parseAppConfig({
       ...current,
       settings: { ...current.settings, ...(patch as object) },
@@ -166,6 +168,11 @@ export function registerIpcHandlers(opts: {
     opts.logStore.setMode(
       opts.configStore.getLoadedConfig().settings.routeLogMode ?? 'redacted',
     );
+    const afterShared =
+      opts.configStore.getLoadedConfig().settings.sharedConfigPath ?? null;
+    if (beforeShared !== afterShared) {
+      await reconcileRegistrationForLoadedConfig().catch(() => undefined);
+    }
     return { ok: true };
   });
 
