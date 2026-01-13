@@ -124,4 +124,4 @@
 - Replaced GitHub header button with react-github-btn.
 - Hardened Settings tab flex heights so Scheme Detail scrolls.
 - Fixed App.tsx lint by removing a stray expression.
-- Ensure Tabs.List stretches full width (wireframe polish).
+- Ensure Tabs.List stretches full width (wireframe polish).- Removed unused scheme status label helper + test.
