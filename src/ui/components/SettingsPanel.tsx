@@ -4,6 +4,7 @@
  * - Enforce SWL ⇒ RIB in the UI (cannot disable RIB while SWL is enabled).
  * - Shared config mode: browse + enable toggle in a compact, inline layout
  *   to preserve vertical space (wireframe-aligned).
+ * - Keep this module focused on SettingsPanel; remove unused composite exports.
  */
 import {
   Alert,
@@ -19,7 +20,6 @@ import { useEffect, useState } from 'react';
 import type { AppConfig } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import { RouteLogPanel } from './RouteLogPanel';
 
 export function SettingsPanel(props: {
   api: WinLinkRouterApi;
@@ -164,20 +164,5 @@ export function SettingsPanel(props: {
         ) : null}
       </Stack>
     </Paper>
-  );
-}
-
-export function SettingsAndLogPanel(
-  props: Parameters<typeof SettingsPanel>[0],
-) {
-  return (
-    <>
-      <SettingsPanel {...props} />
-      <RouteLogPanel
-        api={props.api}
-        config={props.config}
-        onDidChangeSettings={props.onDidChangeSettings}
-      />
-    </>
   );
 }
