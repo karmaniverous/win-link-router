@@ -109,3 +109,4 @@
 - Fixed lint in main login-start detection.
 - Added auto-enable/auto-register defaults for new schemes.
 - Trimmed legacy CSS and Mantine-ized preset select.
+- Made Test tab infer scheme from URI (no selector).

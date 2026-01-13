@@ -1,3 +1,8 @@
+/**
+ * Requirements addressed:
+ * - Test tab infers scheme from URI (no scheme selector required).
+ * - Disabled schemes can still be evaluated, but show a clear banner.
+ */
 import {
   Alert,
   Code,
@@ -10,19 +15,55 @@ import {
 } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 
+import type { AppConfig, SchemeConfig } from '../../core/config/appConfig';
+import { normalizeScheme } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 
+function looksLikeWindowsPath(value: string): boolean {
+  // Absolute drive path: C:\... or C:/...
+  if (/^[a-zA-Z]:[\\/]/.test(value)) return true;
+  // UNC path: \\server\share\...
+  if (value.startsWith('\\\\')) return true;
+  return false;
+}
+
+function inferSchemeFromUri(uri: string): string | null {
+  const trimmed = uri.trim();
+  if (!trimmed) return null;
+  if (looksLikeWindowsPath(trimmed)) return null;
+
+  const idx = trimmed.indexOf(':');
+  if (idx <= 0) return null;
+
+  const rawScheme = trimmed.slice(0, idx);
+  try {
+    return normalizeScheme(rawScheme);
+  } catch {
+    return null;
+  }
+}
+
+function findScheme(config: AppConfig | null, scheme: string | null) {
+  if (!config || !scheme) return null;
+  return config.schemes.find((s) => s.scheme === scheme) ?? null;
+}
+
 export function TestPanel(props: {
   api: WinLinkRouterApi;
-  scheme: string | null;
+  config: AppConfig | null;
   testUri: string;
   onChangeTestUri: (next: string) => void;
 }) {
-  const { api, scheme, testUri, onChangeTestUri } = props;
+  const { api, config, testUri, onChangeTestUri } = props;
 
   const debouncedUri = useDebouncedValue(testUri, 300);
-  const debouncedScheme = useDebouncedValue(scheme, 300);
+  const inferredScheme = useMemo(() => inferSchemeFromUri(testUri), [testUri]);
+  const debouncedScheme = useDebouncedValue(inferredScheme, 300);
+
+  const schemeConfig = useMemo(() => {
+    return findScheme(config, inferredScheme);
+  }, [config, inferredScheme]);
 
   const [result, setResult] = useState<{
     matchGroups?: Record<string, string>;
@@ -70,6 +111,20 @@ export function TestPanel(props: {
           Test
         </Title>
 
+        <Text size="sm" c="dimmed">
+          Scheme:{' '}
+          <Text span fw={600}>
+            {inferredScheme ?? '(not inferred)'}
+          </Text>
+        </Text>
+
+        {schemeConfig && !schemeConfig.enabled ? (
+          <Alert color="yellow" title="Scheme is disabled">
+            Routing for {schemeConfig.scheme} is currently disabled. Test output
+            below is for debugging only.
+          </Alert>
+        ) : null}
+
         <TextInput
           label="Incoming URI"
           value={testUri}
@@ -79,9 +134,18 @@ export function TestPanel(props: {
           placeholder="e.g. tel:+1 (555) 123-4567"
         />
 
-        {!scheme ? (
+        {!testUri.trim() ? (
           <Text size="sm" c="dimmed">
-            Select a scheme to run tests.
+            Enter a URI to run tests.
+          </Text>
+        ) : !inferredScheme ? (
+          <Text size="sm" c="dimmed">
+            Could not infer a scheme from the URI. Include a scheme prefix like
+            <Text span fw={600}>
+              {' '}
+              tel:
+            </Text>
+            .
           </Text>
         ) : null}
 

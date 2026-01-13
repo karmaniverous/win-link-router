@@ -5,6 +5,13 @@
  * - Provide scheme-row controls (register toggle, delete) and refresh+reconcile.
  * - Provide a GitHub header button to open the repo link externally.
  */
+/**
+ * Requirements addressed:
+ * - Main view provides scheme list + editor and supports Windows registration
+ *   reconciliation.
+ * - Provide scheme-row controls (register toggle, delete) and refresh+reconcile.
+ * - Provide a GitHub header button to open the repo link externally.
+ */
 import {
   Alert,
   AppShell,
@@ -235,7 +242,7 @@ export function App() {
             <Tabs.Panel value="test" pt="xs">
               <TestPanel
                 api={api}
-                scheme={controller.selectedScheme}
+                config={controller.config}
                 testUri={controller.testUri}
                 onChangeTestUri={controller.setTestUri}
               />
