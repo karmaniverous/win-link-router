@@ -8,12 +8,12 @@ import { useMemo, useState } from 'react';
 
 import { computeDefaultHandlerMismatch } from '../../core/windows/defaultHandlerMismatch';
 
-type StatusLike = {
+interface StatusLike {
   scheme: string;
   enabled: boolean;
   registered: boolean;
   defaultStatus: 'default' | 'not-default' | 'unknown';
-};
+}
 
 export function DefaultHandlerMismatchBanner(props: {
   statuses: StatusLike[];
@@ -45,13 +45,19 @@ export function DefaultHandlerMismatchBanner(props: {
 
         {mismatch.notDefault.length ? (
           <Text size="sm">
-            Not default: <Text span fw={600}>{mismatch.notDefault.join(', ')}</Text>
+            Not default:{' '}
+            <Text span fw={600}>
+              {mismatch.notDefault.join(', ')}
+            </Text>
           </Text>
         ) : null}
 
         {mismatch.unknown.length ? (
           <Text size="sm">
-            Unknown: <Text span fw={600}>{mismatch.unknown.join(', ')}</Text>
+            Unknown:{' '}
+            <Text span fw={600}>
+              {mismatch.unknown.join(', ')}
+            </Text>
           </Text>
         ) : null}
 

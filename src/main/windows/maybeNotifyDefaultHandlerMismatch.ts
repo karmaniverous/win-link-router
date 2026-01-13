@@ -20,7 +20,8 @@ export async function maybeNotifyDefaultHandlerMismatch(opts: {
 }): Promise<{ notified: boolean }> {
   if (process.platform !== 'win32') return { notified: false };
   if (!opts.tray) return { notified: false };
-  if (typeof opts.tray.displayBalloon !== 'function') return { notified: false };
+  if (typeof opts.tray.displayBalloon !== 'function')
+    return { notified: false };
 
   const statuses = await getAllSchemeStatusesFromConfig(opts.config, {
     exePath: opts.exePath,
