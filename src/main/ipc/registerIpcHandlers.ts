@@ -5,7 +5,9 @@
  * - UI test panel needs per-template rendered output / render errors.
  * - Support import/export of schemes via JSON files (portable; settings preserved).
  * - Windows integration: registration + default handler status (read-only).
- * - Windows candidate registration is reconciled to match per-scheme config intent.
+ * - Windows candidate registration is reconciled to match per-scheme config intent:
+ *   - on explicit Ensure Registration, and
+ *   - on config save (best-effort, packaged-only).
  * - UI can open external links (e.g., GitHub repo) via main process.
  */
 import path from 'node:path';
@@ -61,6 +63,23 @@ export function registerIpcHandlers(opts: {
   isPackaged: boolean;
   exePath: string;
 }) {
+  async function reconcileRegistrationForLoadedConfig(): Promise<void> {
+    if (!opts.isPackaged) return;
+
+    const config = opts.configStore.getLoadedConfig();
+    const registeredSchemes = config.schemes
+      .filter((s) => s.enabled && s.registered)
+      .map((s) => s.scheme);
+
+    await ensureCandidateRegistration({
+      isPackaged: opts.isPackaged,
+      exePath: opts.exePath,
+      appDisplayName: 'win-link-router',
+      appDescription: 'Routes protocol links to configured targets',
+      registeredSchemes,
+    });
+  }
+
   ipcMain.handle('appConfig:get', async () => {
     const { config, readOnly, warnings } = await opts.configStore.load();
     return { config, readOnly, warnings };
@@ -73,6 +92,8 @@ export function registerIpcHandlers(opts: {
     opts.logStore.setMode(
       opts.configStore.getLoadedConfig().settings.routeLogMode ?? 'redacted',
     );
+    // Best-effort: keep Windows candidate registration aligned to saved config.
+    await reconcileRegistrationForLoadedConfig().catch(() => undefined);
     return { ok: true };
   });
 
@@ -124,6 +145,8 @@ export function registerIpcHandlers(opts: {
     });
     await opts.configStore.save(next);
     applyRunAtLoginSetting(opts.configStore.getLoadedConfig());
+    // Best-effort: keep Windows candidate registration aligned to imported config.
+    await reconcileRegistrationForLoadedConfig().catch(() => undefined);
 
     return {
       cancelled: false as const,

@@ -139,3 +139,4 @@
 - Replaced remaining <details> disclosures in Log/Test with Mantine Accordion.
 - Added dedicated scroll regions for Log/Test tab content (Mantine ScrollArea + flex panels).
 - Removed unused SettingsAndLogPanel export to keep SettingsPanel focused.
+- Reconciled Windows candidate registration on config save (packaged-only).
