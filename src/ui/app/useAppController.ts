@@ -3,6 +3,8 @@
  * - UI loads config/presets/windows statuses on start and shows loading state.
  * - UI autosaves config changes (debounced), and can optionally trigger Windows
  *   registration reconciliation.
+ * - “Refresh + reconcile” must be save-first, so registration reconciliation
+ *   uses the latest pending config changes.
  * - On routing failure, the UI prefills the Test input and switches to the Test
  *   tab with an actionable error banner.
  * - Keep App.tsx small by moving orchestration into a hook.
@@ -91,6 +93,46 @@ export function useAppController(api: WinLinkRouterApi) {
     });
   }, [api.appConfig, api.presets, api.windows]);
 
+  const doSave = useCallback(
+    async (opts: { ensureRegistration?: boolean } = {}): Promise<void> => {
+      if (readOnly) return;
+
+      const latest = configRef.current;
+      if (!latest) return;
+
+      const validationError = validateConfigBeforeSave(latest);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+
+      try {
+        await api.appConfig.set(latest);
+
+        if (opts.ensureRegistration) {
+          const res = await api.windows.ensureRegistration();
+          if (res.warnings.length) {
+            setRegistrationResult({
+              kind: 'warn',
+              message: res.warnings.join('\n'),
+            });
+          } else {
+            setRegistrationResult({
+              kind: 'ok',
+              message: 'Registration updated.',
+            });
+          }
+        }
+
+        setError(null);
+        await reload();
+      } catch (err: unknown) {
+        setError((err as Error).message);
+      }
+    },
+    [api.appConfig, api.windows, readOnly, reload],
+  );
+
   const scheduleSave = useCallback(
     (opts: { ensureRegistration?: boolean } = {}) => {
       if (readOnly) return;
@@ -101,44 +143,30 @@ export function useAppController(api: WinLinkRouterApi) {
         window.clearTimeout(saveTimerRef.current);
       }
       saveTimerRef.current = window.setTimeout(() => {
-        const latest = configRef.current;
-        if (!latest) return;
-
-        const validationError = validateConfigBeforeSave(latest);
-        if (validationError) {
-          setError(validationError);
-          return;
-        }
-
-        void api.appConfig
-          .set(latest)
-          .then(async () => {
-            if (ensureRegistrationRef.current) {
-              ensureRegistrationRef.current = false;
-              const res = await api.windows.ensureRegistration();
-              if (res.warnings.length) {
-                setRegistrationResult({
-                  kind: 'warn',
-                  message: res.warnings.join('\n'),
-                });
-              } else {
-                setRegistrationResult({
-                  kind: 'ok',
-                  message: 'Registration updated.',
-                });
-              }
-            }
-          })
-          .then(() => {
-            setError(null);
-            return reload();
-          })
-          .catch((err: unknown) => {
-            setError((err as Error).message);
-          });
+        const ensureRegistration = ensureRegistrationRef.current;
+        ensureRegistrationRef.current = false;
+        void doSave({ ensureRegistration });
       }, 450);
     },
-    [api.appConfig, api.windows, readOnly, reload],
+    [doSave, readOnly],
+  );
+
+  const saveNow = useCallback(
+    async (opts: { ensureRegistration?: boolean } = {}): Promise<void> => {
+      if (readOnly) return;
+
+      if (saveTimerRef.current) {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+
+      const ensureRegistration =
+        Boolean(opts.ensureRegistration) || ensureRegistrationRef.current;
+      ensureRegistrationRef.current = false;
+
+      await doSave({ ensureRegistration });
+    },
+    [doSave, readOnly],
   );
 
   useEffect(() => {
@@ -248,6 +276,7 @@ export function useAppController(api: WinLinkRouterApi) {
     setActiveTab,
     reload,
     scheduleSave,
+    saveNow,
     onAddScheme,
     onChangeScheme,
     onRemoveScheme,

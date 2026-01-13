@@ -57,25 +57,7 @@ export function App() {
   const controller = useAppController(api);
 
   const ensureRegistrationAndReload = () => {
-    return api.windows
-      .ensureRegistration()
-      .then((res) => {
-        if (res.warnings.length) {
-          controller.setRegistrationResult({
-            kind: 'warn',
-            message: res.warnings.join('\n'),
-          });
-        } else {
-          controller.setRegistrationResult({
-            kind: 'ok',
-            message: 'Registration updated.',
-          });
-        }
-        return controller.reload();
-      })
-      .catch((err: unknown) => {
-        controller.setError((err as Error).message);
-      });
+    return controller.saveNow({ ensureRegistration: true });
   };
 
   const onTabChange = (value: string | null) => {
