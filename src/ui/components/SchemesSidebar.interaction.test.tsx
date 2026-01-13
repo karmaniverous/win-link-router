@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AppConfig, PresetsFile } from '../../core/config/appConfig';
+import { MantineTestProvider } from '../test/MantineTestProvider';
 import { SchemesSidebar } from './SchemesSidebar';
 
 afterEach(() => {
@@ -47,17 +48,19 @@ describe('SchemesSidebar (interaction)', () => {
       const onError = vi.fn();
 
       render(
-        <SchemesSidebar
-          loading={false}
-          readOnly={false}
-          config={createConfig()}
-          presets={createPresets()}
-          statuses={[]}
-          selectedScheme={null}
-          onSelectScheme={vi.fn()}
-          onAddScheme={onAddScheme}
-          onError={onError}
-        />,
+        <MantineTestProvider>
+          <SchemesSidebar
+            loading={false}
+            readOnly={false}
+            config={createConfig()}
+            presets={createPresets()}
+            statuses={[]}
+            selectedScheme={null}
+            onSelectScheme={vi.fn()}
+            onAddScheme={onAddScheme}
+            onError={onError}
+          />
+        </MantineTestProvider>,
       );
 
       await user.click(screen.getByRole('button', { name: /add scheme/i }));

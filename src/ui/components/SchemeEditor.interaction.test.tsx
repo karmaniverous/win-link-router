@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { SchemeConfig } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
+import { MantineTestProvider } from '../test/MantineTestProvider';
 import { SchemeEditor } from './SchemeEditor';
 
 afterEach(() => {
@@ -61,14 +62,16 @@ describe('SchemeEditor (interaction)', () => {
       const onRemoveScheme = vi.fn();
 
       render(
-        <SchemeEditor
-          api={createDummyApi()}
-          presets={null}
-          readOnly={false}
-          scheme={createScheme()}
-          onChangeScheme={vi.fn()}
-          onRemoveScheme={onRemoveScheme}
-        />,
+        <MantineTestProvider>
+          <SchemeEditor
+            api={createDummyApi()}
+            presets={null}
+            readOnly={false}
+            scheme={createScheme()}
+            onChangeScheme={vi.fn()}
+            onRemoveScheme={onRemoveScheme}
+          />
+        </MantineTestProvider>,
       );
 
       await user.click(screen.getByRole('button', { name: /^remove$/i }));

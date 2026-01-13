@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { SchemeConfig } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
+import { MantineTestProvider } from '../test/MantineTestProvider';
 import { SchemeEditor } from './SchemeEditor';
 
 function createDummyApi(): WinLinkRouterApi {
@@ -60,14 +61,16 @@ function createScheme(overrides: Partial<SchemeConfig> = {}): SchemeConfig {
 describe('SchemeEditor', () => {
   it('renders placeholder message when no scheme is selected', () => {
     const html = renderToStaticMarkup(
-      <SchemeEditor
-        api={createDummyApi()}
-        presets={null}
-        readOnly={false}
-        scheme={null}
-        onChangeScheme={vi.fn()}
-        onRemoveScheme={vi.fn()}
-      />,
+      <MantineTestProvider>
+        <SchemeEditor
+          api={createDummyApi()}
+          presets={null}
+          readOnly={false}
+          scheme={null}
+          onChangeScheme={vi.fn()}
+          onRemoveScheme={vi.fn()}
+        />
+      </MantineTestProvider>,
     );
 
     expect(html).toContain('Select a scheme to edit.');
@@ -77,14 +80,16 @@ describe('SchemeEditor', () => {
     const scheme = createScheme();
 
     const html = renderToStaticMarkup(
-      <SchemeEditor
-        api={createDummyApi()}
-        presets={null}
-        readOnly={false}
-        scheme={scheme}
-        onChangeScheme={vi.fn()}
-        onRemoveScheme={vi.fn()}
-      />,
+      <MantineTestProvider>
+        <SchemeEditor
+          api={createDummyApi()}
+          presets={null}
+          readOnly={false}
+          scheme={scheme}
+          onChangeScheme={vi.fn()}
+          onRemoveScheme={vi.fn()}
+        />
+      </MantineTestProvider>,
     );
 
     expect(html).toContain('TEL');
@@ -96,14 +101,16 @@ describe('SchemeEditor', () => {
   it('renders enabled checkbox for templates', () => {
     const scheme = createScheme();
     const html = renderToStaticMarkup(
-      <SchemeEditor
-        api={createDummyApi()}
-        presets={null}
-        readOnly={false}
-        scheme={scheme}
-        onChangeScheme={vi.fn()}
-        onRemoveScheme={vi.fn()}
-      />,
+      <MantineTestProvider>
+        <SchemeEditor
+          api={createDummyApi()}
+          presets={null}
+          readOnly={false}
+          scheme={scheme}
+          onChangeScheme={vi.fn()}
+          onRemoveScheme={vi.fn()}
+        />
+      </MantineTestProvider>,
     );
 
     // Expect at least one checkbox for scheme.enabled and one for template.enabled.
@@ -117,14 +124,16 @@ describe('SchemeEditor', () => {
     });
 
     const html = renderToStaticMarkup(
-      <SchemeEditor
-        api={createDummyApi()}
-        presets={null}
-        readOnly={false}
-        scheme={scheme}
-        onChangeScheme={vi.fn()}
-        onRemoveScheme={vi.fn()}
-      />,
+      <MantineTestProvider>
+        <SchemeEditor
+          api={createDummyApi()}
+          presets={null}
+          readOnly={false}
+          scheme={scheme}
+          onChangeScheme={vi.fn()}
+          onRemoveScheme={vi.fn()}
+        />
+      </MantineTestProvider>,
     );
 
     expect(html).toContain('Extractor regex is invalid:');
