@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
+import { MantineTestProvider } from '../test/MantineTestProvider';
 import { TestPanel } from './TestPanel';
 
 function createApiWithEvaluate(
@@ -47,12 +48,14 @@ describe('TestPanel', () => {
     );
 
     const html = renderToStaticMarkup(
-      <TestPanel
-        api={api}
-        scheme={null}
-        testUri=""
-        onChangeTestUri={() => undefined}
-      />,
+      <MantineTestProvider>
+        <TestPanel
+          api={api}
+          scheme={null}
+          testUri=""
+          onChangeTestUri={() => undefined}
+        />
+      </MantineTestProvider>,
     );
 
     expect(html).toContain('Select a scheme to run tests.');
@@ -64,12 +67,14 @@ describe('TestPanel', () => {
     );
 
     const html = renderToStaticMarkup(
-      <TestPanel
-        api={api}
-        scheme="TEL"
-        testUri="tel:+1 555 123 4567"
-        onChangeTestUri={() => undefined}
-      />,
+      <MantineTestProvider>
+        <TestPanel
+          api={api}
+          scheme="TEL"
+          testUri="tel:+1 555 123 4567"
+          onChangeTestUri={() => undefined}
+        />
+      </MantineTestProvider>,
     );
 
     expect(html).toContain('Incoming URI');

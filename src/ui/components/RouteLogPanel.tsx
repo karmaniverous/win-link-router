@@ -1,3 +1,14 @@
+import {
+  Alert,
+  Button,
+  Code,
+  Group,
+  Loader,
+  Paper,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
 import { useCallback, useEffect, useState } from 'react';
 
 import type { RouteUriResult } from '../../core/routing/routeUri';
@@ -38,7 +49,7 @@ export function RouteLogPanel(props: { api: WinLinkRouterApi }) {
   const lastSeq = entries.length ? entries[entries.length - 1]?.seq : null;
 
   return (
-    <section className="panel">
+    <Paper withBorder radius="md" p="md">
       <ConfirmDialog
         open={confirmClearOpen}
         title="Clear routing log"
@@ -57,44 +68,64 @@ export function RouteLogPanel(props: { api: WinLinkRouterApi }) {
             });
         }}
       />
-      <div className="row">
-        <h2>Routing log</h2>
-        <div className="rowActions">
-          <button
-            type="button"
-            onClick={() => void reload()}
-            disabled={loading}
-          >
-            Refresh
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setConfirmClearOpen(true);
-            }}
-            disabled={loading}
-          >
-            Clear
-          </button>
-        </div>
-      </div>
 
-      <p className="muted">
-        Entries: {entries.length}
-        {lastSeq !== null ? ` (latest seq: ${String(lastSeq)})` : ''}
-      </p>
+      <Stack gap="sm">
+        <Group justify="space-between" align="center">
+          <Title order={2} size="h4" m={0}>
+            Routing log
+          </Title>
+          <Group gap="xs">
+            <Button
+              variant="default"
+              onClick={() => void reload()}
+              disabled={loading}
+            >
+              Refresh
+            </Button>
+            <Button
+              color="red"
+              variant="default"
+              onClick={() => {
+                setConfirmClearOpen(true);
+              }}
+              disabled={loading}
+            >
+              Clear
+            </Button>
+          </Group>
+        </Group>
 
-      {loading ? <p className="muted">Loading…</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+        <Text size="sm" c="dimmed">
+          Entries: {entries.length}
+          {lastSeq !== null ? ` (latest seq: ${String(lastSeq)})` : ''}
+        </Text>
 
-      {entries.length ? (
-        <details>
-          <summary>Show entries (redacted)</summary>
-          <pre>{JSON.stringify(entries, null, 2)}</pre>
-        </details>
-      ) : (
-        <p className="muted">No routing log entries yet.</p>
-      )}
-    </section>
+        {loading ? (
+          <Group gap="xs">
+            <Loader size="sm" />
+            <Text size="sm" c="dimmed">
+              Loading…
+            </Text>
+          </Group>
+        ) : null}
+
+        {error ? (
+          <Alert color="red" title="Error">
+            {error}
+          </Alert>
+        ) : null}
+
+        {entries.length ? (
+          <details>
+            <summary>Show entries (redacted)</summary>
+            <Code block>{JSON.stringify(entries, null, 2)}</Code>
+          </details>
+        ) : (
+          <Text size="sm" c="dimmed">
+            No routing log entries yet.
+          </Text>
+        )}
+      </Stack>
+    </Paper>
   );
 }

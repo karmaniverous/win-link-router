@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { PresetsFile } from '../../core/config/appConfig';
+import { MantineTestProvider } from '../test/MantineTestProvider';
 import { AddSchemeDialog } from './AddSchemeDialog';
 
 afterEach(() => {
@@ -40,13 +41,15 @@ describe('AddSchemeDialog (interaction)', () => {
     const onAdd = vi.fn();
 
     render(
-      <AddSchemeDialog
-        open={true}
-        presets={createPresets()}
-        existingSchemes={[]}
-        onCancel={vi.fn()}
-        onAdd={onAdd}
-      />,
+      <MantineTestProvider>
+        <AddSchemeDialog
+          open={true}
+          presets={createPresets()}
+          existingSchemes={[]}
+          onCancel={vi.fn()}
+          onAdd={onAdd}
+        />
+      </MantineTestProvider>,
     );
 
     await user.type(screen.getByRole('textbox', { name: /^scheme$/i }), 'tel');

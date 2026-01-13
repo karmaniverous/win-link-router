@@ -1,3 +1,12 @@
+import {
+  Alert,
+  Paper,
+  Stack,
+  Switch,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core';
 import { useEffect, useState } from 'react';
 
 import type { AppConfig, RouteLogMode } from '../../core/config/appConfig';
@@ -66,53 +75,50 @@ export function SettingsPanel(props: {
   ]);
 
   return (
-    <section className="panel">
-      <h2>Settings</h2>
+    <Paper withBorder radius="md" p="md">
+      <Stack gap="sm">
+        <Title order={2} size="h4" m={0}>
+          Settings
+        </Title>
 
-      <label className="field">
-        <span>Run at login</span>
-        <input
-          type="checkbox"
+        <Switch
+          label="Run at login"
           checked={runAtLogin}
           onChange={(e) => {
-            setRunAtLogin(e.target.checked);
+            setRunAtLogin(e.currentTarget.checked);
           }}
         />
-      </label>
 
-      <label className="field">
-        <span>Shared config path (optional)</span>
-        <input
+        <TextInput
+          label="Shared config path (optional)"
           value={sharedConfigPath}
           onChange={(e) => {
-            setSharedConfigPath(e.target.value);
+            setSharedConfigPath(e.currentTarget.value);
           }}
           placeholder="C:\path\to\shared-config.json"
         />
-      </label>
 
-      <label className="field">
-        <span>Store full routing log (less private)</span>
-        <input
-          type="checkbox"
+        <Switch
+          label="Store full routing log (less private)"
           checked={routeLogMode === 'full'}
           onChange={(e) => {
-            setRouteLogMode(e.target.checked ? 'full' : 'redacted');
+            setRouteLogMode(e.currentTarget.checked ? 'full' : 'redacted');
           }}
         />
-      </label>
-      <p className="muted">
-        Default is redacted (no raw URIs/targets). Enable full logging only if
-        you understand the privacy implications.
-      </p>
 
-      {readOnly ? (
-        <p className="warning">
-          Scheme/template editing is read-only. Update the shared config path
-          here to recover, or clear it to return to local config.
-        </p>
-      ) : null}
-    </section>
+        <Text size="sm" c="dimmed">
+          Default is redacted (no raw URIs/targets). Enable full logging only if
+          you understand the privacy implications.
+        </Text>
+
+        {readOnly ? (
+          <Alert color="yellow" title="Read-only schemes">
+            Scheme/template editing is read-only. Update the shared config path
+            here to recover, or clear it to return to local config.
+          </Alert>
+        ) : null}
+      </Stack>
+    </Paper>
   );
 }
 

@@ -1,3 +1,11 @@
+import {
+  Alert,
+  Button,
+  NativeSelect,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { PresetsFile, SchemeConfig } from '../../core/config/appConfig';
@@ -8,6 +16,7 @@ import { Modal } from './Modal';
  * Requirements addressed:
  * - Users must be able to add a scheme without relying on window.prompt().
  * - If presets exist for a scheme, allow selecting which preset to use.
+ * - Prefer Mantine primitives for inputs and dialog actions.
  */
 function createBlankScheme(scheme: string): SchemeConfig {
   return {
@@ -50,6 +59,16 @@ export function AddSchemeDialog(props: {
   const [selectedOptionKey, setSelectedOptionKey] = useState<string>('blank');
   const [selectionTouched, setSelectionTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const nativeSelectData = useMemo(() => {
+    const out: { value: string; label: string }[] = [
+      { value: 'blank', label: 'Blank (no preset)' },
+    ];
+    for (const o of presetOptions) {
+      if (o.kind === 'preset') out.push({ value: o.key, label: o.label });
+    }
+    return out;
+  }, [presetOptions]);
 
   useEffect(() => {
     if (!open) return;
@@ -170,69 +189,71 @@ export function AddSchemeDialog(props: {
       onClose={onCancel}
       footer={
         <>
-          <button type="button" onClick={onCancel}>
+          <Button variant="default" onClick={onCancel}>
             Cancel
-          </button>
-          <button type="button" onClick={submit} disabled={!canSubmit}>
+          </Button>
+          <Button onClick={submit} disabled={!canSubmit}>
             Add
-          </button>
+          </Button>
         </>
       }
     >
-      <label className="field">
-        <span>Scheme</span>
-        <input
+      <Stack gap="sm">
+        <TextInput
+          label="Scheme"
           value={raw}
           onChange={(e) => {
-            setRaw(e.target.value);
+            setRaw(e.currentTarget.value);
             setError(null);
           }}
           placeholder="e.g. TEL, MAILTO"
           aria-label="Scheme"
         />
-      </label>
 
-      {normalized ? (
-        <p className="muted">
-          Normalized: <strong>{normalized}</strong>
-        </p>
-      ) : null}
+        {normalized ? (
+          <Text size="sm" c="dimmed">
+            Normalized:{' '}
+            <Text span fw={600}>
+              {normalized}
+            </Text>
+          </Text>
+        ) : null}
 
-      {normalizedError ? <p className="error">{normalizedError}</p> : null}
-      {duplicateError ? <p className="error">{duplicateError}</p> : null}
-      {error ? <p className="error">{error}</p> : null}
+        {normalizedError ? (
+          <Alert color="red" title="Invalid scheme">
+            {normalizedError}
+          </Alert>
+        ) : null}
+        {duplicateError ? (
+          <Alert color="red" title="Duplicate scheme">
+            {duplicateError}
+          </Alert>
+        ) : null}
+        {error ? (
+          <Alert color="red" title="Error">
+            {error}
+          </Alert>
+        ) : null}
 
-      {normalized && presets ? (
-        <p className="muted">
-          Presets found for {normalized}: {presetCount}
-        </p>
-      ) : null}
+        {normalized && presets ? (
+          <Text size="sm" c="dimmed">
+            Presets found for {normalized}: {presetCount}
+          </Text>
+        ) : null}
 
-      <label className="field">
-        <span>Initialize from</span>
-        <select
+        <NativeSelect
+          label="Initialize from"
           value={selectedOptionKey}
           onChange={(e) => {
-            setSelectedOptionKey(e.target.value);
+            setSelectedOptionKey(e.currentTarget.value);
             setSelectionTouched(true);
             setError(null);
           }}
           disabled={!normalized}
           aria-label="Initialize from"
-        >
-          <option value="blank">Blank (no preset)</option>
-          {presetOptions
-            .filter(
-              (o): o is Extract<PresetOption, { kind: 'preset' }> =>
-                o.kind === 'preset',
-            )
-            .map((o) => (
-              <option key={o.key} value={o.key}>
-                {o.label}
-              </option>
-            ))}
-        </select>
-      </label>
+          data={nativeSelectData}
+        />
+      </Stack>
     </Modal>
   );
 }

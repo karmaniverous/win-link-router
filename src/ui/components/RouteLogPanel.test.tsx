@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
+import { MantineTestProvider } from '../test/MantineTestProvider';
 import { RouteLogPanel } from './RouteLogPanel';
 
 function createDummyApi(): WinLinkRouterApi {
@@ -40,7 +41,11 @@ function createDummyApi(): WinLinkRouterApi {
 
 describe('RouteLogPanel', () => {
   it('renders panel shell', () => {
-    const html = renderToStaticMarkup(<RouteLogPanel api={createDummyApi()} />);
+    const html = renderToStaticMarkup(
+      <MantineTestProvider>
+        <RouteLogPanel api={createDummyApi()} />
+      </MantineTestProvider>,
+    );
     expect(html).toContain('Routing log');
   });
 });

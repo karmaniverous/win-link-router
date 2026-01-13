@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { AppConfig } from '../../core/config/appConfig';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
+import { MantineTestProvider } from '../test/MantineTestProvider';
 import { SettingsPanel } from './SettingsPanel';
 
 function createDummyApi() {
@@ -61,12 +62,14 @@ describe('SettingsPanel', () => {
     const config = createConfig();
 
     const html = renderToStaticMarkup(
-      <SettingsPanel
-        api={api}
-        config={config}
-        readOnly={false}
-        onDidChangeSettings={() => undefined}
-      />,
+      <MantineTestProvider>
+        <SettingsPanel
+          api={api}
+          config={config}
+          readOnly={false}
+          onDidChangeSettings={() => undefined}
+        />
+      </MantineTestProvider>,
     );
 
     expect(html).toContain('Run at login');
@@ -79,12 +82,14 @@ describe('SettingsPanel', () => {
     const config = createConfig();
 
     const html = renderToStaticMarkup(
-      <SettingsPanel
-        api={api}
-        config={config}
-        readOnly={true}
-        onDidChangeSettings={() => undefined}
-      />,
+      <MantineTestProvider>
+        <SettingsPanel
+          api={api}
+          config={config}
+          readOnly={true}
+          onDidChangeSettings={() => undefined}
+        />
+      </MantineTestProvider>,
     );
 
     expect(html).toContain('Scheme/template editing is read-only.');

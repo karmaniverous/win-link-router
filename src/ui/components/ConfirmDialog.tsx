@@ -1,3 +1,4 @@
+import { Button, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
 
 import { Modal } from './Modal';
@@ -5,6 +6,7 @@ import { Modal } from './Modal';
 /**
  * Requirements addressed:
  * - Renderer must not rely on window.confirm; use in-app dialogs.
+ * - Prefer Mantine primitives for dialog UI.
  */
 export function ConfirmDialog(props: {
   open: boolean;
@@ -36,16 +38,16 @@ export function ConfirmDialog(props: {
       onClose={onCancel}
       footer={
         <>
-          <button type="button" onClick={onCancel}>
+          <Button variant="default" onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button type="button" onClick={onConfirm} disabled={confirmDisabled}>
+          </Button>
+          <Button onClick={onConfirm} disabled={confirmDisabled}>
             {confirmLabel}
-          </button>
+          </Button>
         </>
       }
     >
-      <p>{message}</p>
+      <Text>{message}</Text>
       {children}
     </Modal>
   );

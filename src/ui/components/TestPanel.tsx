@@ -1,3 +1,13 @@
+import {
+  Alert,
+  Code,
+  Group,
+  Paper,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
@@ -54,49 +64,62 @@ export function TestPanel(props: {
   }, [api, canRun, debouncedScheme, debouncedUri]);
 
   return (
-    <section className="panel">
-      <h2>Test</h2>
-      <label className="field">
-        <span>Incoming URI</span>
-        <input
+    <Paper withBorder radius="md" p="md">
+      <Stack gap="sm">
+        <Title order={2} size="h4" m={0}>
+          Test
+        </Title>
+
+        <TextInput
+          label="Incoming URI"
           value={testUri}
           onChange={(e) => {
-            onChangeTestUri(e.target.value);
+            onChangeTestUri(e.currentTarget.value);
           }}
           placeholder="e.g. tel:+1 (555) 123-4567"
         />
-      </label>
 
-      {!scheme ? <p className="muted">Select a scheme to run tests.</p> : null}
+        {!scheme ? (
+          <Text size="sm" c="dimmed">
+            Select a scheme to run tests.
+          </Text>
+        ) : null}
 
-      {result?.error ? <p className="error">{result.error}</p> : null}
+        {result?.error ? (
+          <Alert color="red" title="Error">
+            {result.error}
+          </Alert>
+        ) : null}
 
-      {result?.matchGroups ? (
-        <details>
-          <summary>Match groups</summary>
-          <pre>{JSON.stringify(result.matchGroups, null, 2)}</pre>
-        </details>
-      ) : null}
+        {result?.matchGroups ? (
+          <details>
+            <summary>Match groups</summary>
+            <Code block>{JSON.stringify(result.matchGroups, null, 2)}</Code>
+          </details>
+        ) : null}
 
-      {result?.evaluations.length ? (
-        <div className="stack">
-          {result.evaluations.map((e) => (
-            <div key={e.templateId} className="card">
-              <div className="cardRow">
-                <strong>{e.label}</strong>
-                <span className="muted">
-                  {e.enabled ? 'enabled' : 'disabled'}
-                </span>
-              </div>
-              {e.renderError ? (
-                <div className="error">{e.renderError}</div>
-              ) : (
-                <code className="code">{e.renderedTarget}</code>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : null}
-    </section>
+        {result?.evaluations.length ? (
+          <Stack gap="sm">
+            {result.evaluations.map((e) => (
+              <Paper key={e.templateId} withBorder radius="md" p="sm">
+                <Group justify="space-between" align="center" mb={6}>
+                  <Text fw={600}>{e.label}</Text>
+                  <Text size="sm" c="dimmed">
+                    {e.enabled ? 'enabled' : 'disabled'}
+                  </Text>
+                </Group>
+                {e.renderError ? (
+                  <Alert color="red" title="Render error">
+                    {e.renderError}
+                  </Alert>
+                ) : (
+                  <Code block>{e.renderedTarget}</Code>
+                )}
+              </Paper>
+            ))}
+          </Stack>
+        ) : null}
+      </Stack>
+    </Paper>
   );
 }
