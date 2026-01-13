@@ -2,14 +2,20 @@
 
 ## Next up
 
+- Mantine migration (pause bespoke UI work):
+  - Choose and pin Mantine major version that supports React 19.
+  - Add Mantine packages to the renderer and wire `MantineProvider` at the renderer root.
+  - Convert the pinned layout shell to Mantine primitives:
+    - App shell layout (pinned header + tabs)
+    - Scroll regions for scheme list, log, templates, and test output
+  - Replace bespoke UI primitives with Mantine equivalents incrementally:
+    - tabs, spinner/loader, buttons, inputs, toggles
+    - dialogs/confirmations (move off bespoke Modal/ConfirmDialog as needed)
+  - Adjust renderer tests toward jsdom + Testing Library where Mantine is involved.
+
 - UI redesign (tabs + pinned layout):
-  - Add Settings/Log/Test tabs and move panels into their respective tabs.
-  - Pin window chrome (header + tabs) and implement scroll regions for:
-    - scheme list
-    - templates list
-    - log view
-    - test output (as needed)
-  - Convert extractor/template inputs to 3-row textareas.
+  - Re-implement the pinned layout and scroll regions using Mantine components.
+  - Keep extractor/template inputs as 3-row textareas (Mantine `Textarea`).
 - Scheme model/UI overhaul (enabled vs registered):
   - Persist `scheme.registered` as desired Windows registration state.
   - Keep `scheme.enabled` as a separate router behavior switch.
@@ -95,3 +101,4 @@
 - Amendment: lint/test/typecheck are now passing after the fallout fixes.
 - Added pinned layout scaffolding with Settings/Log/Test tabs and converted extractor/template inputs to 3-row textareas.
 - Decomposed App and SchemeEditor modules to stay under the 300 LOC limit.
+- Decision: adopt Mantine as the renderer UI component library.

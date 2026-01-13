@@ -26,4 +26,10 @@ Project-specific assistant guidance for this repo.
 
 - Renderer UI:
   - The Electron renderer is a React app bootstrapped from `index.html` via `src/renderer.tsx`.
-  - Keep OS/Electron side effects in the main/preload layers; the React renderer should remain UI-focused.
+  - Keep OS/Electron side effects in the main/preload layers; the React renderer should remain UI-focused.
+  - UI component library:
+    - Use Mantine as the primary renderer component library (layout primitives, inputs, toggles, dialogs).
+    - Prefer Mantine-native solutions over bespoke HTML/CSS widgets unless there is a concrete need.
+  - Testing guidance for renderer:
+    - Prefer jsdom + Testing Library tests for Mantine-heavy components.
+    - Avoid SSR-only markup tests for Mantine components when they become brittle or unrepresentative of runtime behavior.

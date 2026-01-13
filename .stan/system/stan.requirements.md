@@ -144,6 +144,20 @@ Durable project requirements (desired end-state).
   - Do not use `window.alert`, `window.confirm`, or `window.prompt`.
   - Use in-app dialogs/modals instead (Electron may disable these APIs).
 
+- UI component library (renderer):
+  - The renderer UI must be implemented using Mantine as the primary component library.
+  - Prefer Mantine components for layout and interaction primitives (tabs, scroll regions, buttons, inputs, toggles, dialogs).
+  - Avoid introducing a second full component system (e.g., MUI + Mantine together) unless there is a specific gap that Mantine cannot cover.
+  - “Mantine UI” (ui.mantine.dev) may be used as a reference for patterns, but the codebase should rely on the Mantine packages directly rather than copying large template blocks.
+
+- Dialogs/confirmations:
+  - The renderer UI must not rely on browser blocking dialogs (`window.alert`, `window.confirm`, `window.prompt`).
+  - Dialog UI should be built using Mantine’s modal/dialog primitives (or equivalent Mantine-supported approach).
+
+- Renderer testing posture:
+  - Renderer component tests should prefer jsdom + Testing Library.
+  - Avoid relying on server-render-only markup snapshot tests for Mantine-heavy components, as they tend to be brittle and not representative of runtime behavior.
+
 - Layout and scrolling:
   - Window chrome (header + tabs) should be pinned; the window should not scroll as a whole in typical use.
   - Only dedicated scroll regions should scroll:
