@@ -131,4 +131,4 @@
 - Trimmed renderer CSS and replaced remaining minor bespoke wrappers with Mantine primitives.- Standardized icon-only controls using Tabler icons (no glyphs).
 - Added first-run onboarding preset selection (empty config + not completed).
 - Updated Log/Test tabs to full-width, unboxed layout with direct output.
-- Fixed lint/typecheck regressions after Tabler/onboarding changes.
+- Fixed lint/typecheck regressions after Tabler/onboarding changes.- Opened external http/https links in the system default browser (deny in-app windows).

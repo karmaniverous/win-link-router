@@ -294,6 +294,10 @@ Durable project requirements (desired end-state).
 - Icon-only controls must use tooltips and aria-labels for clarity and accessibility.
 - The registration control should use a circle-R (registered) style icon.
 
+## External link handling
+
+- The app must open all external `http:`/`https:` links in the system default browser (not inside an in-app Electron window).
+
 ## Test tab layout
 
 - The Test tab content must be full-width (no half-width panel behavior).

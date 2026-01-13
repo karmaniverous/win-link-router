@@ -6,6 +6,7 @@
  * - Reconcile Windows candidate registration to match per-scheme config intent.
  * - Lifecycle settings: Run in Background (tray) and Start on Windows Login.
  * - Avoid modal prompts for default-handler mismatch; prefer tray + UI banner.
+ * - Open external http/https links in the system default browser.
  */
 import path from 'node:path';
 
@@ -23,7 +24,9 @@ import { routeIncomingUri } from './main/routing/routeIncomingUri';
 import { applyRunAtLoginSetting } from './main/settings/applyRunAtLogin';
 import { createTrayController } from './main/tray/trayController';
 import { ensureStartMenuShortcut } from './main/windows/ensureStartMenuShortcut';
+import { shouldOpenUrlExternally } from './main/windows/externalLinkPolicy';
 import { maybeNotifyDefaultHandlerMismatch } from './main/windows/maybeNotifyDefaultHandlerMismatch';
+import { openExternalUrl } from './main/windows/openExternalUrl';
 import { ensureCandidateRegistration } from './main/windows/protocolRegistration';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -39,6 +42,15 @@ let isQuitting = false;
 // show best-effort notifications without opening the UI.
 let trayRef: Tray | null = null;
 let mismatchNotified = false;
+
+function getDevServerOrigin(): string | null {
+  if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) return null;
+  try {
+    return new URL(MAIN_WINDOW_VITE_DEV_SERVER_URL).origin;
+  } catch {
+    return null;
+  }
+}
 
 const createWindow = () => {
   if (mainWindow) return mainWindow;
@@ -67,6 +79,31 @@ const createWindow = () => {
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.webContents.openDevTools();
   }
+
+  const devOrigin = getDevServerOrigin();
+  const allowedHttpOrigins = devOrigin ? [devOrigin] : [];
+
+  const openInDefaultBrowserIfNeeded = (url: string): boolean => {
+    if (!shouldOpenUrlExternally({ url, allowedHttpOrigins })) return false;
+    void openExternalUrl(url).catch(() => undefined);
+    return true;
+  };
+
+  // Ensure external http/https links open in the system default browser instead
+  // of creating a new in-app window (e.g. clicks in the GitHub star iframe).
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (openInDefaultBrowserIfNeeded(url)) {
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
+
+  // Prevent in-app navigation to external http/https URLs.
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (openInDefaultBrowserIfNeeded(url)) {
+      event.preventDefault();
+    }
+  });
 
   mainWindow.on('close', (event) => {
     if (!isQuitting && trayActive) {
