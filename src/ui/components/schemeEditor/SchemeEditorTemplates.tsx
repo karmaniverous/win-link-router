@@ -72,11 +72,6 @@ export function SchemeEditorTemplates(props: {
         </Button>
       </Group>
 
-      <Text size="sm" c="dimmed">
-        Order matters; the app tries the first enabled template that opens
-        successfully.
-      </Text>
-
       <ScrollArea style={{ flex: 1 }} type="auto" scrollbarSize={8}>
         <Stack gap="sm" pr="sm">
           {scheme.templates.length === 0 ? (
@@ -171,7 +166,9 @@ export function SchemeEditorTemplates(props: {
 
                 <Textarea
                   label="Template"
-                  rows={3}
+                  autosize
+                  minRows={1}
+                  maxRows={6}
                   value={t.template}
                   disabled={readOnly}
                   onChange={(e) => {

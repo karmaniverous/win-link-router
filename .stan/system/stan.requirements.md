@@ -305,11 +305,17 @@ Durable project requirements (desired end-state).
 
 ## Text inputs
 
-- Extractor pattern input must be a textarea (3 rows).
+- Extractor pattern input must be a textarea that autosizes:
+  - Start at 1 row.
+  - Grow when the content wraps/expands (up to a reasonable max height; after
+    that, the input may scroll).
 - Extractor flags input must:
   - Be labeled “Flags”.
   - Be a short text input positioned to the right of the extractor pattern textarea (wireframe-aligned).
-- Template string input must be a textarea (3 rows).
+- Template string input must be a textarea that autosizes:
+  - Start at 1 row.
+  - Grow when the content wraps/expands (up to a reasonable max height; after
+    that, the input may scroll).
 
 - Settings panel layout (wireframe-aligned):
   - The inline settings toggles must appear in a row above the shared config file picker.

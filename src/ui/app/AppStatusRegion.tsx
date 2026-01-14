@@ -6,6 +6,7 @@
  */
 import { Accordion, Alert, Group, Loader, Stack, Text } from '@mantine/core';
 
+import { computeDefaultHandlerMismatch } from '../../core/windows/defaultHandlerMismatch';
 import { DefaultHandlerMismatchBanner } from '../components/DefaultHandlerMismatchBanner';
 
 interface SchemeStatusLike {
@@ -28,6 +29,21 @@ export function AppStatusRegion(props: {
   onClearRegistrationResult: () => void;
   onOpenDefaultApps: () => void;
 }) {
+  const mismatch = computeDefaultHandlerMismatch(props.statuses);
+
+  const hasAnyStatus =
+    props.loading ||
+    Boolean(props.error) ||
+    Boolean(props.routeErrorBanner) ||
+    Boolean(props.registrationResult) ||
+    props.warnings.length > 0 ||
+    props.readOnly ||
+    Boolean(mismatch);
+
+  // If there is nothing to show, render nothing so the App-level layout does
+  // not reserve vertical space above the tabs.
+  if (!hasAnyStatus) return null;
+
   return (
     <Stack gap="xs" role="region" aria-label="Status">
       {props.loading ? (

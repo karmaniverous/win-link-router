@@ -130,7 +130,7 @@ export function SettingsPanel(props: {
               onChange={(e) => {
                 setSharedConfigPath(e.currentTarget.value);
               }}
-              placeholder="C:\\path\\to\\shared-config.json"
+              placeholder="C:\path\to\shared-config.json"
             />
             <Button
               variant="default"

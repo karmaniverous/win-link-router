@@ -26,7 +26,9 @@ export function SchemeEditorExtractor(props: {
       <Group align="flex-start" wrap="nowrap" gap="sm">
         <Textarea
           label="Extractor pattern"
-          rows={3}
+          autosize
+          minRows={1}
+          maxRows={4}
           style={{ flex: 1 }}
           value={scheme.extractor.pattern}
           disabled={editingDisabled}
