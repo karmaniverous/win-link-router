@@ -10,6 +10,8 @@
  * - Per-user settings include:
  *   - runInBackground (tray lifecycle),
  *   - autoEnableNewSchemes and autoRegisterNewSchemes (new-scheme defaults).
+ * - Per-user update settings:
+ *   - autoUpdatesEnabled (startup + hourly checks when enabled; manual checks always available).
  */
 export const APP_CONFIG_SCHEMA_VERSION = 1 as const;
 
@@ -93,6 +95,12 @@ export interface AppConfig {
      * may offer a first-run preset selection flow.
      */
     onboardingCompleted?: boolean;
+    /**
+     * Auto-update toggle (default true). When enabled, the app checks at startup
+     * and every hour. When disabled, scheduled checks stop but manual update
+     * checks remain available via the About window.
+     */
+    autoUpdatesEnabled?: boolean;
   };
   schemes: SchemeConfig[];
 }

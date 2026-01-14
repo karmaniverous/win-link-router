@@ -8,6 +8,7 @@
  * - Validate new per-user settings:
  *   - runInBackground, autoEnableNewSchemes, autoRegisterNewSchemes.
  * - Enforce autoRegisterNewSchemes ⇒ autoEnableNewSchemes.
+ * - Validate update settings (autoUpdatesEnabled) with a safe default.
  */
 import { z } from 'zod';
 
@@ -78,6 +79,7 @@ const appSettingsSchema = z
     routeLogMode: z.enum(['redacted', 'full']).optional().default('redacted'),
     autoEnableNewSchemes: z.boolean().optional().default(true),
     autoRegisterNewSchemes: z.boolean().optional().default(true),
+    autoUpdatesEnabled: z.boolean().optional().default(true),
   })
   .superRefine(({ autoEnableNewSchemes, autoRegisterNewSchemes }, ctx) => {
     if (autoRegisterNewSchemes && !autoEnableNewSchemes) {

@@ -9,6 +9,7 @@
  * - Scheme enablement is distinct from registration; enforce registered ⇒ enabled.
  * - Even when shared config is broken (read-only), settings must be editable so
  *   users can fix/disable shared mode.
+ * - Update settings are per-user; auto-updates default to enabled.
  */
 import { constants as fsConstants } from 'node:fs';
 import fs from 'node:fs/promises';
@@ -47,11 +48,14 @@ function canonicalizeSettings(
   const autoRegisterNewSchemes = settings.autoRegisterNewSchemes ?? true;
   const effectiveAutoEnable = autoRegisterNewSchemes || autoEnableNewSchemes;
 
+  const autoUpdatesEnabled = settings.autoUpdatesEnabled ?? true;
+
   return {
     ...settings,
     runInBackground: effectiveRunInBackground,
     autoEnableNewSchemes: effectiveAutoEnable,
     autoRegisterNewSchemes,
+    autoUpdatesEnabled,
   };
 }
 

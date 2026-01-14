@@ -9,6 +9,9 @@
  * - Open external http/https links in the system default browser.
  * - Provide a separate Share window (manual + nag) and show a post-route nag.
  * - This app is Windows-only; do not implement macOS lifecycle behavior.
+ * - Provide a modal About window with update status and controls.
+ * - Implement auto-updates via update.electronjs.org (startup + hourly when enabled).
+ * - Define a custom Windows application menu and remove boilerplate Help items.
  */
 import path from 'node:path';
 
@@ -16,8 +19,10 @@ import { app, BrowserWindow, ipcMain, type Tray } from 'electron';
 import started from 'electron-squirrel-startup';
 
 import { createTemplateRenderer } from './core/routing/templateRenderer';
+import { AboutWindowController } from './main/about/aboutWindowController';
 import {
   getAllowedHttpOrigins,
+  loadAboutView,
   loadMainView,
   loadShareView,
 } from './main/app/rendererViews';
@@ -31,7 +36,9 @@ import { routeIncomingUri } from './main/routing/routeIncomingUri';
 import { applyRunAtLoginSetting } from './main/settings/applyRunAtLogin';
 import { ShareRuntime } from './main/share/shareRuntime';
 import { createTrayController } from './main/tray/trayController';
+import { UpdateRuntime } from './main/updates/updateRuntime';
 import { applyExternalLinkHandling } from './main/windows/applyExternalLinkHandling';
+import { setWindowsAppMenu } from './main/windows/appMenu';
 import { ensureStartMenuShortcut } from './main/windows/ensureStartMenuShortcut';
 import { maybeNotifyDefaultHandlerMismatch } from './main/windows/maybeNotifyDefaultHandlerMismatch';
 import { ensureCandidateRegistration } from './main/windows/protocolRegistration';
@@ -117,6 +124,8 @@ if (!gotLock) {
 let configStore: AppConfigStore | null = null;
 let routeLogStore: RouteLogStore | null = null;
 let shareRuntime: ShareRuntime | null = null;
+let updateRuntime: UpdateRuntime | null = null;
+let aboutWindowController: AboutWindowController | null = null;
 
 const renderer = createTemplateRenderer();
 const presets = () => loadBundledPresets(app.getVersion());
@@ -154,6 +163,19 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
     },
   });
 
+  updateRuntime ??= new UpdateRuntime({
+    isPackaged: app.isPackaged,
+    getCurrentVersion: () => app.getVersion(),
+  });
+  updateRuntime.registerIpc(ipcMain);
+
+  aboutWindowController ??= new AboutWindowController({
+    getMainWindow: () => mainWindow,
+    loadAboutView: (win) => loadAboutView(win, RENDERER_VIEWS),
+    getAllowedHttpOrigins: () =>
+      getAllowedHttpOrigins(RENDERER_VIEWS.devServerUrl),
+  });
+
   registerIpcHandlers({
     configStore,
     logStore,
@@ -162,9 +184,14 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
     appVersion: app.getVersion(),
     isPackaged: app.isPackaged,
     exePath: process.execPath,
+    onSettingsChanged: (nextSettings) => {
+      updateRuntime?.applySettings(nextSettings);
+    },
   });
 
   applyRunAtLoginSetting(configStore.getLoadedConfig());
+  updateRuntime.applySettings(configStore.getLoadedConfig().settings);
+  updateRuntime.start();
 
   // Best-effort: ensure a working Start Menu shortcut exists for the current
   // user. Squirrel installs per-user under %LOCALAPPDATA% and Start Menu items
@@ -252,6 +279,13 @@ void app.whenReady().then(async () => {
   const store = await ensureStoresReady();
   const loaded = store.getLoadedConfig();
   const runInBackground = loaded.settings.runInBackground ?? false;
+
+  setWindowsAppMenu({
+    isDev: Boolean(MAIN_WINDOW_VITE_DEV_SERVER_URL),
+    onOpenAbout: () => {
+      void aboutWindowController?.open().catch(() => undefined);
+    },
+  });
 
   const loginSettings = app.getLoginItemSettings();
   const startedAtLogin = loginSettings.wasOpenedAtLogin;

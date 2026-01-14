@@ -1,7 +1,7 @@
 /**
  * Requirements addressed:
  * - Support dev server and packaged renderer loading from a single helper.
- * - Provide a separate Share window renderer view selected by query param.
+ * - Provide separate renderer views (Share/About) selected by query param.
  */
 import path from 'node:path';
 
@@ -53,5 +53,23 @@ export async function loadShareView(
   await win.loadFile(
     path.join(opts.baseDir, `../renderer/${opts.viteName}/index.html`),
     { query: { view: 'share' } },
+  );
+}
+
+export async function loadAboutView(
+  win: BrowserWindow,
+  opts: {
+    devServerUrl: string | null;
+    baseDir: string;
+    viteName: string;
+  },
+): Promise<void> {
+  if (opts.devServerUrl) {
+    await win.loadURL(`${opts.devServerUrl}?view=about`);
+    return;
+  }
+  await win.loadFile(
+    path.join(opts.baseDir, `../renderer/${opts.viteName}/index.html`),
+    { query: { view: 'about' } },
   );
 }

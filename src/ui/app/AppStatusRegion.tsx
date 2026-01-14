@@ -2,16 +2,9 @@
  * Requirements addressed:
  * - Show loading/errors/warnings/read-only status in a pinned status region.
  * - Surface default-handler mismatch as a non-blocking banner.
+ * - Registration warnings must be normal wrapped text (not pre/code styling).
  */
-import {
-  Accordion,
-  Alert,
-  Code,
-  Group,
-  Loader,
-  Stack,
-  Text,
-} from '@mantine/core';
+import { Accordion, Alert, Group, Loader, Stack, Text } from '@mantine/core';
 
 import { DefaultHandlerMismatchBanner } from '../components/DefaultHandlerMismatchBanner';
 
@@ -69,7 +62,9 @@ export function AppStatusRegion(props: {
           withCloseButton
           onClose={props.onClearRegistrationResult}
         >
-          <Code block>{props.registrationResult.message}</Code>
+          <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+            {props.registrationResult.message}
+          </Text>
         </Alert>
       ) : null}
 
@@ -83,7 +78,9 @@ export function AppStatusRegion(props: {
           <Accordion.Item value="warnings">
             <Accordion.Control>Warnings</Accordion.Control>
             <Accordion.Panel>
-              <Code block>{props.warnings.join('\n')}</Code>
+              <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                {props.warnings.join('\n')}
+              </Text>
             </Accordion.Panel>
           </Accordion.Item>
         </Accordion>

@@ -10,6 +10,7 @@
  *   - on config save (best-effort, packaged-only).
  *   - on shared-config-path changes via settings:set (best-effort, packaged-only).
  * - UI can open external links (e.g., GitHub repo) via main process.
+ * - Main process can react to settings changes (e.g., update scheduling) via a callback.
  */
 import path from 'node:path';
 
@@ -63,6 +64,9 @@ export function registerIpcHandlers(opts: {
   appVersion: string;
   isPackaged: boolean;
   exePath: string;
+  onSettingsChanged?: (
+    next: Parameters<AppConfigStore['saveSettings']>[0],
+  ) => void;
 }) {
   async function reconcileRegistrationForLoadedConfig(): Promise<void> {
     if (!opts.isPackaged) return;
@@ -93,6 +97,7 @@ export function registerIpcHandlers(opts: {
     opts.logStore.setMode(
       opts.configStore.getLoadedConfig().settings.routeLogMode ?? 'redacted',
     );
+    opts.onSettingsChanged?.(opts.configStore.getLoadedConfig().settings);
     // Best-effort: keep Windows candidate registration aligned to saved config.
     await reconcileRegistrationForLoadedConfig().catch(() => undefined);
     return { ok: true };
@@ -168,6 +173,7 @@ export function registerIpcHandlers(opts: {
     opts.logStore.setMode(
       opts.configStore.getLoadedConfig().settings.routeLogMode ?? 'redacted',
     );
+    opts.onSettingsChanged?.(opts.configStore.getLoadedConfig().settings);
     const afterShared =
       opts.configStore.getLoadedConfig().settings.sharedConfigPath ?? null;
     if (beforeShared !== afterShared) {

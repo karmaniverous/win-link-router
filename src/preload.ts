@@ -6,6 +6,7 @@
  * - UI must be able to display Windows registration/default status.
  * - UI must be able to prefill test input after routing failures.
  * - UI must be able to open external links (e.g., GitHub repo) via main.
+ * - About window UI must be able to check/install updates and toggle auto-updates.
  */
 import { contextBridge, ipcRenderer } from 'electron';
 
@@ -44,6 +45,11 @@ contextBridge.exposeInMainWorld('winLinkRouter', {
   test: {
     evaluate: (scheme: string, uri: string) =>
       ipcRenderer.invoke('test:evaluate', { scheme, uri }),
+  },
+  updates: {
+    getStatus: () => ipcRenderer.invoke('updates:getStatus'),
+    checkNow: () => ipcRenderer.invoke('updates:checkNow'),
+    updateNow: () => ipcRenderer.invoke('updates:updateNow'),
   },
   share: {
     open: () => ipcRenderer.invoke('share:open'),

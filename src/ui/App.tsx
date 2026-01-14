@@ -5,9 +5,19 @@
  * - Provide scheme-row controls (register toggle, delete) and refresh+reconcile.
  * - Provide a Share button in the header that opens the Share window.
  * - Replace remaining bespoke renderer UI with Mantine primitives as found.
+ * - Show APP_TITLE + APP_TAGLINE in the upper-left header region.
  */
-import { Alert, AppShell, Stack, Tabs, Title } from '@mantine/core';
+import {
+  Alert,
+  AppShell,
+  Group,
+  Stack,
+  Tabs,
+  Text,
+  Title,
+} from '@mantine/core';
 
+import { APP_TAGLINE, APP_TITLE } from '../core/app/branding';
 import type { SchemeConfig } from '../core/config/appConfig';
 import { getWinLinkRouterApi } from './api/winLinkRouterApi';
 import { AppHeaderActions } from './app/AppHeaderActions';
@@ -81,28 +91,39 @@ export function App() {
       ) : null}
 
       <AppShell.Header>
-        <AppHeaderActions
-          loading={controller.loading}
-          readOnly={controller.readOnly}
-          onImport={() =>
-            void api.appConfig
-              .importSchemes()
-              .then((res) => {
-                if (res.cancelled) return;
-                return controller.reload();
-              })
-              .catch((err: unknown) => {
+        <Group h="100%" px="md" justify="space-between" align="center">
+          <Stack gap={0}>
+            <Title order={3} m={0}>
+              {APP_TITLE}
+            </Title>
+            <Text size="sm" c="dimmed">
+              {APP_TAGLINE}
+            </Text>
+          </Stack>
+
+          <AppHeaderActions
+            loading={controller.loading}
+            readOnly={controller.readOnly}
+            onImport={() =>
+              void api.appConfig
+                .importSchemes()
+                .then((res) => {
+                  if (res.cancelled) return;
+                  return controller.reload();
+                })
+                .catch((err: unknown) => {
+                  controller.setError((err as Error).message);
+                })
+            }
+            onExport={() =>
+              void api.appConfig.exportSchemes().catch((err: unknown) => {
                 controller.setError((err as Error).message);
               })
-          }
-          onExport={() =>
-            void api.appConfig.exportSchemes().catch((err: unknown) => {
-              controller.setError((err as Error).message);
-            })
-          }
-          onOpenDefaultApps={() => void api.windows.openDefaultApps()}
-          onOpenShare={() => void api.share.open()}
-        />
+            }
+            onOpenDefaultApps={() => void api.windows.openDefaultApps()}
+            onOpenShare={() => void api.share.open()}
+          />
+        </Group>
       </AppShell.Header>
 
       <AppShell.Main style={{ height: '100%', minHeight: 0 }}>

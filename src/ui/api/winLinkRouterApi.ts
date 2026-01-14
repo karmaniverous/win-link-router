@@ -3,6 +3,7 @@
  * - Renderer stays UI-focused and uses preload APIs for OS/Electron side effects.
  * - UI needs config/presets/status/test + routing-failure prefill plumbing.
  * - UI can open external links (e.g., GitHub repo) via preload + IPC.
+ * - About window uses preload APIs to check/install updates.
  */
 import type { AppConfig, PresetsFile } from '../../core/config/appConfig';
 import type { RouteUriResult } from '../../core/routing/routeUri';
@@ -82,6 +83,22 @@ export interface WinLinkRouterApi {
       }[];
       error?: string;
     }>;
+  };
+  updates: {
+    getStatus: () => Promise<{
+      status: {
+        stage: string;
+        currentVersion: string;
+        autoUpdatesEnabled: boolean;
+        lastCheckedAt?: string;
+        availableVersion?: string;
+        downloadedVersion?: string;
+        progressPercent?: number;
+        message?: string;
+      };
+    }>;
+    checkNow: () => Promise<{ ok: true }>;
+    updateNow: () => Promise<{ ok: true }>;
   };
   share: {
     open: () => Promise<{ ok: true }>;

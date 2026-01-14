@@ -3,6 +3,7 @@
  * - Renderer UI must be implemented using Mantine as the primary component
  *   library.
  * - Import Mantine styles at the root of the renderer.
+ * - Support separate renderer views for Share and About windows.
  */
 import '@mantine/core/styles.css';
 import './index.css';
@@ -10,6 +11,7 @@ import './index.css';
 import { MantineProvider } from '@mantine/core';
 import { createRoot } from 'react-dom/client';
 
+import { AboutWindow } from './ui/about/AboutWindow';
 import { App } from './ui/App';
 import { ShareWindow } from './ui/share/ShareWindow';
 
@@ -20,7 +22,8 @@ if (!container) {
 
 const params = new URLSearchParams(window.location.search);
 const view = params.get('view') ?? 'main';
-const Root = view === 'share' ? ShareWindow : App;
+const Root =
+  view === 'share' ? ShareWindow : view === 'about' ? AboutWindow : App;
 
 createRoot(container).render(
   <MantineProvider defaultColorScheme="light">

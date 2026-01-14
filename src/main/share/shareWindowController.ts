@@ -5,6 +5,8 @@
  * - In nag mode, show Later / Stop Nagging Me controls.
  * - Ensure external http/https links open in the default browser and that the
  *   share interstitial closes before opening external so the browser is on top.
+ * - Share window must not display an application menu bar.
+ * - Only dim/disable the main window when it is visible.
  */
 import path from 'node:path';
 
@@ -48,13 +50,16 @@ export class ShareWindowController {
     }
 
     const parent = this.opts.getMainWindow();
+    const parentVisible = Boolean(parent && parent.isVisible());
+    const effectiveParent = parentVisible ? parent : null;
 
     const win = new BrowserWindow({
       width: 560,
       height: 520,
       resizable: false,
-      parent: parent ?? undefined,
-      modal: Boolean(parent),
+      parent: effectiveParent ?? undefined,
+      modal: Boolean(effectiveParent),
+      autoHideMenuBar: true,
       webPreferences: {
         contextIsolation: true,
         nodeIntegration: false,
@@ -62,10 +67,13 @@ export class ShareWindowController {
       },
     });
 
-    if (parent) {
-      this.parentToReenable = parent;
+    // Ensure no per-window menu is shown (even if the app menu exists).
+    win.setMenu(null);
+
+    if (effectiveParent) {
+      this.parentToReenable = effectiveParent;
       try {
-        parent.setEnabled(false);
+        effectiveParent.setEnabled(false);
       } catch {
         // best-effort only
       }
