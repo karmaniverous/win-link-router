@@ -1,17 +1,25 @@
+import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { regQueryValue } from './regExe';
 import { getUserChoiceProgId } from './userChoiceProgId';
 
-vi.mock('./regExe', () => {
-  return {
-    regQueryValue: vi.fn(),
-  };
+interface RegQueryValueOpts {
+  hive: 'HKCU' | 'HKCR';
+  key: string;
+  name: string | null;
+}
+
+const { regQueryValueMock } = vi.hoisted(() => {
+  const regQueryValueMock: Mock<
+    [RegQueryValueOpts],
+    Promise<string | null>
+  > = vi.fn();
+  return { regQueryValueMock };
 });
 
-describe('getUserChoiceProgId', () => {
-  const regQueryValueMock = vi.mocked(regQueryValue);
+vi.mock('./regExe', () => ({ regQueryValue: regQueryValueMock }));
 
+describe('getUserChoiceProgId', () => {
   beforeEach(() => {
     regQueryValueMock.mockReset();
   });
@@ -23,15 +31,11 @@ describe('getUserChoiceProgId', () => {
     expect(actual).toBe('win-link-router.url.tel');
 
     expect(regQueryValueMock).toHaveBeenCalledTimes(1);
-    expect(regQueryValueMock).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        hive: 'HKCU',
-        key: expect.stringContaining(
-          '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
-        ),
-        name: 'ProgId',
-      }),
+    const call0 = regQueryValueMock.mock.calls[0]?.[0];
+    expect(call0?.hive).toBe('HKCU');
+    expect(call0?.name).toBe('ProgId');
+    expect(call0?.key).toContain(
+      '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
     );
   });
 
@@ -45,23 +49,16 @@ describe('getUserChoiceProgId', () => {
     expect(actual).toBe('Applications\\win-link-router.exe');
 
     expect(regQueryValueMock).toHaveBeenCalledTimes(2);
-    expect(regQueryValueMock).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        hive: 'HKCU',
-        key: expect.stringContaining(
-          '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
-        ),
-        name: 'ProgId',
-      }),
+    const call0 = regQueryValueMock.mock.calls[0]?.[0];
+    expect(call0?.hive).toBe('HKCU');
+    expect(call0?.name).toBe('ProgId');
+    expect(call0?.key).toContain(
+      '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
     );
-    expect(regQueryValueMock).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        hive: 'HKCU',
-        key: expect.stringContaining('\\UrlAssociations\\tel\\UserChoice'),
-        name: 'ProgId',
-      }),
-    );
+
+    const call1 = regQueryValueMock.mock.calls[1]?.[0];
+    expect(call1?.hive).toBe('HKCU');
+    expect(call1?.name).toBe('ProgId');
+    expect(call1?.key).toContain('\\UrlAssociations\\tel\\UserChoice');
   });
 });

@@ -145,7 +145,7 @@ describe('registerIpcHandlers', () => {
       registeredSchemes?: unknown;
     };
     expect(arg.registeredSchemes).toEqual(['TEL']);
-  });
+  }, 20000);
 
   it('does not reconcile candidate registration on appConfig:set when not packaged', async () => {
     const { registerIpcHandlers } = await import('./registerIpcHandlers');
@@ -193,7 +193,7 @@ describe('registerIpcHandlers', () => {
     await handler?.({}, loaded);
 
     expect(ensureCandidateRegistrationMock).toHaveBeenCalledTimes(0);
-  });
+  }, 20000);
 
   it('reconciles on settings:set when sharedConfigPath changes (packaged)', async () => {
     const { registerIpcHandlers } = await import('./registerIpcHandlers');

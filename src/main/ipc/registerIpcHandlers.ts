@@ -69,6 +69,8 @@ export function registerIpcHandlers(opts: {
   ) => void;
 }) {
   async function reconcileRegistrationForLoadedConfig(): Promise<void> {
+    // Packaged-only: in dev, protocol registration is intentionally disabled.
+    // Keep save fast and avoid noisy warnings in non-packaged runs.
     if (!opts.isPackaged) return;
 
     const config = opts.configStore.getLoadedConfig();
