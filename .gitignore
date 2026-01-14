@@ -98,3 +98,6 @@ out/
 .stan/patch/
 .stan/system/facet.state.json
 .stan/system/.docs.meta.json
+
+# Local secrets
+*.local

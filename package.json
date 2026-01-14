@@ -81,7 +81,8 @@
       "after:init": [
         "npm run typecheck",
         "npm run lint",
-        "npm run package"
+        "npm run test",
+        "npm run make"
       ],
       "after:release": [
         "git switch -c release/${version}",
@@ -105,6 +106,8 @@
     "make": "electron-forge make",
     "package": "electron-forge package",
     "publish": "electron-forge publish",
+    "release": "dotenvx run -f .env.local -- release-it",
+    "release:pre": "dotenvx run -f .env.local -- release-it --no-git.requireBranch --github.prerelease --preRelease",
     "start": "electron-forge start",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
