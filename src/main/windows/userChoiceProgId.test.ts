@@ -1,54 +1,67 @@
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import * as regExe from './regExe';
+import { regQueryValue } from './regExe';
 import { getUserChoiceProgId } from './userChoiceProgId';
 
+vi.mock('./regExe', () => {
+  return {
+    regQueryValue: vi.fn(),
+  };
+});
+
 describe('getUserChoiceProgId', () => {
-  const regQueryValueSpy = vi.spyOn(regExe, 'regQueryValue');
+  const regQueryValueMock = vi.mocked(regQueryValue);
 
   beforeEach(() => {
-    regQueryValueSpy.mockReset();
-  });
-
-  afterAll(() => {
-    regQueryValueSpy.mockRestore();
+    regQueryValueMock.mockReset();
   });
 
   it('prefers UserChoiceLatest\\ProgId when present', async () => {
-    regQueryValueSpy.mockResolvedValueOnce('win-link-router.url.tel');
+    regQueryValueMock.mockResolvedValueOnce('win-link-router.url.tel');
 
     const actual = await getUserChoiceProgId('TEL');
     expect(actual).toBe('win-link-router.url.tel');
 
-    expect(regQueryValueSpy).toHaveBeenCalledTimes(1);
-    expect(regQueryValueSpy.mock.calls[0]?.[0]).toMatchObject({
-      hive: 'HKCU',
-      key: expect.stringContaining(
-        '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
-      ),
-      name: 'ProgId',
-    });
+    expect(regQueryValueMock).toHaveBeenCalledTimes(1);
+    expect(regQueryValueMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        hive: 'HKCU',
+        key: expect.stringContaining(
+          '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
+        ),
+        name: 'ProgId',
+      }),
+    );
   });
 
   it('falls back to legacy UserChoice\\ProgId when latest is missing', async () => {
-    regQueryValueSpy.mockResolvedValueOnce(null);
-    regQueryValueSpy.mockResolvedValueOnce('Applications\\win-link-router.exe');
+    regQueryValueMock.mockResolvedValueOnce(null);
+    regQueryValueMock.mockResolvedValueOnce(
+      'Applications\\win-link-router.exe',
+    );
 
     const actual = await getUserChoiceProgId('tel');
     expect(actual).toBe('Applications\\win-link-router.exe');
 
-    expect(regQueryValueSpy).toHaveBeenCalledTimes(2);
-    expect(regQueryValueSpy.mock.calls[0]?.[0]).toMatchObject({
-      hive: 'HKCU',
-      key: expect.stringContaining(
-        '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
-      ),
-      name: 'ProgId',
-    });
-    expect(regQueryValueSpy.mock.calls[1]?.[0]).toMatchObject({
-      hive: 'HKCU',
-      key: expect.stringContaining('\\UrlAssociations\\tel\\UserChoice'),
-      name: 'ProgId',
-    });
+    expect(regQueryValueMock).toHaveBeenCalledTimes(2);
+    expect(regQueryValueMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        hive: 'HKCU',
+        key: expect.stringContaining(
+          '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
+        ),
+        name: 'ProgId',
+      }),
+    );
+    expect(regQueryValueMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        hive: 'HKCU',
+        key: expect.stringContaining('\\UrlAssociations\\tel\\UserChoice'),
+        name: 'ProgId',
+      }),
+    );
   });
 });
