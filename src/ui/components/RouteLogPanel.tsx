@@ -104,57 +104,59 @@ export function RouteLogPanel(props: {
           </Group>
         </Group>
 
-        <ScrollArea style={{ flex: 1 }} type="auto">
+        <Stack gap={6}>
+          <Switch
+            label="Redact new log entries"
+            checked={routeLogMode === 'redacted'}
+            disabled={loading || modeBusy}
+            onChange={(e) => {
+              const nextMode: RouteLogMode = e.currentTarget.checked
+                ? 'redacted'
+                : 'full';
+              setModeBusy(true);
+              void api.settings
+                .set({ routeLogMode: nextMode })
+                .then(() => {
+                  onDidChangeSettings?.();
+                })
+                .catch((err: unknown) => {
+                  setError((err as Error).message);
+                })
+                .finally(() => {
+                  setModeBusy(false);
+                });
+            }}
+          />
+
+          <Text size="sm" c="dimmed">
+            {routeLogMode === 'redacted'
+              ? 'Redacted mode stores scheme-level info only (recommended).'
+              : 'Full mode stores raw URIs/targets (less private).'}
+          </Text>
+
+          <Text size="sm" c="dimmed">
+            Entries: {entries.length}
+            {lastSeq !== null ? ` (latest seq: ${String(lastSeq)})` : ''}
+          </Text>
+
+          {loading ? (
+            <Group gap="xs">
+              <Loader size="sm" />
+              <Text size="sm" c="dimmed">
+                Loading…
+              </Text>
+            </Group>
+          ) : null}
+
+          {error ? (
+            <Alert color="red" title="Error">
+              {error}
+            </Alert>
+          ) : null}
+        </Stack>
+
+        <ScrollArea style={{ flex: 1, minHeight: 0 }} type="auto">
           <Stack gap="sm" pr="xs">
-            <Switch
-              label="Redact new log entries"
-              checked={routeLogMode === 'redacted'}
-              disabled={loading || modeBusy}
-              onChange={(e) => {
-                const nextMode: RouteLogMode = e.currentTarget.checked
-                  ? 'redacted'
-                  : 'full';
-                setModeBusy(true);
-                void api.settings
-                  .set({ routeLogMode: nextMode })
-                  .then(() => {
-                    onDidChangeSettings?.();
-                  })
-                  .catch((err: unknown) => {
-                    setError((err as Error).message);
-                  })
-                  .finally(() => {
-                    setModeBusy(false);
-                  });
-              }}
-            />
-
-            <Text size="sm" c="dimmed">
-              {routeLogMode === 'redacted'
-                ? 'Redacted mode stores scheme-level info only (recommended).'
-                : 'Full mode stores raw URIs/targets (less private).'}
-            </Text>
-
-            <Text size="sm" c="dimmed">
-              Entries: {entries.length}
-              {lastSeq !== null ? ` (latest seq: ${String(lastSeq)})` : ''}
-            </Text>
-
-            {loading ? (
-              <Group gap="xs">
-                <Loader size="sm" />
-                <Text size="sm" c="dimmed">
-                  Loading…
-                </Text>
-              </Group>
-            ) : null}
-
-            {error ? (
-              <Alert color="red" title="Error">
-                {error}
-              </Alert>
-            ) : null}
-
             {entries.length ? (
               <Stack gap="sm">
                 {entries.map((e) => {

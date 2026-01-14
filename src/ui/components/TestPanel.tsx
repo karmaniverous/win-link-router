@@ -108,54 +108,63 @@ export function TestPanel(props: {
   }, [api, canRun, debouncedScheme, debouncedUri]);
 
   return (
-    <Box style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex' }}>
-      <ScrollArea style={{ flex: 1 }} type="auto">
-        <Stack gap="sm" pr="xs">
-          <Text size="sm" c="dimmed">
-            Scheme:{' '}
-            <Text span fw={600}>
-              {inferredScheme ?? '(not inferred)'}
-            </Text>
+    <Box
+      style={{
+        flex: 1,
+        minHeight: 0,
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <Stack gap="sm" pr="xs">
+        <Text size="sm" c="dimmed">
+          Scheme:{' '}
+          <Text span fw={600}>
+            {inferredScheme ?? '(not inferred)'}
           </Text>
+        </Text>
 
-          {schemeConfig && !schemeConfig.enabled ? (
-            <Alert color="yellow" title="Scheme is disabled">
-              Routing for {schemeConfig.scheme} is currently disabled. Test
-              output below is for debugging only.
-            </Alert>
-          ) : null}
+        {schemeConfig && !schemeConfig.enabled ? (
+          <Alert color="yellow" title="Scheme is disabled">
+            Routing for {schemeConfig.scheme} is currently disabled. Test output
+            below is for debugging only.
+          </Alert>
+        ) : null}
 
-          <TextInput
-            label="Incoming URI"
-            value={testUri}
-            onChange={(e) => {
-              onChangeTestUri(e.currentTarget.value);
-            }}
-            placeholder="e.g. tel:+1 (555) 123-4567"
-          />
+        <TextInput
+          label="Incoming URI"
+          value={testUri}
+          onChange={(e) => {
+            onChangeTestUri(e.currentTarget.value);
+          }}
+          placeholder="e.g. tel:+1 (555) 123-4567"
+        />
 
-          {!testUri.trim() ? (
-            <Text size="sm" c="dimmed">
-              Enter a URI to run tests.
+        {!testUri.trim() ? (
+          <Text size="sm" c="dimmed">
+            Enter a URI to run tests.
+          </Text>
+        ) : !inferredScheme ? (
+          <Text size="sm" c="dimmed">
+            Could not infer a scheme from the URI. Include a scheme prefix like
+            <Text span fw={600}>
+              {' '}
+              tel:
             </Text>
-          ) : !inferredScheme ? (
-            <Text size="sm" c="dimmed">
-              Could not infer a scheme from the URI. Include a scheme prefix
-              like
-              <Text span fw={600}>
-                {' '}
-                tel:
-              </Text>
-              .
-            </Text>
-          ) : null}
+            .
+          </Text>
+        ) : null}
 
-          {result?.error ? (
-            <Alert color="red" title="Error">
-              {result.error}
-            </Alert>
-          ) : null}
+        {result?.error ? (
+          <Alert color="red" title="Error">
+            {result.error}
+          </Alert>
+        ) : null}
+      </Stack>
 
+      <ScrollArea style={{ flex: 1, minHeight: 0 }} type="auto">
+        <Stack gap="sm" pr="xs">
           {result?.matchGroups ? (
             <Stack gap={6}>
               <Text size="sm" fw={600}>

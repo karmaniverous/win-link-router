@@ -23,6 +23,98 @@
           "enabled": true
         }
       ]
+    },
+    {
+      "presetId": "sip.whatsapp",
+      "scheme": "SIP",
+      "enabled": true,
+      "extractor": {
+        "pattern": "^sip:(?<number>.*)$",
+        "flags": "i"
+      },
+      "templates": [
+        {
+          "id": "whatsapp.desktop",
+          "label": "WhatsApp Desktop",
+          "template": "whatsapp://send?phone={{digits number}}",
+          "enabled": true
+        },
+        {
+          "id": "whatsapp.web",
+          "label": "WhatsApp Web",
+          "template": "https://wa.me/{{digits number}}",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "presetId": "callto.whatsapp",
+      "scheme": "CALLTO",
+      "enabled": true,
+      "extractor": {
+        "pattern": "^callto:(?<number>.*)$",
+        "flags": "i"
+      },
+      "templates": [
+        {
+          "id": "whatsapp.desktop",
+          "label": "WhatsApp Desktop",
+          "template": "whatsapp://send?phone={{digits number}}",
+          "enabled": true
+        },
+        {
+          "id": "whatsapp.web",
+          "label": "WhatsApp Web",
+          "template": "https://wa.me/{{digits number}}",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "presetId": "sms.whatsapp",
+      "scheme": "SMS",
+      "enabled": true,
+      "extractor": {
+        "pattern": "^sms:(?<number>.*)$",
+        "flags": "i"
+      },
+      "templates": [
+        {
+          "id": "whatsapp.desktop",
+          "label": "WhatsApp Desktop",
+          "template": "whatsapp://send?phone={{digits number}}",
+          "enabled": true
+        },
+        {
+          "id": "whatsapp.web",
+          "label": "WhatsApp Web",
+          "template": "https://wa.me/{{digits number}}",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "presetId": "smsto.whatsapp",
+      "scheme": "SMSTO",
+      "enabled": true,
+      "extractor": {
+        "pattern": "^smsto:(?<number>.*)$",
+        "flags": "i"
+      },
+      "templates": [
+        {
+          "id": "whatsapp.desktop",
+          "label": "WhatsApp Desktop",
+          "template": "whatsapp://send?phone={{digits number}}",
+          "enabled": true
+        },
+        {
+          "id": "whatsapp.web",
+          "label": "WhatsApp Web",
+          "template": "https://wa.me/{{digits number}}",
+          "enabled": true
+        }
+      ]
     }
   ]
 }

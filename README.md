@@ -1,284 +1,314 @@
-# Windows Link Router
+# win-link-router
 
-> NOTE: I'm just fleshing out this idea for now. Requirements below. Feel free to [discuss](https://github.com/karmaniverous/win-link-router/discussions)!
+**Link your way.**  
+A Windows desktop app that lets you route protocol links (like `tel:`) to the app or URL you actually want, using simple rules and ordered fallbacks.
 
----
-
-## 1. Scope & Goals
-
-The application is a Windows desktop app that:
-
-- Registers itself as a handler for one or more URI schemes (e.g. `tel:`).
-- Receives those URIs from the OS and **forwards** them to other apps or URLs based on user‑defined rules.
-- Lets the user manage a **mapping**:
-
-> `link type / protocol` → ordered list of **target URL templates**
-
-with support for **presets** for common link types (e.g. TEL → WhatsApp).
+Typical use case: clicking a `tel:` link in a browser should open WhatsApp (Desktop first, Web fallback), not the default dialer.
 
 ---
 
-## 2. Actors
+<!-- Screenshot: Main window (Settings tab) -->
 
-- **End user**
-  - Installs the app
-  - Configures mappings
-  - Selects the app as default handler for specific link types in Windows
+![Screenshot: Main window – Settings tab](docs/screenshots/main-settings.png)
+**Capture:** The main app window showing the header (title + tagline), tabs (Settings/Log/Test), the Schemes list on the left, and a selected scheme editor on the right. Use a scheme like `TEL` and show at least two templates with one enabled and one disabled. Blur/redact any personal numbers or URIs.
 
-- **Operating system (Windows)**
-  - Invokes the app when a registered protocol is clicked (e.g. `tel:` link in a browser)
-  - Manages default app selection UI (Default Apps → link types)
+## What it does
 
----
+- **Routes protocol URIs** (for example `tel:+15551234567`) to target apps/URLs based on your configuration.
+- **Supports ordered fallbacks**: try Template A, then Template B if opening fails.
+- **Windows Default Apps friendly**:
+  - The app can register itself as a _candidate handler_ (so Windows can show it as an option).
+  - You still choose the **default handler** in Windows Settings (the app does not and cannot set defaults for you reliably).
+- **Built-in presets** to get started fast (currently includes `TEL/SIP/CALLTO/SMS/SMSTO → WhatsApp`).
+- **Debug tools built in**: a Test tab to see extractor matches and rendered targets; a Log tab for routing history.
 
-## 3. Core Concepts
+## Why this tool?
 
-- **Link type / protocol**
-  - A URI scheme like `TEL`, `MAILTO`, `CALLTO`, etc.
-  - Internally stored as an uppercase string, without a trailing colon.
+I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and after a recent Windows update they all stopped working.
 
-- **Payload**
-  - A value derived from the incoming URI, used to fill templates.
-  - Example: for `tel:+1 (555) 123-4567`, payload might be `+15551234567`.
-
-- **Template**
-  - A string that describes a forwarding target, e.g.
-    - `whatsapp://send?phone={{payload}}`
-    - `https://wa.me/{{payload}}`
-
-  - Includes at least the placeholder `{{payload}}` which is replaced at runtime.
-
-- **Preset**
-  - A built‑in default configuration for a specific link type (e.g. TEL), consisting of one or more templates.
-  - Used as initial values when user first adds / enables that link type; user can modify afterwards.
+**win-link-router** exists to make routing explicit and resilient: it lets you map **ANY** link type (scheme/protocol) to **ANY** application or web service, using templates—whether that target is a native app protocol like `whatsapp://...` or a web URL like `https://...` (with ordered fallbacks).
 
 ---
 
-## 4. Functional Requirements
+<!-- Screenshot: Default-handler mismatch after a Windows update -->
 
-### 4.1 Application startup and lifecycle
+![Screenshot: Default app mismatch banner](docs/screenshots/default-mismatch-banner.png)
+**Capture:** The main window showing a non-blocking warning that some enabled + registered schemes are “Not default” or “Unknown”, with a button to open Windows Default Apps. This should look like the situation immediately after a Windows update changed defaults. Redact/blur any identifying paths.
 
-1. **Normal launch (no URI argument)**
-   - When started from Start Menu / shortcut, the app **opens the main window** showing:
-     - List of configured link types
-     - Details of templates for the selected link type
-     - Controls to add/remove/edit mappings.
+## Install
 
-2. **Protocol launch (with URI argument)**
-   - When the app is launched by Windows with a URI argument (e.g. `tel:+15551234567`):
-     - The app must **parse the command-line arguments** and extract the URI.
-     - It must **process routing** based on the configuration (see 4.5).
-     - It may optionally bring the main window to front (configurable), but routing must work even if the window stays hidden.
+### Recommended: download a release
 
-3. **Single instance**
-   - The app must run as a **single instance**:
-     - If a second instance is started with a URI argument, it passes that URI to the already running instance.
-     - The existing instance performs the routing for that URI.
+1. Go to **GitHub Releases**: https://github.com/karmaniverous/win-link-router/releases
+2. Download and install the latest Windows build.
+3. Launch **win-link-router** from the Start Menu.
+
+> Note: Windows protocol registration and Default Apps integration only work in packaged builds. Development runs are intentionally limited here.
 
 ---
 
-### 4.2 Link type / protocol registration awareness
+<!-- Screenshot: First-run onboarding (preset chooser) -->
 
-4. **Display registered link types (from app’s own registration)**
-   - The app must be able to show the list of link types it is **registered for** (i.e. those configured in its own registry Capabilities).
-   - For each such link type, the app must display:
-     - The protocol name (e.g. `TEL`)
-     - Whether it is **enabled in the router config** (i.e. has a SchemeConfig entry).
+![Screenshot: First-run preset selection](docs/screenshots/onboarding-presets.png)
+**Capture:** The first-run dialog that prompts the user to choose presets. Show the `TEL` group with `tel.whatsapp` selected. Make sure no personal data is visible.
 
-5. **Indicate default handler status (read‑only)**
-   - For each registered link type, the app must indicate whether it is **currently the default handler** in Windows, based on reading the appropriate registry entries.
-   - The app **must not** attempt to directly modify Windows’ default handler setting; it can only show the status.
+## Quick start (TEL → WhatsApp)
 
-6. **Shortcut to OS default app settings**
-   - For each link type, the app must offer a way (e.g. “Set as default…” button) to:
-     - Open the relevant Windows “Default Apps” UI, so the user can set this app as the default handler for that link type.
-
----
-
-### 4.3 Configuration management
-
-7. **Per-user configuration storage**
-   - The app must store configuration per user (e.g. in `%APPDATA%`), not machine-wide.
-   - Configuration must include:
-     - All link types user has configured
-     - For each link type, its template list and ordering.
-
-8. **Initial configuration**
-   - On first launch without existing config:
-     - The app must create a default config.
-     - Default config should include built‑in presets (e.g. TEL preset) as disabled or enabled according to design (your choice, but defined).
-
-9. **Link type CRUD**
-   - The user must be able to:
-     - **Add** a new link type (entering the protocol name, e.g. `TEL` or `mailto`).
-     - **Edit** a link type’s name (subject to constraints; must be valid scheme characters).
-     - **Remove** a link type and its associated templates from the configuration.
-
-   - The app must prevent duplicates (no two entries for the same protocol name).
-
-10. **Template management per link type**
-    - For each link type, the user must be able to:
-      - **Add** a template (label + template string).
-      - **Edit** a template’s label and template string.
-      - **Enable/disable** each template.
-      - **Reorder** templates to define fallback order.
-      - **Remove** templates.
-
-11. **Validation**
-    - When the user edits templates, the app must:
-      - Validate that the template string is non-empty.
-      - Validate that the template string contains the `{{payload}}` placeholder (or warn the user if it doesn’t, depending on your final rule).
-      - Prevent saving invalid templates, or clearly indicate that they are invalid.
-
-12. **Autosave**
-    - Changes made in the GUI (adding/editing/removing link types or templates) must be persisted without requiring the user to explicitly “save”.
+1. Open **win-link-router**.
+2. On first run, choose the **TEL WhatsApp** preset (or add `TEL` later).
+3. In **Settings → Schemes**, ensure `TEL` is:
+   - **Enabled** (power icon)
+   - **Registered** (registration icon)
+4. Click **Set default…** for `TEL` (or use **Default Apps…** in the header) and set **win-link-router** as the default handler for `tel:` links in Windows.
+5. Paste a test link like `tel:+1 (555) 123-4567` into the **Test** tab to confirm the rendered targets look correct.
+6. Click a `tel:` link anywhere (browser, email, chat) and the router will forward it.
 
 ---
 
-### 4.4 Presets
+<!-- Screenshot: Windows Default Apps -->
 
-13. **Preset availability**
-    - The app must ship with a set of **built‑in presets** for selected link types (at minimum, TEL with the WhatsApp routing you described).
+![Screenshot: Windows Default Apps – choosing defaults by link type](docs/screenshots/windows-default-apps-tel.png)
+**Capture:** Windows Settings showing how to assign the default app for the `tel:` protocol (or “Choose defaults by link type”). Highlight `tel` and show **win-link-router** as an available option. No personal account info.
 
-14. **Preset application on add**
-    - When the user adds a link type that has a built‑in preset:
-      - The app must offer to initialize that link type with the preset templates.
-      - This can be automatic (pre-populate the new link type) or via a user prompt (e.g. “Use preset for TEL?”).
+## How routing works (mental model)
 
-15. **Preset visibility**
-    - In the UI for a link type that has an associated preset, the app must:
-      - Indicate that the current configuration is based on a preset (at least initially),
-      - Provide an option to **reset to preset**, discarding user changes for that link type.
+**win-link-router** is configured **per scheme** (also called a protocol).
 
-16. **User modification of preset**
-    - After applying a preset, the user must be able to:
-      - Change labels, templates, enabled flags, and order.
-      - Add new templates beyond the preset ones.
-      - Remove preset templates individually.
+For each scheme you configure:
 
-17. **Preset reset behavior**
-    - When the user chooses “reset to preset”:
-      - The app must replace the current templates for that link type with the preset template list.
-      - Local edits to labels/template strings/order must be discarded for that link type.
-      - The user should be asked to confirm destructive reset (to avoid accidental data loss).
+1. **Extractor (regex)** is applied to the _entire incoming URI_.
+2. If it matches, **named capture groups** become variables for templates.
+3. **Templates** are evaluated in order:
+   - Render a target string (Handlebars)
+   - Try to open it via Windows
+   - If opening fails, try the next enabled template (fallback)
+4. If routing fails, the app opens the UI and shows diagnostics (and pre-fills the Test tab with the failing URI).
 
----
+### Key concepts
 
-### 4.5 Routing behavior (when invoked via URI)
+- **Scheme**: the part before the first `:` in a URI. Examples: `TEL`, `MAILTO`, `CALLTO`.
+- **Enabled vs Registered**
+  - **Enabled**: router will process incoming links for this scheme.
+  - **Registered**: the app should appear as a candidate handler in Windows for this scheme.
+  - Rule: **Registered implies Enabled**.
+- **Extractor**: a single regex per scheme (pattern + optional flags). Must use named capture groups.
+- **Template**: a Handlebars string that produces a target URL/protocol (for example `whatsapp://...` or `https://...`).
 
-18. **URI capture**
-    - When the app receives a URI argument (from OS or second instance), it must:
-      - Identify the scheme (link type) from the URI (e.g. `tel` from `tel:+1555`).
-      - Normalize the scheme to a canonical form (e.g. uppercased).
+## Using the app
 
-19. **Payload extraction**
-    - For each known link type, the app must define a **payload extraction rule**:
-      - For TEL:
-        - Strip the `tel:` prefix (case-insensitive).
-        - Remove all characters except digits and a leading `+`.
+### Settings tab
 
-      - For other schemes (at minimum):
-        - Provide a generic fallback (e.g. everything after the first `:`).
-
-    - If payload extraction fails or yields an empty string:
-      - The app must not attempt to launch targets.
-      - It must either fail silently or log/display an error (see 4.7).
-
-20. **Template resolution**
-    - After obtaining the payload for a link type:
-      - The app must look up that link type’s configuration.
-      - It must build a list of **enabled templates** in the configured order.
-      - For each template, it must substitute `{{payload}}` with the extracted payload to get a target URL.
-
-21. **Forwarding to target**
-    - The app must attempt to open the first enabled, successfully rendered template:
-      - Use the appropriate Electron API to open the target URL via the OS (e.g. `shell.openExternal`).
-
-    - If opening the first target fails (e.g. because the protocol is not registered), the app must:
-      - Optionally try the next enabled template in order (if configured to allow fallbacks).
-      - Stop when one succeeds or the list is exhausted.
-
-22. **No configured templates**
-    - If a URI is received for a link type that:
-      - Exists in the config but has no enabled templates, **or**
-      - Does not exist in the config at all,
-        the app must:
-      - Not attempt to open any external target.
-      - Provide a user-visible warning (e.g. notification, log entry, or UI banner) explaining that no routing is configured for that link type.
+This is where you configure schemes and templates, and manage lifecycle settings.
 
 ---
 
-### 4.6 User interface behavior
+<!-- Screenshot: Schemes list with status icons -->
 
-23. **Main view**
-    - The main window must provide:
-      - A list of link types known to the app.
-      - Ability to select a link type and view its templates.
-      - Indicators for:
-        - Whether the app is **registered** for that link type.
-        - Whether the app is the **current default** handler for that link type (if determinable).
+![Screenshot: Schemes list – enabled/registered/default indicators](docs/screenshots/schemes-sidebar-status.png)
+**Capture:** The Schemes sidebar showing multiple schemes with their icon controls:
 
-24. **Template editor**
-    - For the selected link type, the UI must include:
-      - A table or list of templates with:
-        - Label
-        - Template string
-        - Enabled/disabled indicator
-        - Move up/down controls
+- enabled toggle (power)
+- registration toggle
+- default status indicator (default / not default / unknown)
+  Also show the info tooltip content once (expected/actual ProgId), but redact any sensitive paths if present.
 
-      - Controls to add, remove, and edit templates.
+#### Add a scheme
 
-25. **Preset controls**
-    - For link types with known presets, the UI must:
-      - Show that a preset exists (e.g. “TEL preset available”).
-      - Provide a control to:
-        - Initialize from preset (if not already configured).
-        - Reset to preset (if user has modified it).
+- Click **Add scheme**
+- Enter a scheme name (for example `TEL` or `mailto`)
+- If presets exist for that scheme, you can initialize from a preset
 
-26. **Protocol status + OS integration**
-    - For each link type entry, the UI must:
-      - Show a status icon or text indicating “Default” vs “Not default”.
-      - Provide a button or link that opens Windows’ default apps settings page relevant to protocol selection.
+#### Edit extractor
 
-27. **Minimal UX when launched via URI**
-    - When the app is only started to route a URI:
-      - It must perform the routing quickly and not block the user with prompts by default.
-      - UI opening/focus on such launches should be configurable (e.g. an option “Minimize when routing links” vs “Always show main window”).
+- Use the **Extractor pattern** field (regex)
+- Use **Flags** for regex flags (global `g` is not allowed)
 
----
+Example extractor for TEL:
 
-### 4.7 Error handling & feedback
+```regex
+^tel:(?<number>.*)$
+```
 
-28. **Invalid URI handling**
-    - If the incoming argument is not a valid URI or its scheme cannot be determined:
-      - The app must not crash.
-      - It must log the incident and optionally show a non-intrusive error.
+Flags:
 
-29. **Template errors**
-    - If a specific template fails to open (e.g. because its protocol is unregistered):
-      - The app may attempt the next template in the fallback list.
-      - It must log which template failed and why, if detectable.
+```text
+i
+```
 
-30. **Configuration load/save errors**
-    - If the app fails to load configuration (e.g. malformed JSON):
-      - It must fall back to a safe default (e.g. recreate config using presets).
-      - It must notify the user that configuration was reset.
+#### Edit templates
+
+Templates are tried top-to-bottom (enabled templates only). You can:
+
+- Add/remove templates
+- Enable/disable templates
+- Reorder templates (fallback order)
+- Reset the scheme to a preset (if it was created from one)
 
 ---
 
-### 4.8 Logging (minimal requirement)
+<!-- Screenshot: Scheme editor (extractor + templates) -->
 
-31. **Routing log (minimal)**
-    - The app must maintain at least a simple log (in memory or file) with:
-      - Timestamp
-      - Incoming URI
-      - Resolved link type
-      - Resolved payload
-      - Target URL(s) attempted
-      - Result (success/failure)
+![Screenshot: Scheme editor – extractor and template list](docs/screenshots/scheme-editor-tel.png)
+**Capture:** The scheme editor for `TEL`, showing:
 
-This is mainly to debug routing issues; a full log viewer in the UI is optional but convenient.
+- Extractor pattern + Flags
+- At least two templates (WhatsApp Desktop + WhatsApp Web)
+- Reorder controls and enable/disable (power) icons
+  Use a non-personal sample URI in any visible fields.
+
+### Template helpers you can use
+
+Templates are Handlebars with strict variable resolution (missing values cause a render error). The app provides a few generic helpers:
+
+- `{{trim value}}` - Removes leading and trailing whitespace.
+- `{{lower value}}` - Converts the value to lowercase.
+- `{{upper value}}` - Converts the value to uppercase.
+- `{{urlEncode value}}` - URL-encodes the value (percent-encoding) for safe use in query strings.
+
+Example template:
+
+```handlebars
+whatsapp://send?phone={{digits number}}
+```
+
+Advanced note: the template context includes:
+
+- top-level variables for each named capture group
+- `uri` (the full incoming URI)
+- `match` (regex match info, including `match.groups.*`)
+
+### Log tab (routing history)
+
+The Log tab is for debugging. You can:
+
+- Refresh entries
+- Clear the log
+- Toggle **Redacted** vs **Full** logging for new entries
+
+Redacted mode is recommended: it avoids storing raw URIs and full targets (which may contain sensitive payloads).
 
 ---
 
-Built for you with ❤️ on Bali! Find more great tools & templates on [my GitHub Profile](https://github.com/karmaniverous).
+<!-- Screenshot: Log tab -->
+
+![Screenshot: Log tab – redacted mode and entries](docs/screenshots/log-tab.png)
+**Capture:** The Log tab showing the “Redact new log entries” toggle, at least one entry rendered as pretty JSON, and the Copy button. Ensure any sensitive values are redacted/blurred.
+
+### Test tab (dry-run evaluation)
+
+Paste a URI and the app will:
+
+- Infer the scheme from the URI
+- Run the extractor
+- Show match groups
+- Show each template’s rendered output (or render error)
+
+This is the fastest way to debug regex and template issues before relying on Windows routing.
+
+---
+
+<!-- Screenshot: Test tab -->
+
+![Screenshot: Test tab – match groups and rendered targets](docs/screenshots/test-tab.png)
+**Capture:** A TEL example where the extractor matches and templates render:
+
+- show inferred scheme
+- show match groups JSON
+- show at least one rendered target (and optionally one render error)
+  Use a fake phone number.
+
+## Windows integration notes
+
+### Candidate registration vs default handler
+
+- **Candidate registration** makes **win-link-router** appear as an option in Windows Default Apps for a scheme.
+- **Default handler** is what Windows actually uses when a link is clicked.
+- Windows protects default handlers; this app will not attempt to force defaults.
+
+If some enabled + registered schemes are not set as default in Windows, the app will show a non-blocking warning.
+
+### Tray / background behavior (optional)
+
+- **Run in Background**: keeps the app in the tray so routing can happen without opening the UI.
+- **Start on Windows Login**: start in the tray at login (implies Run in Background).
+
+---
+
+<!-- Screenshot: Tray menu -->
+
+![Screenshot: System tray menu](docs/screenshots/tray-menu.png)
+**Capture:** The tray context menu showing Show/Hide, shortcut repair, open data folder, and Quit.
+
+## Import / export and shared config
+
+### Import / export (portable)
+
+- **Export** saves your schemes and templates to a JSON file.
+- **Import** replaces your schemes/templates from a JSON file.
+- Per-user settings (like run-at-login and shared config path) are preserved locally.
+
+### Shared config mode
+
+If you enable **Use shared config**, schemes/templates are read from a shared JSON file path. This is useful for sharing rules across accounts or machines.
+
+If the shared file is missing, unreadable, or not writable:
+
+- scheme/template editing becomes **read-only**
+- settings remain editable so you can fix or disable shared mode
+
+## Updates
+
+**win-link-router** supports automatic updates on Windows (packaged builds) using `update.electronjs.org`.
+
+Open **Help → About** to:
+
+- see the current version
+- check for updates
+- update immediately
+- toggle automatic updates
+
+---
+
+<!-- Screenshot: About window -->
+
+![Screenshot: About – update status and controls](docs/screenshots/about-window.png)
+**Capture:** The About window showing current version, update status text, “Check for updates”, “Update Now”, and the “Enable automatic updates” checkbox.
+
+## Troubleshooting
+
+### Nothing happens when clicking a link
+
+- Make sure win-link-router is set as the **default** handler for that scheme in Windows Default Apps.
+- Confirm the scheme is **Enabled** in the app.
+- Confirm at least one template is **Enabled**.
+
+### Routing failed: extractor did not match
+
+- Go to the **Test** tab.
+- Paste the exact URI you clicked.
+- Fix the extractor pattern/flags until match groups appear.
+
+### Routing failed: template render error
+
+- Your template referenced a missing value (for example `{{digits number}}` when the extractor does not define `(?<number>...)`).
+- Use the Test tab to see which variables exist in match groups.
+
+### Routing failed: could not open any target
+
+- The rendered target protocol may not be installed/registered on your machine (for example `whatsapp://`).
+- Add an `https://...` fallback template as the next option.
+
+## Privacy
+
+- Configuration and logs are stored per-user in the app’s data folder.
+- Routing logs default to **redacted** mode (recommended).
+- If you enable full logging, logs may include sensitive payloads and targets.
+
+## Support
+
+- Issues: https://github.com/karmaniverous/win-link-router/issues
+- Discussions / help: https://github.com/karmaniverous/win-link-router/discussions
+
+## License
+
+BSD-3-Clause. See `LICENSE` in this repository.
