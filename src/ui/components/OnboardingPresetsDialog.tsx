@@ -6,7 +6,15 @@
  * - Preselect the TEL WhatsApp preset when available.
  * - Avoid window.confirm/prompt; use in-app dialogs.
  */
-import { Alert, Button, Radio, ScrollArea, Stack, Text } from '@mantine/core';
+import {
+  Alert,
+  Button,
+  Group,
+  Radio,
+  ScrollArea,
+  Stack,
+  Text,
+} from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { PresetsFile, SchemeConfig } from '../../core/config/appConfig';
@@ -148,7 +156,7 @@ export function OnboardingPresetsDialog(props: {
                   name={`preset-${scheme}`}
                   label={scheme}
                 >
-                  <Stack gap={6} mt={6}>
+                  <Group gap="md" mt={6} wrap="wrap">
                     <Radio value="none" label="None" disabled={busy} />
                     {list.map((p, idx) => {
                       const key = presetKey(p, idx);
@@ -162,7 +170,7 @@ export function OnboardingPresetsDialog(props: {
                         />
                       );
                     })}
-                  </Stack>
+                  </Group>
                 </Radio.Group>
               );
             })}

@@ -148,4 +148,6 @@
 - Amendment: remove unsafe any usage in userChoiceProgId tests (use vi.mocked + toHaveBeenNthCalledWith).
 - Fixed remaining lint errors in userChoiceProgId test (typed hoisted mock) and stabilized IPC handler tests with longer per-test timeouts.
 - Amendment: revert userChoiceProgId test off vitest Mock/hoisted typing (fix TS2707 + lint cascade).
-- UI: start Log/Test scroll regions below pinned header sections.- Docs/presets: describe template helpers; add WhatsApp presets for SIP/CALLTO/SMS/SMSTO.
+- UI: start Log/Test scroll regions below pinned header sections.
+- Docs/presets: describe template helpers; add WhatsApp presets for SIP/CALLTO/SMS/SMSTO.
+- UI: render onboarding preset radios inline per scheme.
