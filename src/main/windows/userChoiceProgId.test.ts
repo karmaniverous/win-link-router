@@ -1,25 +1,13 @@
-import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('./regExe', () => ({ regQueryValue: vi.fn() }));
+
+import { regQueryValue } from './regExe';
 import { getUserChoiceProgId } from './userChoiceProgId';
 
-interface RegQueryValueOpts {
-  hive: 'HKCU' | 'HKCR';
-  key: string;
-  name: string | null;
-}
-
-const { regQueryValueMock } = vi.hoisted(() => {
-  const regQueryValueMock: Mock<
-    [RegQueryValueOpts],
-    Promise<string | null>
-  > = vi.fn();
-  return { regQueryValueMock };
-});
-
-vi.mock('./regExe', () => ({ regQueryValue: regQueryValueMock }));
-
 describe('getUserChoiceProgId', () => {
+  const regQueryValueMock = vi.mocked(regQueryValue);
+
   beforeEach(() => {
     regQueryValueMock.mockReset();
   });
@@ -32,9 +20,9 @@ describe('getUserChoiceProgId', () => {
 
     expect(regQueryValueMock).toHaveBeenCalledTimes(1);
     const call0 = regQueryValueMock.mock.calls[0]?.[0];
-    expect(call0?.hive).toBe('HKCU');
-    expect(call0?.name).toBe('ProgId');
-    expect(call0?.key).toContain(
+    expect(call0.hive).toBe('HKCU');
+    expect(call0.name).toBe('ProgId');
+    expect(call0.key).toContain(
       '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
     );
   });
@@ -50,15 +38,15 @@ describe('getUserChoiceProgId', () => {
 
     expect(regQueryValueMock).toHaveBeenCalledTimes(2);
     const call0 = regQueryValueMock.mock.calls[0]?.[0];
-    expect(call0?.hive).toBe('HKCU');
-    expect(call0?.name).toBe('ProgId');
-    expect(call0?.key).toContain(
+    expect(call0.hive).toBe('HKCU');
+    expect(call0.name).toBe('ProgId');
+    expect(call0.key).toContain(
       '\\UrlAssociations\\tel\\UserChoiceLatest\\ProgId',
     );
 
     const call1 = regQueryValueMock.mock.calls[1]?.[0];
-    expect(call1?.hive).toBe('HKCU');
-    expect(call1?.name).toBe('ProgId');
-    expect(call1?.key).toContain('\\UrlAssociations\\tel\\UserChoice');
+    expect(call1.hive).toBe('HKCU');
+    expect(call1.name).toBe('ProgId');
+    expect(call1.key).toContain('\\UrlAssociations\\tel\\UserChoice');
   });
 });

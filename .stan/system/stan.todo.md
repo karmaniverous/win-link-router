@@ -145,4 +145,6 @@
 - Removed empty status-region whitespace above tabs and made textareas autosize from 1 row.
 - Fixed TEL default detection by preferring UserChoiceLatest ProgId (Windows update behavior).
 - Fixed userChoiceProgId unit tests to avoid require()/dynamic import patterns (use vi.spyOn).
-- Amendment: remove unsafe any usage in userChoiceProgId tests (use vi.mocked + toHaveBeenNthCalledWith).- Fixed remaining lint errors in userChoiceProgId test (typed hoisted mock) and stabilized IPC handler tests with longer per-test timeouts.
+- Amendment: remove unsafe any usage in userChoiceProgId tests (use vi.mocked + toHaveBeenNthCalledWith).
+- Fixed remaining lint errors in userChoiceProgId test (typed hoisted mock) and stabilized IPC handler tests with longer per-test timeouts.
+- Amendment: revert userChoiceProgId test off vitest Mock/hoisted typing (fix TS2707 + lint cascade).
