@@ -13,6 +13,8 @@ Durable project requirements (desired end-state).
 - The routing logic must be target-agnostic and scheme-agnostic:
   - The app must not hard-code payload extraction rules for specific schemes like TEL.
   - Extraction and transformation are defined in configuration and presets.
+- Branding:
+  - Define `APP_TITLE` and `APP_TAGLINE` constants and use them consistently across the UI.
 
 ## Protocol handling and process model
 
@@ -41,6 +43,26 @@ Durable project requirements (desired end-state).
   - Routing performance requirement:
     - When routing a URI argument successfully, the app should not load the UI (avoid creating the BrowserWindow / renderer).
     - On protocol launch failures, the app must open/focus the main window and show actionable diagnostics (see UI requirements).
+
+## Updates (auto-update + manual update)
+
+- The app must support auto-updates on Windows using `update.electronjs.org` (GitHub Releases) when packaged.
+- Update sources:
+  - Auto-updates must use public (non-draft, non-prerelease) GitHub releases only.
+  - GitHub prereleases are not used for auto-update; this is acceptable and expected.
+- Scheduling:
+  - When automatic updates are enabled:
+    - The app checks for updates at startup.
+    - The app checks for updates every hour while running.
+  - When automatic updates are disabled:
+    - The app must not run scheduled background update checks.
+    - Manual update checks must still be available via the About window.
+- Install semantics:
+  - Default behavior is install-on-quit:
+    - If an update has been downloaded, it will be applied the next time the user quits the application.
+  - “Update Now” is an escape hatch:
+    - If the update is not yet downloaded, “Update Now” must download it first and then install immediately.
+    - If the update is already downloaded, “Update Now” installs immediately.
 
 ## Registration and default handler rules (Windows)
 
@@ -128,7 +150,7 @@ Durable project requirements (desired end-state).
 
 - The main window must provide:
   - A header toolbar aligned to the wireframe:
-    - Do not display an in-app app title in the upper-left corner.
+    - Display `APP_TITLE` and `APP_TAGLINE` in the upper-left corner.
     - Do not display an “Ensure Registration” button in the header (registration reconciliation remains available via the Schemes panel refresh control).
     - Tabs should be presented full-width under the header toolbar.
     - The header must include a Share button that opens the Share window.
@@ -145,6 +167,9 @@ Durable project requirements (desired end-state).
   - Layout must align to the wireframe:
     - Schemes and Scheme Detail panels appear only in the Settings tab and are presented side-by-side.
     - The Scheme Detail panel must be scrollable when its content exceeds the viewport height.
+    - In the Scheme Detail panel, scrolling must only affect the template cards list (not the scheme/extractor content above).
+  - Scheme detail controls:
+    - The Scheme Detail panel must not include a redundant scheme enable/disable button (scheme enable/disable exists in the Schemes list).
 
 - The UI must provide a loading indicator for slow-start content:
   - Show a spinner/“Loading…” while config/presets/statuses are loading.
@@ -296,6 +321,32 @@ Durable project requirements (desired end-state).
 - Icon-only controls must use tooltips and aria-labels for clarity and accessibility.
 - The registration control should use a circle-R (registered) style icon.
 
+## Application menu and Help links (Windows)
+
+- The app must define a custom application menu (Windows) and remove Electron boilerplate items.
+- Help menu must include:
+  - About…
+  - Documentation (opens external URL)
+  - Report an Issue (opens external URL)
+  - Get Help (opens external URL)
+
+## About window (modal)
+
+- The app must provide an About window accessible via Help → About.
+- The About window must be a separate window and modal to the main window.
+- When the About window is open and the main window is visible, the main window must be dimmed/disabled.
+- The About window must not display an application menu bar.
+- About content must include:
+  - Title + subtitle using `APP_TITLE` and `APP_TAGLINE`.
+  - Current version.
+  - Update status:
+    - “Your application is up to date!” or “New version available: <version>”.
+  - Controls:
+    - “Check for updates” button (manual check).
+    - “Update Now” button that downloads (if needed) and installs immediately.
+    - Checkbox “Enable automatic updates” (enabled by default).
+  - About must automatically check for updates when opened (best-effort; debounce/coalesce in main).
+
 ## External link handling
 
 - The app must open all external `http:`/`https:` links in the system default browser (not inside an in-app Electron window).
@@ -312,6 +363,8 @@ Durable project requirements (desired end-state).
 - The app must provide a Share page in a separate window (not a main-window tab).
   - Manual entrypoint: a header Share button opens the Share window.
   - The Share window is an interstitial experience; when opened manually, it should prevent drifting into the main window (modal/disabled parent behavior).
+- The Share window must not display an application menu bar.
+- When the Share window is open and the main window is visible, the main window must be dimmed/disabled.
 - Share page content (minimal):
   - Like win-link-router? Tell your friends!
     - X share button
@@ -334,4 +387,4 @@ Durable project requirements (desired end-state).
     - “Later!” (dismisses the interstitial)
     - “Stop Nagging Me!” (disables future nags permanently)
   - Closing the Share window via the window close control is treated as “Later!”.
-  - Nag state (disabled flag and route counter/MRU) must be stored in a separate per-user file under userData (not in the main config/import/export).
+  - Nag state (disabled flag and route counter/MRU) must be stored in a separate per-user file under userData (not in the main config/import/export).

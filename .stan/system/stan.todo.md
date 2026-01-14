@@ -2,10 +2,28 @@
 
 ## Next up
 
-- UX polish:
-  - Consider adding an in-app “Add presets…” action for later use (post-onboarding).
-  - Consider adding basic log filtering/search (optional).
-  - Consider adding a compact log entry summary line above the JSON (optional).
+- Updates + About window:
+  - Add auto-update support via `update.electronjs.org`:
+    - Check at startup and every hour when enabled.
+    - Allow manual “Check for updates” when disabled.
+    - Install-on-quit default; “Update Now” downloads (if needed) and installs immediately.
+  - Add a modal About window (no menu bar) with:
+    - APP_TITLE + APP_TAGLINE, current version, update status
+    - Enable automatic updates checkbox (default ON)
+    - “Check for updates” and “Update Now” buttons
+- Application menu (Windows):
+  - Remove Electron boilerplate items.
+  - Help menu: About, Documentation, Report an Issue, Get Help.
+  - Ensure Share/About windows never show a menu bar; keep main window dimmed/disabled while modal windows are open.
+- Main window header:
+  - Show APP_TITLE + APP_TAGLINE in upper-left.
+- Settings UI polish:
+  - Scheme Detail: only template cards scroll; extractor/header content stays fixed.
+  - Template cards: light gray background.
+  - Scheme Detail ScrollArea: scrollbar flush to inside edge, with a right gutter between cards and scrollbar.
+  - Extractor flags input: narrower width; pattern gets the space.
+  - Scheme list registration tooltip: “Register…” vs “Deregister…” based on state.
+  - Remove redundant scheme enable/disable control from Scheme Detail panel.
 
 ## Completed (recent)
 
@@ -135,4 +153,5 @@
 - Added Share window and replaced header GitHub widget with Share button.
 - Added post-route share nag interstitial with separate userData state (NAG_INTERVAL=3).
 - Decomposed src/ui/App.tsx and src/main.ts; fixed TS/test fallout.
-- Finished src/main.ts decomposition (ShareRuntime + rendererViews), removed macOS lifecycle behavior, and fixed remaining lint issues.
+- Finished src/main.ts decomposition (ShareRuntime + rendererViews), removed macOS lifecycle behavior, and fixed remaining lint issues.
+- Updated requirements and plan for updater/About/menu and UI polish.
