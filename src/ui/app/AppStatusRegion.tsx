@@ -40,13 +40,13 @@ export function AppStatusRegion(props: {
       ) : null}
 
       {props.error ? (
-        <Alert color="red" title="Error">
+        <Alert color="red" title="Error" p="xs">
           {props.error}
         </Alert>
       ) : null}
 
       {props.routeErrorBanner ? (
-        <Alert color="red" title="Routing failed">
+        <Alert color="red" title="Routing failed" p="xs">
           {props.routeErrorBanner}
         </Alert>
       ) : null}
@@ -60,6 +60,7 @@ export function AppStatusRegion(props: {
               : 'Registration warning'
           }
           withCloseButton
+          p="xs"
           onClose={props.onClearRegistrationResult}
         >
           <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
@@ -87,7 +88,7 @@ export function AppStatusRegion(props: {
       ) : null}
 
       {props.readOnly ? (
-        <Alert color="yellow" title="Read-only config">
+        <Alert color="yellow" title="Read-only config" p="xs">
           Config is read-only (shared config error). Settings can still be
           updated to fix the shared config path.
         </Alert>

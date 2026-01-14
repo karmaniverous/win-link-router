@@ -10,6 +10,10 @@
  * - If no schemes are registered, remove the RegisteredApplications entry.
  */
 import { type AppConfig, normalizeScheme } from '../../core/config/appConfig';
+import {
+  buildAppxProgIdHints,
+  isLikelyAppxProgIdForThisApp,
+} from './appxProgIdHeuristics';
 import { commandReferencesExe } from './commandReferencesExe';
 import {
   computeDefaultHandlerStatus,
@@ -27,6 +31,8 @@ const VENDOR_KEY = 'Software\\karmaniverous\\win-link-router';
 const CAPABILITIES_KEY = `${VENDOR_KEY}\\Capabilities`;
 const URL_ASSOCIATIONS_KEY = `${CAPABILITIES_KEY}\\URLAssociations`;
 const REGISTERED_APPLICATIONS_KEY = 'Software\\RegisteredApplications';
+const APP_DISPLAY_NAME = 'win-link-router';
+const APP_VENDOR_HINT = 'karmaniverous';
 
 interface SchemeWindowsStatus {
   scheme: string;
@@ -228,6 +234,21 @@ async function getProtocolOpenCommand(scheme: string): Promise<string | null> {
   });
 }
 
+async function getAppxProgIdValues(
+  progId: string,
+): Promise<Record<string, string>> {
+  // Best-effort only: many AppX ProgIds do not expose an "open command" the same
+  // way classic ProgIds do, but they often include identifying metadata under HKCR.
+  const base = await regListValues({ hive: 'HKCR', key: progId });
+  const app = await regListValues({
+    hive: 'HKCR',
+    key: `${progId}\\Application`,
+  });
+
+  // Merge values; we only care about scanning strings for identity hints.
+  return { ...base, ...app };
+}
+
 async function getSchemeWindowsStatus(
   scheme: string,
   enabled: boolean,
@@ -262,14 +283,26 @@ async function getSchemeWindowsStatus(
     }
   }
 
-  // If Windows reports an opaque AppX* ProgId and we couldn't validate a handler
-  // command, avoid a false-negative by reporting "unknown".
-  if (
-    defaultStatus === 'not-default' &&
-    typeof actualProgId === 'string' &&
-    actualProgId.toLowerCase().startsWith('appx')
-  ) {
-    defaultStatus = 'unknown';
+  // If Windows reports an opaque AppX* ProgId, attempt to recognize our app
+  // via HKCR metadata to avoid misreporting "unknown" when we are actually
+  // the default handler.
+  if (defaultStatus === 'not-default' && typeof actualProgId === 'string') {
+    const appx = actualProgId.toLowerCase().startsWith('appx');
+    if (appx) {
+      const values = await getAppxProgIdValues(actualProgId);
+      const hints = buildAppxProgIdHints({
+        exePath,
+        appDisplayName: APP_DISPLAY_NAME,
+        vendorHint: APP_VENDOR_HINT,
+      });
+      defaultStatus = isLikelyAppxProgIdForThisApp({
+        progId: actualProgId,
+        values,
+        hints,
+      })
+        ? 'default'
+        : 'unknown';
+    }
   }
 
   return {

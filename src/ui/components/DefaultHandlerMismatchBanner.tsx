@@ -33,40 +33,43 @@ export function DefaultHandlerMismatchBanner(props: {
       color="yellow"
       title="Default app not set for some protocols"
       withCloseButton
+      p="xs"
       onClose={() => {
         setDismissed(true);
       }}
     >
-      <Stack gap="xs">
-        <Text size="sm">
-          Some enabled + registered schemes are not currently set to
-          win-link-router in Windows.
-        </Text>
-
-        {mismatch.notDefault.length ? (
+      <Group justify="space-between" align="flex-start" wrap="wrap" gap="sm">
+        <Stack gap={2} style={{ flex: 1, minWidth: 240 }}>
           <Text size="sm">
-            Not default:{' '}
-            <Text span fw={600}>
-              {mismatch.notDefault.join(', ')}
-            </Text>
+            Some enabled + registered schemes are not currently set to
+            win-link-router in Windows.
           </Text>
-        ) : null}
 
-        {mismatch.unknown.length ? (
-          <Text size="sm">
-            Unknown:{' '}
-            <Text span fw={600}>
-              {mismatch.unknown.join(', ')}
+          {mismatch.notDefault.length ? (
+            <Text size="sm">
+              Not default:{' '}
+              <Text span fw={600}>
+                {mismatch.notDefault.join(', ')}
+              </Text>
             </Text>
-          </Text>
-        ) : null}
+          ) : null}
 
-        <Group justify="flex-end">
+          {mismatch.unknown.length ? (
+            <Text size="sm">
+              Unknown:{' '}
+              <Text span fw={600}>
+                {mismatch.unknown.join(', ')}
+              </Text>
+            </Text>
+          ) : null}
+        </Stack>
+
+        <Group justify="flex-end" style={{ flexShrink: 0 }}>
           <Button variant="default" size="xs" onClick={props.onOpenDefaultApps}>
             Open Default Apps…
           </Button>
         </Group>
-      </Stack>
+      </Group>
     </Alert>
   );
 }
