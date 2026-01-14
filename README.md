@@ -7,10 +7,7 @@ Typical use case: clicking a `tel:` link in a browser should open WhatsApp (Desk
 
 ---
 
-<!-- Screenshot: Main window (Settings tab) -->
-
-![Screenshot: Main window – Settings tab](docs/screenshots/main-settings.png)
-**Capture:** The main app window showing the header (title + tagline), tabs (Settings/Log/Test), the Schemes list on the left, and a selected scheme editor on the right. Use a scheme like `TEL` and show at least two templates with one enabled and one disabled. Blur/redact any personal numbers or URIs.
+![Screenshot: Main window – Settings tab](assets/main-settings.png)
 
 ## What it does
 
@@ -30,10 +27,7 @@ I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and
 
 ---
 
-<!-- Screenshot: Default-handler mismatch after a Windows update -->
-
-![Screenshot: Default app mismatch banner](docs/screenshots/default-mismatch-banner.png)
-**Capture:** The main window showing a non-blocking warning that some enabled + registered schemes are “Not default” or “Unknown”, with a button to open Windows Default Apps. This should look like the situation immediately after a Windows update changed defaults. Redact/blur any identifying paths.
+![Screenshot: Default app mismatch banner](assets/default-mismatch-banner.png)
 
 ## Install
 
@@ -47,10 +41,7 @@ I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and
 
 ---
 
-<!-- Screenshot: First-run onboarding (preset chooser) -->
-
-![Screenshot: First-run preset selection](docs/screenshots/onboarding-presets.png)
-**Capture:** The first-run dialog that prompts the user to choose presets. Show the `TEL` group with `tel.whatsapp` selected. Make sure no personal data is visible.
+![Screenshot: First-run preset selection](assets/onboarding-presets.png)
 
 ## Quick start (TEL → WhatsApp)
 
@@ -65,10 +56,7 @@ I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and
 
 ---
 
-<!-- Screenshot: Windows Default Apps -->
-
-![Screenshot: Windows Default Apps – choosing defaults by link type](docs/screenshots/windows-default-apps-tel.png)
-**Capture:** Windows Settings showing how to assign the default app for the `tel:` protocol (or “Choose defaults by link type”). Highlight `tel` and show **win-link-router** as an available option. No personal account info.
+![Screenshot: Windows Default Apps – choosing defaults by link type](assets/windows-default-apps-tel.png)
 
 ## How routing works (mental model)
 
@@ -102,10 +90,7 @@ This is where you configure schemes and templates, and manage lifecycle settings
 
 ---
 
-<!-- Screenshot: Schemes list with status icons -->
-
-![Screenshot: Schemes list – enabled/registered/default indicators](docs/screenshots/schemes-sidebar-status.png)
-**Capture:** The Schemes sidebar showing multiple schemes with their icon controls:
+![Screenshot: Schemes list – enabled/registered/default indicators](assets/schemes-sidebar-status.png)
 
 - enabled toggle (power)
 - registration toggle
@@ -146,10 +131,7 @@ Templates are tried top-to-bottom (enabled templates only). You can:
 
 ---
 
-<!-- Screenshot: Scheme editor (extractor + templates) -->
-
-![Screenshot: Scheme editor – extractor and template list](docs/screenshots/scheme-editor-tel.png)
-**Capture:** The scheme editor for `TEL`, showing:
+![Screenshot: Scheme editor – extractor and template list](assets/scheme-editor-tel.png)
 
 - Extractor pattern + Flags
 - At least two templates (WhatsApp Desktop + WhatsApp Web)
@@ -189,10 +171,7 @@ Redacted mode is recommended: it avoids storing raw URIs and full targets (which
 
 ---
 
-<!-- Screenshot: Log tab -->
-
-![Screenshot: Log tab – redacted mode and entries](docs/screenshots/log-tab.png)
-**Capture:** The Log tab showing the “Redact new log entries” toggle, at least one entry rendered as pretty JSON, and the Copy button. Ensure any sensitive values are redacted/blurred.
+![Screenshot: Log tab – redacted mode and entries](assets/log-tab.png)
 
 ### Test tab (dry-run evaluation)
 
@@ -207,15 +186,7 @@ This is the fastest way to debug regex and template issues before relying on Win
 
 ---
 
-<!-- Screenshot: Test tab -->
-
-![Screenshot: Test tab – match groups and rendered targets](docs/screenshots/test-tab.png)
-**Capture:** A TEL example where the extractor matches and templates render:
-
-- show inferred scheme
-- show match groups JSON
-- show at least one rendered target (and optionally one render error)
-  Use a fake phone number.
+![Screenshot: Test tab – match groups and rendered targets](assets/test-tab.png)
 
 ## Windows integration notes
 
@@ -236,7 +207,7 @@ If some enabled + registered schemes are not set as default in Windows, the app 
 
 <!-- Screenshot: Tray menu -->
 
-![Screenshot: System tray menu](docs/screenshots/tray-menu.png)
+![Screenshot: System tray menu](assets/tray-menu.png)
 **Capture:** The tray context menu showing Show/Hide, shortcut repair, open data folder, and Quit.
 
 ## Import / export and shared config
@@ -271,7 +242,7 @@ Open **Help → About** to:
 
 <!-- Screenshot: About window -->
 
-![Screenshot: About – update status and controls](docs/screenshots/about-window.png)
+![Screenshot: About – update status and controls](assets/about-window.png)
 **Capture:** The About window showing current version, update status text, “Check for updates”, “Update Now”, and the “Enable automatic updates” checkbox.
 
 ## Troubleshooting

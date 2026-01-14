@@ -92,29 +92,6 @@
           "enabled": true
         }
       ]
-    },
-    {
-      "presetId": "smsto.whatsapp",
-      "scheme": "SMSTO",
-      "enabled": true,
-      "extractor": {
-        "pattern": "^smsto:(?<number>.*)$",
-        "flags": "i"
-      },
-      "templates": [
-        {
-          "id": "whatsapp.desktop",
-          "label": "WhatsApp Desktop",
-          "template": "whatsapp://send?phone={{digits number}}",
-          "enabled": true
-        },
-        {
-          "id": "whatsapp.web",
-          "label": "WhatsApp Web",
-          "template": "https://wa.me/{{digits number}}",
-          "enabled": true
-        }
-      ]
     }
   ]
 }
