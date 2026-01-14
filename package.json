@@ -85,6 +85,7 @@
         "npm run make"
       ],
       "after:release": [
+        "npm run publish",
         "git switch -c release/${version}",
         "git push -u origin release/${version}",
         "git switch ${branchName}"
