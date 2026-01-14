@@ -141,4 +141,6 @@
 - Implemented updater runtime, About window, and Windows app menu (Help links + About).
 - Fixed typecheck/lint/knip fallout from updates integration.
 - Polished Scheme Detail: fixed extractor header + templates-only scroll, clarified registration tooltip copy, and removed redundant scheme enable control from the detail panel.
-- Improved default-handler detection for AppX* ProgIds (TEL) and compacted status notifications with right-aligned actions.- Removed empty status-region whitespace above tabs and made textareas autosize from 1 row.
+- Improved default-handler detection for AppX\* ProgIds (TEL) and compacted status notifications with right-aligned actions.
+- Removed empty status-region whitespace above tabs and made textareas autosize from 1 row.
+- Fixed TEL default detection by preferring UserChoiceLatest ProgId (Windows update behavior).

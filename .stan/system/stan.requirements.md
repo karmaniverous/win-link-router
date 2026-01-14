@@ -73,6 +73,9 @@ Durable project requirements (desired end-state).
 - The app must detect and display default-handler status per protocol:
   - Status must be robust and based on reading Windows registry state.
   - If the default cannot be determined reliably, the app must report “Unknown”, not guess.
+  - On newer Windows builds, prefer reading the effective ProgId from:
+    - `...UrlAssociations\<scheme>\UserChoiceLatest\ProgId`
+    and fall back to `...UserChoice` for compatibility.
 - On startup and when the UI is opened, the app must compare:
   - user-configured protocols that are enabled and registered, vs
   - the current Windows default handler for those protocols,

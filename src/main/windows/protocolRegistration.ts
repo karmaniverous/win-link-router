@@ -4,6 +4,8 @@
  * - Do not set defaults programmatically; only detect default status.
  * - Detect default status robustly via UserChoice ProgId compare (including
  *   Applications\<exe>.exe ProgIds when applicable).
+ * - Some newer Windows builds store the effective default under UserChoiceLatest;
+ *   callers should use a helper that prefers UserChoiceLatest when present.
  * - List schemes the app is registered for from its own Capabilities.
  * - Registration must follow desired registered schemes (remove stale URLAssociations).
  * - Deregistration must clean up associated ProgId key trees.
@@ -26,11 +28,13 @@ import {
   regQueryValue,
   regSetValue,
 } from './regExe';
+import { getUserChoiceProgId } from './userChoiceProgId';
 
 const VENDOR_KEY = 'Software\\karmaniverous\\win-link-router';
 const CAPABILITIES_KEY = `${VENDOR_KEY}\\Capabilities`;
 const URL_ASSOCIATIONS_KEY = `${CAPABILITIES_KEY}\\URLAssociations`;
 const REGISTERED_APPLICATIONS_KEY = 'Software\\RegisteredApplications';
+
 const APP_DISPLAY_NAME = 'win-link-router';
 const APP_VENDOR_HINT = 'karmaniverous';
 
@@ -55,6 +59,13 @@ function progIdKey(progId: string): string {
 function buildOpenCommand(exePath: string): string {
   // reg.exe stores the value verbatim; we include quoting explicitly.
   return `"${exePath}" "%1"`;
+}
+
+function isRegNotFoundError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg
+    .toLowerCase()
+    .includes('unable to find the specified registry key or value');
 }
 
 export async function ensureCandidateRegistration(opts: {
@@ -117,9 +128,12 @@ export async function ensureCandidateRegistration(opts: {
         name: opts.appDisplayName,
       });
     } catch (err) {
-      warnings.push(
-        `Failed to remove RegisteredApplications entry: ${(err as Error).message}`,
-      );
+      // "Not found" is a clean state; avoid noisy warnings.
+      if (!isRegNotFoundError(err)) {
+        warnings.push(
+          `Failed to remove RegisteredApplications entry: ${(err as Error).message}`,
+        );
+      }
     }
     return { ok: warnings.length === 0, warnings };
   }
@@ -194,12 +208,6 @@ async function getRegisteredUrlAssociations(): Promise<Record<string, string>> {
   return regListValues({ hive: 'HKCU', key: URL_ASSOCIATIONS_KEY });
 }
 
-async function getUserChoiceProgId(scheme: string): Promise<string | null> {
-  const normalized = normalizeScheme(scheme).toLowerCase();
-  const key = `Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\${normalized}\\UserChoice`;
-  return regQueryValue({ hive: 'HKCU', key, name: 'ProgId' });
-}
-
 async function getProgIdOpenCommand(progId: string): Promise<string | null> {
   // First check per-user classes.
   const fromUser = await regQueryValue({
@@ -263,6 +271,7 @@ async function getSchemeWindowsStatus(
     typeof registeredProgId === 'string' &&
     registeredProgId.toLowerCase() === expectedProgId.toLowerCase();
 
+  // IMPORTANT: use a helper that prefers UserChoiceLatest when present.
   const actualProgId = await getUserChoiceProgId(normalized);
 
   let defaultStatus: DefaultHandlerStatus = computeDefaultHandlerStatus({
@@ -284,8 +293,7 @@ async function getSchemeWindowsStatus(
   }
 
   // If Windows reports an opaque AppX* ProgId, attempt to recognize our app
-  // via HKCR metadata to avoid misreporting "unknown" when we are actually
-  // the default handler.
+  // via HKCR metadata to avoid false "unknown" when we are actually default.
   if (defaultStatus === 'not-default' && typeof actualProgId === 'string') {
     const appx = actualProgId.toLowerCase().startsWith('appx');
     if (appx) {
@@ -295,13 +303,15 @@ async function getSchemeWindowsStatus(
         appDisplayName: APP_DISPLAY_NAME,
         vendorHint: APP_VENDOR_HINT,
       });
-      defaultStatus = isLikelyAppxProgIdForThisApp({
+
+      const isOurs = isLikelyAppxProgIdForThisApp({
         progId: actualProgId,
         values,
         hints,
-      })
-        ? 'default'
-        : 'unknown';
+      });
+
+      // Only upgrade to "default" when we can positively identify our app.
+      if (isOurs) defaultStatus = 'default';
     }
   }
 
