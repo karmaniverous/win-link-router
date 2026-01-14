@@ -10,6 +10,7 @@ import {
   Button,
   Group,
   Paper,
+  ScrollArea,
   Stack,
   Text,
   Textarea,
@@ -63,7 +64,7 @@ export function SchemeEditorTemplates(props: {
   };
 
   return (
-    <Stack gap="sm">
+    <Stack gap="sm" style={{ flex: 1, minHeight: 0 }}>
       <Group justify="space-between" align="center">
         <Text fw={600}>Templates</Text>
         <Button size="xs" disabled={readOnly} onClick={addTemplate}>
@@ -76,109 +77,118 @@ export function SchemeEditorTemplates(props: {
         successfully.
       </Text>
 
-      {scheme.templates.length === 0 ? (
-        <Text size="sm" c="dimmed">
-          No templates yet. Add at least one enabled template to route links.
-        </Text>
-      ) : null}
+      <ScrollArea style={{ flex: 1 }} type="auto" scrollbarSize={8}>
+        <Stack gap="sm" pr="sm">
+          {scheme.templates.length === 0 ? (
+            <Text size="sm" c="dimmed">
+              No templates yet. Add at least one enabled template to route
+              links.
+            </Text>
+          ) : null}
 
-      <Stack gap="sm">
-        {scheme.templates.map((t, idx) => (
-          <Paper key={t.id} withBorder radius="md" p="sm">
-            <Group justify="space-between" align="center" mb="xs">
-              <Text fw={600}>{t.label || '(untitled)'}</Text>
-              <Group gap={6}>
-                <Tooltip
-                  label={t.enabled ? 'Disable template' : 'Enable template'}
-                  withArrow
-                >
+          {scheme.templates.map((t, idx) => (
+            <Paper
+              key={t.id}
+              withBorder
+              radius="md"
+              p="sm"
+              style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}
+            >
+              <Group justify="space-between" align="center" mb="xs">
+                <Text fw={600}>{t.label || '(untitled)'}</Text>
+                <Group gap={6}>
+                  <Tooltip
+                    label={t.enabled ? 'Disable template' : 'Enable template'}
+                    withArrow
+                  >
+                    <ActionIcon
+                      variant="default"
+                      disabled={readOnly}
+                      aria-label="Toggle template enabled"
+                      onClick={() => {
+                        if (readOnly) return;
+                        updateTemplate(t.id, { enabled: !t.enabled });
+                      }}
+                    >
+                      <IconPower
+                        size={16}
+                        style={{
+                          color: t.enabled
+                            ? iconColor('green')
+                            : iconColor('dimmed'),
+                        }}
+                      />
+                    </ActionIcon>
+                  </Tooltip>
+                  <ActionIcon
+                    variant="default"
+                    disabled={readOnly || idx === 0}
+                    aria-label="Move template up"
+                    onClick={() => {
+                      onChangeScheme({
+                        ...scheme,
+                        templates: swap(scheme.templates, idx, idx - 1),
+                      });
+                    }}
+                  >
+                    <IconArrowUp size={16} />
+                  </ActionIcon>
+                  <ActionIcon
+                    variant="default"
+                    disabled={readOnly || idx === scheme.templates.length - 1}
+                    aria-label="Move template down"
+                    onClick={() => {
+                      onChangeScheme({
+                        ...scheme,
+                        templates: swap(scheme.templates, idx, idx + 1),
+                      });
+                    }}
+                  >
+                    <IconArrowDown size={16} />
+                  </ActionIcon>
                   <ActionIcon
                     variant="default"
                     disabled={readOnly}
-                    aria-label="Toggle template enabled"
+                    aria-label="Remove template"
                     onClick={() => {
-                      if (readOnly) return;
-                      updateTemplate(t.id, { enabled: !t.enabled });
+                      onRequestRemoveTemplate(t.id);
                     }}
                   >
-                    <IconPower
-                      size={16}
-                      style={{
-                        color: t.enabled
-                          ? iconColor('green')
-                          : iconColor('dimmed'),
-                      }}
-                    />
+                    <IconTrash size={16} />
                   </ActionIcon>
-                </Tooltip>
-                <ActionIcon
-                  variant="default"
-                  disabled={readOnly || idx === 0}
-                  aria-label="Move template up"
-                  onClick={() => {
-                    onChangeScheme({
-                      ...scheme,
-                      templates: swap(scheme.templates, idx, idx - 1),
-                    });
-                  }}
-                >
-                  <IconArrowUp size={16} />
-                </ActionIcon>
-                <ActionIcon
-                  variant="default"
-                  disabled={readOnly || idx === scheme.templates.length - 1}
-                  aria-label="Move template down"
-                  onClick={() => {
-                    onChangeScheme({
-                      ...scheme,
-                      templates: swap(scheme.templates, idx, idx + 1),
-                    });
-                  }}
-                >
-                  <IconArrowDown size={16} />
-                </ActionIcon>
-                <ActionIcon
-                  variant="default"
-                  disabled={readOnly}
-                  aria-label="Remove template"
-                  onClick={() => {
-                    onRequestRemoveTemplate(t.id);
-                  }}
-                >
-                  <IconTrash size={16} />
-                </ActionIcon>
+                </Group>
               </Group>
-            </Group>
 
-            <Stack gap="xs">
-              <TextInput
-                label="Label"
-                value={t.label}
-                disabled={readOnly}
-                onChange={(e) => {
-                  updateTemplate(t.id, { label: e.currentTarget.value });
-                }}
-              />
+              <Stack gap="xs">
+                <TextInput
+                  label="Label"
+                  value={t.label}
+                  disabled={readOnly}
+                  onChange={(e) => {
+                    updateTemplate(t.id, { label: e.currentTarget.value });
+                  }}
+                />
 
-              <Textarea
-                label="Template"
-                rows={3}
-                value={t.template}
-                disabled={readOnly}
-                onChange={(e) => {
-                  updateTemplate(t.id, { template: e.currentTarget.value });
-                }}
-              />
+                <Textarea
+                  label="Template"
+                  rows={3}
+                  value={t.template}
+                  disabled={readOnly}
+                  onChange={(e) => {
+                    updateTemplate(t.id, { template: e.currentTarget.value });
+                  }}
+                />
 
-              {!t.template.trim() ? (
-                <Text size="sm" c="yellow">
-                  Template is empty and will not save.
-                </Text>
-              ) : null}
-            </Stack>
-          </Paper>
-        ))}
-      </Stack>
+                {!t.template.trim() ? (
+                  <Text size="sm" c="yellow">
+                    Template is empty and will not save.
+                  </Text>
+                ) : null}
+              </Stack>
+            </Paper>
+          ))}
+        </Stack>
+      </ScrollArea>
     </Stack>
   );
 }

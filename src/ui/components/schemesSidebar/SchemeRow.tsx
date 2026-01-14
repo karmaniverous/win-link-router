@@ -133,6 +133,11 @@ export function SchemeRow(props: {
     schemeEnabled: scheme.enabled,
     status,
   });
+  const registrationTooltip = !scheme.enabled
+    ? 'Enable scheme to allow registration'
+    : scheme.registered
+      ? 'Deregister from Windows'
+      : 'Register in Windows';
 
   return (
     <NavLink
@@ -195,14 +200,7 @@ export function SchemeRow(props: {
             </ActionIcon>
           </Tooltip>
 
-          <Tooltip
-            label={
-              scheme.enabled
-                ? 'Toggle Windows candidate registration'
-                : 'Enable scheme to allow registration'
-            }
-            withArrow
-          >
+          <Tooltip label={registrationTooltip} withArrow>
             <ActionIcon
               variant="default"
               aria-label="Toggle registration"

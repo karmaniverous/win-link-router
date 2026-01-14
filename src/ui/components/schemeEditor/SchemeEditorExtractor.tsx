@@ -43,7 +43,7 @@ export function SchemeEditorExtractor(props: {
 
         <TextInput
           label="Flags"
-          style={{ width: 120 }}
+          style={{ width: 96 }}
           value={scheme.extractor.flags ?? ''}
           disabled={editingDisabled}
           onChange={(e) => {

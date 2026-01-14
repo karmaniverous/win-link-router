@@ -3,23 +3,19 @@
  * - Disabled schemes must have editing controls disabled (except re-enable).
  * - Registration changes should trigger best-effort reconciliation.
  * - Prefer Mantine primitives over bespoke form controls.
- * - Wireframe alignment: scheme enable/disable uses a power-button control in
- *   the scheme header (not inside the extractor section).
+ * - Wireframe alignment: scheme enable/disable is controlled from the Schemes
+ *   list (Scheme Detail must not duplicate the control).
  * - Standardize icon-only glyphs using Tabler icons.
  */
 import {
-  ActionIcon,
   Button,
   Group,
   NativeSelect,
   Paper,
-  ScrollArea,
   Stack,
   Text,
   Title,
-  Tooltip,
 } from '@mantine/core';
-import { IconPower } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 
 import type { PresetsFile, SchemeConfig } from '../../core/config/appConfig';
@@ -31,11 +27,6 @@ import {
 } from './schemeEditor/presetUtils';
 import { SchemeEditorExtractor } from './schemeEditor/SchemeEditorExtractor';
 import { SchemeEditorTemplates } from './schemeEditor/SchemeEditorTemplates';
-
-function iconColor(token: 'green' | 'dimmed'): string {
-  if (token === 'green') return 'var(--mantine-color-green-6)';
-  return 'var(--mantine-color-gray-6)';
-}
 
 export function SchemeEditor(props: {
   api: WinLinkRouterApi;
@@ -166,45 +157,17 @@ export function SchemeEditor(props: {
         ) : null}
       </ConfirmDialog>
 
-      <Stack gap="sm" style={{ height: '100%' }}>
+      <Stack gap="md" style={{ height: '100%', minHeight: 0 }}>
         <Group justify="space-between" align="center">
           <Group gap="xs" align="center">
             <Title order={2} size="h4" m={0}>
               {scheme.scheme}
             </Title>
-
-            <Tooltip
-              label={scheme.enabled ? 'Disable scheme' : 'Enable scheme'}
-              withArrow
-            >
-              <ActionIcon
-                variant="default"
-                aria-label="Toggle scheme enabled"
-                disabled={readOnly}
-                onClick={() => {
-                  if (readOnly) return;
-
-                  const nextEnabled = !scheme.enabled;
-                  onChangeScheme(
-                    {
-                      ...scheme,
-                      enabled: nextEnabled,
-                      registered: nextEnabled ? scheme.registered : false,
-                    },
-                    { ensureRegistration: true },
-                  );
-                }}
-              >
-                <IconPower
-                  size={16}
-                  style={{
-                    color: scheme.enabled
-                      ? iconColor('green')
-                      : iconColor('dimmed'),
-                  }}
-                />
-              </ActionIcon>
-            </Tooltip>
+            {!scheme.enabled ? (
+              <Text size="sm" c="dimmed">
+                Disabled
+              </Text>
+            ) : null}
           </Group>
 
           <Group gap="xs" wrap="wrap">
@@ -247,25 +210,23 @@ export function SchemeEditor(props: {
           </Group>
         </Group>
 
-        <ScrollArea style={{ flex: 1 }} type="auto">
-          <Stack gap="md" pr="xs">
-            <SchemeEditorExtractor
-              scheme={scheme}
-              readOnly={readOnly}
-              editingDisabled={editingDisabled}
-              onChangeScheme={onChangeScheme}
-            />
+        <SchemeEditorExtractor
+          scheme={scheme}
+          readOnly={readOnly}
+          editingDisabled={editingDisabled}
+          onChangeScheme={onChangeScheme}
+        />
 
-            <SchemeEditorTemplates
-              scheme={scheme}
-              readOnly={editingDisabled}
-              onChangeScheme={onChangeScheme}
-              onRequestRemoveTemplate={(templateId) => {
-                setRemoveTemplateId(templateId);
-              }}
-            />
-          </Stack>
-        </ScrollArea>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+          <SchemeEditorTemplates
+            scheme={scheme}
+            readOnly={editingDisabled}
+            onChangeScheme={onChangeScheme}
+            onRequestRemoveTemplate={(templateId) => {
+              setRemoveTemplateId(templateId);
+            }}
+          />
+        </div>
       </Stack>
     </Paper>
   );

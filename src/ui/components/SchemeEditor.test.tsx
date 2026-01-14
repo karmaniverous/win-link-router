@@ -113,7 +113,7 @@ describe('SchemeEditor', () => {
     expect(html).toContain('WhatsApp Desktop');
   });
 
-  it('renders power controls for scheme and templates', () => {
+  it('renders power controls for templates', () => {
     const scheme = createScheme();
     const html = renderToStaticMarkup(
       <MantineTestProvider>
@@ -128,7 +128,6 @@ describe('SchemeEditor', () => {
       </MantineTestProvider>,
     );
 
-    expect(html).toContain('aria-label="Toggle scheme enabled"');
     expect(html).toContain('aria-label="Toggle template enabled"');
   });
 
