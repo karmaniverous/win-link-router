@@ -25,7 +25,3 @@ export interface UpdateStatus {
   progressPercent?: number;
   message?: string;
 }
-
-export interface UpdateStatusResponse {
-  status: UpdateStatus;
-}

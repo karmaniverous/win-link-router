@@ -71,6 +71,11 @@ function createApi(opts: {
     test: {
       evaluate: vi.fn(),
     },
+    updates: {
+      getStatus: vi.fn(),
+      checkNow: vi.fn(),
+      updateNow: vi.fn(),
+    },
     share: {
       open: vi.fn(),
       getContext: vi.fn(),

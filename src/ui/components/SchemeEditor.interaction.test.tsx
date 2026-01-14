@@ -40,6 +40,11 @@ function createDummyApi(): WinLinkRouterApi {
       clear: vi.fn().mockResolvedValue({ ok: true as const }),
     },
     test: { evaluate: vi.fn() },
+    updates: {
+      getStatus: vi.fn(),
+      checkNow: vi.fn(),
+      updateNow: vi.fn(),
+    },
     share: {
       open: vi.fn(),
       getContext: vi.fn(),

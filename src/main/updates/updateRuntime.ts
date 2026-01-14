@@ -140,18 +140,22 @@ export class UpdateRuntime {
     if (this.listenersAttached) return;
     this.listenersAttached = true;
 
-    autoUpdater.on('checking-for-update', () => {
+    // Electron's autoUpdater type definitions can be platform-conditional and
+    // have narrow overloads. Use the EventEmitter view for event wiring.
+    const emitter = autoUpdater as unknown as NodeJS.EventEmitter;
+
+    emitter.on('checking-for-update', () => {
       this.status.stage = 'checking';
       this.status.message = undefined;
     });
 
-    autoUpdater.on('update-available', (info: unknown) => {
+    emitter.on('update-available', (info: unknown) => {
       this.status.stage = 'available';
       this.status.availableVersion = extractVersionLike(info);
       this.status.message = undefined;
     });
 
-    autoUpdater.on('update-not-available', () => {
+    emitter.on('update-not-available', () => {
       this.status.stage = 'upToDate';
       this.status.availableVersion = undefined;
       this.status.downloadedVersion = undefined;
@@ -161,7 +165,7 @@ export class UpdateRuntime {
       this.updateNowRequested = false;
     });
 
-    autoUpdater.on('download-progress', (progressObj: unknown) => {
+    emitter.on('download-progress', (progressObj: unknown) => {
       const percent =
         typeof progressObj === 'object' && progressObj !== null
           ? (progressObj as Record<string, unknown>).percent
@@ -174,7 +178,7 @@ export class UpdateRuntime {
       }
     });
 
-    autoUpdater.on(
+    emitter.on(
       'update-downloaded',
       (event: unknown, releaseNotes: unknown, releaseName: unknown) => {
         void event;
@@ -197,7 +201,7 @@ export class UpdateRuntime {
       },
     );
 
-    autoUpdater.on('error', (err: unknown) => {
+    emitter.on('error', (err: unknown) => {
       this.status.stage = 'error';
       this.status.message = toErrorMessage(err);
       this.status.lastCheckedAt = new Date().toISOString();

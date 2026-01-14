@@ -30,7 +30,7 @@ export class AboutWindowController {
     }
 
     const parent = this.opts.getMainWindow();
-    const parentVisible = Boolean(parent && parent.isVisible());
+    const parentVisible = Boolean(parent?.isVisible());
     const effectiveParent = parentVisible ? parent : null;
 
     const win = new BrowserWindow({

@@ -155,4 +155,4 @@
 - Decomposed src/ui/App.tsx and src/main.ts; fixed TS/test fallout.
 - Finished src/main.ts decomposition (ShareRuntime + rendererViews), removed macOS lifecycle behavior, and fixed remaining lint issues.
 - Updated requirements and plan for updater/About/menu and UI polish.
-- Implemented updater runtime, About window, and Windows app menu (Help links + About).
+- Implemented updater runtime, About window, and Windows app menu (Help links + About).- Fixed typecheck/lint/knip fallout from updates integration.
