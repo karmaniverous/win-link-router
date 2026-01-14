@@ -144,3 +144,4 @@
 - Improved default-handler detection for AppX\* ProgIds (TEL) and compacted status notifications with right-aligned actions.
 - Removed empty status-region whitespace above tabs and made textareas autosize from 1 row.
 - Fixed TEL default detection by preferring UserChoiceLatest ProgId (Windows update behavior).
+- Fixed userChoiceProgId unit tests to avoid require()/dynamic import patterns (use vi.spyOn).

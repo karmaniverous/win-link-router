@@ -20,12 +20,14 @@ Project-specific assistant guidance for this repo.
 - Testing:
   - Use Vitest with a repo-root TypeScript config file: `vitest.config.ts`.
   - ESLint should apply `@vitest/eslint-plugin` recommended rules to test files (`*.test.*` / `*.spec.*`).
+  - Avoid `require()` and dynamic-import-based patterns in tests:
+    - This repo forbids `require()` imports and `import()` type annotations via ESLint.
+    - Prefer `vi.spyOn(module, 'fn')` (static imports) for mocking.
 
 - Packaging / publishing:
   - Windows Squirrel builds must override `MakerSquirrel`’s `name` to a non-scoped value (e.g. `win-link-router`) because the scoped npm package name (`@karmaniverous/win-link-router`) can cause `.nuspec` generation paths to fail during `electron-forge make` on Windows.
 
-- Renderer UI:
-  - The Electron renderer is a React app bootstrapped from `index.html` via `src/renderer.tsx`.
+- Renderer UI:  - The Electron renderer is a React app bootstrapped from `index.html` via `src/renderer.tsx`.
   - Keep OS/Electron side effects in the main/preload layers; the React renderer should remain UI-focused.
   - UI component library:
     - Use Mantine as the primary renderer component library (layout primitives, inputs, toggles, dialogs).
