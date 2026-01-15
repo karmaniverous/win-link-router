@@ -151,4 +151,6 @@
 - UI: start Log/Test scroll regions below pinned header sections.
 - Docs/presets: describe template helpers; add WhatsApp presets for SIP/CALLTO/SMS/SMSTO.
 - UI: render onboarding preset radios inline per scheme.
-- Release: make release-it the only GitHub release publisher (assets + notes).- Fix: apply RIB at runtime; harden scheme status IPC.
+- Release: make release-it the only GitHub release publisher (assets + notes).
+- Fix: apply RIB at runtime; harden scheme status IPC.
+- Fix: remove invalid void union in IPC callback typing.

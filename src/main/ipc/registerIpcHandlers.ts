@@ -68,7 +68,7 @@ export function registerIpcHandlers(opts: {
   exePath: string;
   onSettingsChanged?: (
     next: Parameters<AppConfigStore['saveSettings']>[0],
-  ) => void | Promise<void | { warnings?: string[] }>;
+  ) => Promise<{ warnings?: string[] } | undefined> | undefined;
 }) {
   async function reconcileRegistrationForLoadedConfig(): Promise<void> {
     // Packaged-only: in dev, protocol registration is intentionally disabled.
@@ -180,10 +180,10 @@ export function registerIpcHandlers(opts: {
     const changedResult = await opts.onSettingsChanged?.(
       opts.configStore.getLoadedConfig().settings,
     );
-    const warnings =
-      changedResult && typeof changedResult === 'object'
-        ? ((changedResult as { warnings?: unknown }).warnings ?? [])
-        : [];
+    const warningsRaw = changedResult?.warnings ?? [];
+    const warnings = Array.isArray(warningsRaw)
+      ? warningsRaw.filter((w): w is string => typeof w === 'string')
+      : [];
     const afterShared =
       opts.configStore.getLoadedConfig().settings.sharedConfigPath ?? null;
     if (beforeShared !== afterShared) {
@@ -191,7 +191,7 @@ export function registerIpcHandlers(opts: {
     }
     return {
       ok: true as const,
-      warnings: Array.isArray(warnings) ? (warnings as string[]) : [],
+      warnings,
     };
   });
 
