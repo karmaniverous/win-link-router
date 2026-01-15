@@ -8,7 +8,7 @@ Typical use case: clicking a `tel:` link in a browser should open WhatsApp (Desk
 
 ---
 
-<img alt="Screenshot: Main window – Settings tab" src="./assets/main-settings.png" width="400" />
+<p align="center"><img alt="Screenshot: Main window – Settings tab" src="./assets/main-settings.png" width="400" /></p>
 
 ## What it does
 
