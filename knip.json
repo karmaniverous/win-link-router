@@ -10,6 +10,5 @@
     "src/renderer.tsx",
     "src/**/*.test.{ts,tsx}"
   ],
-  "ignore": ["out/**", "dist/**", ".vite/**", ".stan/**", "coverage/**"],
-  "ignoreDependencies": ["@electron-forge/publisher-github"]
+  "ignore": ["out/**", "dist/**", ".vite/**", ".stan/**", "coverage/**"]
 }

@@ -30,7 +30,6 @@
     "@electron-forge/maker-squirrel": "^7.11.1",
     "@electron-forge/maker-zip": "^7.11.1",
     "@electron-forge/plugin-vite": "^7.11.1",
-    "@electron-forge/publisher-github": "^7.11.1",
     "@electron-forge/shared-types": "^7.11.1",
     "@electron/fuses": "^2.0.0",
     "@eslint/js": "^9.39.2",
@@ -72,10 +71,17 @@
     "git": {
       "changelog": "npx auto-changelog --stdout --template https://raw.githubusercontent.com/release-it/release-it/main/templates/changelog-compact.hbs",
       "commitMessage": "chore: release v${version}",
-      "requireBranch": "main"
+      "requireBranch": "main",
+      "tagName": "v${version}"
     },
     "github": {
-      "release": true
+      "release": true,
+      "releaseName": "v${version}",
+      "assets": [
+        "out/make/**/RELEASES",
+        "out/make/**/*.nupkg",
+        "out/make/**/*.exe"
+      ]
     },
     "hooks": {
       "after:init": [
@@ -85,7 +91,6 @@
         "npm run make"
       ],
       "after:release": [
-        "npm run publish",
         "git switch -c release/${version}",
         "git push -u origin release/${version}",
         "git switch ${branchName}"
@@ -106,7 +111,6 @@
     "lint:fix": "npm run lint -- --fix .",
     "make": "electron-forge make",
     "package": "electron-forge package",
-    "publish": "electron-forge publish",
     "release": "dotenvx run -f .env.local -- release-it",
     "release:pre": "dotenvx run -f .env.local -- release-it --no-git.requireBranch --github.prerelease --preRelease",
     "start": "electron-forge start",

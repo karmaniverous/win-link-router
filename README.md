@@ -38,7 +38,9 @@ I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and
 
 ---
 
-![Screenshot: First-run preset selection](assets/onboarding-presets.png)
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/onboarding-presets.png.png?raw=true"><img src="./assets/onboarding-presets.png" width="400" /><br /><i>First-run preset selection (click to expand)</i></a></p>
+
+---
 
 ## Quick start (TEL → WhatsApp)
 
@@ -53,7 +55,9 @@ I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and
 
 ---
 
-![Screenshot: Windows Default Apps – choosing defaults by link type](assets/windows-default-apps-tel.png)
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/windows-default-apps-tel.png?raw=true"><img src="./assets/windows-default-apps-tel.png" width="400" /><br /><i>Windows Default Apps – choosing defaults by link type (click to expand)</i></a></p>
+
+---
 
 ## How routing works (mental model)
 
@@ -87,7 +91,9 @@ This is where you configure schemes and templates, and manage lifecycle settings
 
 ---
 
-![Screenshot: Schemes list – enabled/registered/default indicators](assets/schemes-sidebar-status.png)
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/schemes-sidebar-status.png?raw=true"><img src="./assets/schemes-sidebar-status.png" width="400" /><br /><i>Schemes list – enabled/registered/default indicators (click to expand)</i></a></p>
+
+---
 
 - enabled toggle (power)
 - registration toggle
@@ -128,7 +134,9 @@ Templates are tried top-to-bottom (enabled templates only). You can:
 
 ---
 
-![Screenshot: Scheme editor – extractor and template list](assets/scheme-editor-tel.png)
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/scheme-editor-tel.png?raw=true"><img src="./assets/scheme-editor-tel.png" width="400" /><br /><i>Scheme editor – extractor and template list (click to expand)</i></a></p>
+
+---
 
 - Extractor pattern + Flags
 - At least two templates (WhatsApp Desktop + WhatsApp Web)
@@ -168,7 +176,9 @@ Redacted mode is recommended: it avoids storing raw URIs and full targets (which
 
 ---
 
-![Screenshot: Log tab – redacted mode and entries](assets/log-tab.png)
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/log-tab?raw=true"><img src="./assets/log-tab" width="400" /><br /><i>Log tab – redacted mode and entries (click to expand)</i></a></p>
+
+---
 
 ### Test tab (dry-run evaluation)
 
@@ -183,7 +193,9 @@ This is the fastest way to debug regex and template issues before relying on Win
 
 ---
 
-![Screenshot: Test tab – match groups and rendered targets](assets/test-tab.png)
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/test-tab?raw=true"><img src="./assets/test-tab" width="400" /><br /><i>Test tab – match groups and rendered targets (click to expand)</i></a></p>
+
+---
 
 ## Windows integration notes
 
@@ -202,7 +214,9 @@ If some enabled + registered schemes are not set as default in Windows, the app 
 
 ---
 
-![Screenshot: System tray menu](assets/tray-menu.png)
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/tray-menu?raw=true"><img src="./assets/tray-menu" width="400" /><br /><i>System tray menu (click to expand)</i></a></p>
+
+---
 
 ## Import / export and shared config
 
@@ -234,9 +248,9 @@ Open **Help → About** to:
 
 ---
 
-<!-- Screenshot: About window -->
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/about-window?raw=true"><img src="./assets/about-window" width="400" /><br /><i>About – update status and controls (click to expand)</i></a></p>
 
-![Screenshot: About – update status and controls](assets/about-window.png)
+---
 
 ## Troubleshooting
 
@@ -270,8 +284,8 @@ Open **Help → About** to:
 
 ## Support
 
-- Issues: https://github.com/karmaniverous/win-link-router/issues
-- Discussions / help: https://github.com/karmaniverous/win-link-router/discussions
+- [Report an issue](https://github.com/karmaniverous/win-link-router/issues)
+- [Help & discussions](https://github.com/karmaniverous/win-link-router/discussions)
 
 ## License
 
