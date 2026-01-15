@@ -11,6 +11,8 @@
  *   - on shared-config-path changes via settings:set (best-effort, packaged-only).
  * - UI can open external links (e.g., GitHub repo) via main process.
  * - Main process can react to settings changes (e.g., update scheduling) via a callback.
+ * - IPC must not assume config is already loaded; status calls must be robust
+ *   during startup and during config reload windows.
  */
 import path from 'node:path';
 
@@ -66,7 +68,7 @@ export function registerIpcHandlers(opts: {
   exePath: string;
   onSettingsChanged?: (
     next: Parameters<AppConfigStore['saveSettings']>[0],
-  ) => void;
+  ) => void | Promise<void | { warnings?: string[] }>;
 }) {
   async function reconcileRegistrationForLoadedConfig(): Promise<void> {
     // Packaged-only: in dev, protocol registration is intentionally disabled.
@@ -99,7 +101,7 @@ export function registerIpcHandlers(opts: {
     opts.logStore.setMode(
       opts.configStore.getLoadedConfig().settings.routeLogMode ?? 'redacted',
     );
-    opts.onSettingsChanged?.(opts.configStore.getLoadedConfig().settings);
+    await opts.onSettingsChanged?.(opts.configStore.getLoadedConfig().settings);
     // Best-effort: keep Windows candidate registration aligned to saved config.
     await reconcileRegistrationForLoadedConfig().catch(() => undefined);
     return { ok: true };
@@ -175,13 +177,22 @@ export function registerIpcHandlers(opts: {
     opts.logStore.setMode(
       opts.configStore.getLoadedConfig().settings.routeLogMode ?? 'redacted',
     );
-    opts.onSettingsChanged?.(opts.configStore.getLoadedConfig().settings);
+    const changedResult = await opts.onSettingsChanged?.(
+      opts.configStore.getLoadedConfig().settings,
+    );
+    const warnings =
+      changedResult && typeof changedResult === 'object'
+        ? ((changedResult as { warnings?: unknown }).warnings ?? [])
+        : [];
     const afterShared =
       opts.configStore.getLoadedConfig().settings.sharedConfigPath ?? null;
     if (beforeShared !== afterShared) {
       await reconcileRegistrationForLoadedConfig().catch(() => undefined);
     }
-    return { ok: true };
+    return {
+      ok: true as const,
+      warnings: Array.isArray(warnings) ? (warnings as string[]) : [],
+    };
   });
 
   ipcMain.handle('settings:pickSharedConfigPath', async () => {
@@ -202,7 +213,7 @@ export function registerIpcHandlers(opts: {
   });
 
   ipcMain.handle('windows:ensureRegistration', async () => {
-    const config = opts.configStore.getLoadedConfig();
+    const { config } = await opts.configStore.load();
     const registeredSchemes = config.schemes
       .filter((s) => s.enabled && s.registered)
       .map((s) => s.scheme);
@@ -217,7 +228,7 @@ export function registerIpcHandlers(opts: {
   });
 
   ipcMain.handle('windows:getSchemeStatuses', async () => {
-    const config = opts.configStore.getLoadedConfig();
+    const { config } = await opts.configStore.load();
     return getAllSchemeStatusesFromConfig(config, {
       exePath: opts.exePath,
     });

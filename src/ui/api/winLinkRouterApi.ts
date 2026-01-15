@@ -40,7 +40,7 @@ export interface WinLinkRouterApi {
     >;
   };
   settings: {
-    set: (patch: unknown) => Promise<{ ok: true }>;
+    set: (patch: unknown) => Promise<{ ok: true; warnings?: string[] }>;
     pickSharedConfigPath: () => Promise<
       { cancelled: true } | { cancelled: false; filePath: string }
     >;

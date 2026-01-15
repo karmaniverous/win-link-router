@@ -12,6 +12,11 @@
  * - Provide a modal About window with update status and controls.
  * - Implement auto-updates via update.electronjs.org (startup + hourly when enabled).
  * - Define a custom Windows application menu and remove boilerplate Help items.
+ * - Apply Run in Background changes at runtime:
+ *   - enabling RIB should create the tray immediately;
+ *   - disabling RIB should destroy the tray immediately;
+ *   - if the window is hidden (tray-only), show/focus the window before
+ *     removing the tray so the app does not “disappear”.
  */
 import path from 'node:path';
 
@@ -55,12 +60,12 @@ const RENDERER_VIEWS = {
 };
 
 let mainWindow: BrowserWindow | null = null;
-let trayActive = false;
 let isQuitting = false;
 
-// Keep a reference to the Tray (when RIB is enabled) so routing-only launches can
-// show best-effort notifications without opening the UI.
+// Keep a reference to the Tray (when RIB is enabled) so routing-only launches
+// can show best-effort notifications without opening the UI.
 let trayRef: Tray | null = null;
+let trayController: { tray: Tray; destroy(): void } | null = null;
 let mismatchNotified = false;
 
 function getDevToolsEnabled(): boolean {
@@ -93,7 +98,7 @@ const createWindow = () => {
   });
 
   mainWindow.on('close', (event) => {
-    if (!isQuitting && trayActive) {
+    if (!isQuitting && trayController) {
       event.preventDefault();
       mainWindow?.hide();
     }
@@ -114,6 +119,49 @@ function toggleMainWindow() {
     win.show();
     win.focus();
   }
+}
+
+async function enableTray(): Promise<{ ok: boolean; warnings: string[] }> {
+  if (trayController) return { ok: true, warnings: [] };
+
+  const controller = await createTrayController({
+    onToggleMainWindow: toggleMainWindow,
+    onQuit: () => {
+      isQuitting = true;
+      app.quit();
+    },
+  });
+
+  if (!controller) {
+    trayController = null;
+    trayRef = null;
+    return {
+      ok: false,
+      warnings: [
+        'Failed to create a system tray icon. Try restarting the app, or toggle Run in Background off and on again.',
+      ],
+    };
+  }
+
+  trayController = controller;
+  trayRef = controller.tray;
+  return { ok: true, warnings: [] };
+}
+
+function disableTrayAndShowWindowIfHidden() {
+  if (!trayController) return;
+
+  // Per UX: if we are currently tray-only, show/focus the window before
+  // removing the tray so the app does not “disappear”.
+  const win = createWindow();
+  if (!win.isVisible()) {
+    win.show();
+    win.focus();
+  }
+
+  trayController.destroy();
+  trayController = null;
+  trayRef = null;
 }
 
 const gotLock = app.requestSingleInstanceLock();
@@ -184,8 +232,17 @@ async function ensureStoresReady(): Promise<AppConfigStore> {
     appVersion: app.getVersion(),
     isPackaged: app.isPackaged,
     exePath: process.execPath,
-    onSettingsChanged: (nextSettings) => {
+    onSettingsChanged: async (nextSettings) => {
       updateRuntime?.applySettings(nextSettings);
+
+      const runInBackground = nextSettings.runInBackground ?? false;
+      if (runInBackground) {
+        const tray = await enableTray();
+        return tray.warnings.length ? { warnings: tray.warnings } : undefined;
+      }
+
+      disableTrayAndShowWindowIfHidden();
+      return undefined;
     },
   });
 
@@ -291,18 +348,7 @@ void app.whenReady().then(async () => {
   const startedAtLogin = loginSettings.wasOpenedAtLogin;
 
   if (runInBackground) {
-    const trayController = await createTrayController({
-      onToggleMainWindow: toggleMainWindow,
-      onQuit: () => {
-        isQuitting = true;
-        app.quit();
-      },
-    });
-    trayActive = trayController !== null;
-    trayRef = trayController?.tray ?? null;
-  } else {
-    trayActive = false;
-    trayRef = null;
+    await enableTray();
   }
 
   if (uri) {
@@ -333,5 +379,5 @@ void app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  if (!trayActive) app.quit();
+  if (!trayController) app.quit();
 });

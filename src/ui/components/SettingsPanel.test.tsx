@@ -9,6 +9,7 @@ import { SettingsPanel } from './SettingsPanel';
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
 });
 
 function createDummyApi(): {
@@ -108,6 +109,36 @@ describe('SettingsPanel', () => {
     expect(
       screen.queryByRole('textbox', { name: /shared config path/i }),
     ).toBeNull();
+  });
+
+  it('does not persist settings during initial hydration', async () => {
+    vi.useFakeTimers();
+
+    const { api, settingsSet } = createDummyApi();
+    const config = createConfig({
+      settings: {
+        ...createConfig().settings,
+        runInBackground: true,
+        runAtLogin: false,
+        sharedConfigPath: 'C:\\x\\shared.json',
+      },
+    });
+
+    render(
+      <MantineTestProvider>
+        <SettingsPanel
+          api={api}
+          config={config}
+          readOnly={false}
+          onDidChangeSettings={vi.fn()}
+        />
+      </MantineTestProvider>,
+    );
+
+    // Let debounce timers run; initial hydration must not trigger a write.
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(settingsSet).not.toHaveBeenCalled();
   });
 
   it('shows shared config path row when shared config is enabled', async () => {
