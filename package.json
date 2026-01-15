@@ -87,7 +87,9 @@
       "after:init": [
         "npm run typecheck",
         "npm run lint",
-        "npm run test",
+        "npm run test"
+      ],
+      "after:bump": [
         "npm run make"
       ],
       "after:release": [
