@@ -21,7 +21,7 @@
     "react-github-btn": "^1.4.0",
     "zod": "^4.3.5"
   },
-  "description": "My Electron application description",
+  "description": "A Windows desktop app that routes protocol links (e.g. tel:) to configurable apps/URLs using rules and fallbacks.",
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.51.4",
     "@electron-forge/cli": "^7.11.1",
@@ -62,7 +62,20 @@
     "node": ">=20"
   },
   "homepage": "https://github.com/karmaniverous/win-link-router#readme",
-  "keywords": [],
+  "keywords": [
+    "electron",
+    "windows",
+    "protocol",
+    "uri",
+    "url",
+    "deeplink",
+    "protocol-handler",
+    "link-router",
+    "tel",
+    "sms",
+    "mailto",
+    "tray"
+  ],
   "license": "BSD-3-Clause",
   "main": ".vite/build/main.js",
   "name": "@karmaniverous/win-link-router",
