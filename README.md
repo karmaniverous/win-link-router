@@ -1,6 +1,4 @@
-# win-link-router
-
-**Link your way.**
+# win-link-router: Link your way
 
 A Windows desktop app that lets you route protocol links (like `tel:`) to the app or URL you actually want, using simple rules and ordered fallbacks.
 
@@ -12,6 +10,12 @@ Typical use case: clicking a `tel:` link in a browser should open WhatsApp (Desk
 
 ---
 
+## Why this tool?
+
+I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and after a recent Windows update they all stopped working.
+
+**win-link-router** exists to make routing explicit and resilient: it lets you map **ANY** link type (scheme/protocol) to **ANY** application or web service, using templates—whether that target is a native app protocol like `whatsapp://...` or a web URL like `https://...` (with ordered fallbacks).
+
 ## What it does
 
 - **Routes protocol URIs** (for example `tel:+15551234567`) to target apps/URLs based on your configuration.
@@ -21,14 +25,6 @@ Typical use case: clicking a `tel:` link in a browser should open WhatsApp (Desk
   - You still choose the **default handler** in Windows Settings (the app does not and cannot set defaults for you reliably).
 - **Built-in presets** to get started fast (currently includes `TEL/SIP/CALLTO/SMS/SMSTO → WhatsApp`).
 - **Debug tools built in**: a Test tab to see extractor matches and rendered targets; a Log tab for routing history.
-
-## Why this tool?
-
-I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and after a recent Windows update they all stopped working.
-
-**win-link-router** exists to make routing explicit and resilient: it lets you map **ANY** link type (scheme/protocol) to **ANY** application or web service, using templates—whether that target is a native app protocol like `whatsapp://...` or a web URL like `https://...` (with ordered fallbacks).
-
----
 
 ## Install
 
