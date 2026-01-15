@@ -8,7 +8,7 @@ Typical use case: clicking a `tel:` link in a browser should open WhatsApp (Desk
 
 ---
 
-<p align="center"><a href="./assets/main-settings.png"><img src="./assets/main-settings.png" width="400" /><i>Main window – Settings tab (click to expand)</i></a></p>
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/main-settings.png?raw=true"><img src="./assets/main-settings.png" width="400" /><br /><i>Main window – Settings tab (click to expand)</i></a></p>
 
 ---
 
