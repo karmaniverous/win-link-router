@@ -1,13 +1,14 @@
 # win-link-router
 
-**Link your way.**  
+**Link your way.**
+
 A Windows desktop app that lets you route protocol links (like `tel:`) to the app or URL you actually want, using simple rules and ordered fallbacks.
 
 Typical use case: clicking a `tel:` link in a browser should open WhatsApp (Desktop first, Web fallback), not the default dialer.
 
 ---
 
-![Screenshot: Main window – Settings tab](assets/main-settings.png)
+<img alt="Screenshot: Main window – Settings tab" src="./assets/main-settings.png" width="400" />
 
 ## What it does
 
@@ -26,8 +27,6 @@ I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and
 **win-link-router** exists to make routing explicit and resilient: it lets you map **ANY** link type (scheme/protocol) to **ANY** application or web service, using templates—whether that target is a native app protocol like `whatsapp://...` or a web URL like `https://...` (with ordered fallbacks).
 
 ---
-
-![Screenshot: Default app mismatch banner](assets/default-mismatch-banner.png)
 
 ## Install
 
@@ -205,10 +204,7 @@ If some enabled + registered schemes are not set as default in Windows, the app 
 
 ---
 
-<!-- Screenshot: Tray menu -->
-
 ![Screenshot: System tray menu](assets/tray-menu.png)
-**Capture:** The tray context menu showing Show/Hide, shortcut repair, open data folder, and Quit.
 
 ## Import / export and shared config
 
@@ -243,7 +239,6 @@ Open **Help → About** to:
 <!-- Screenshot: About window -->
 
 ![Screenshot: About – update status and controls](assets/about-window.png)
-**Capture:** The About window showing current version, update status text, “Check for updates”, “Update Now”, and the “Enable automatic updates” checkbox.
 
 ## Troubleshooting
 
