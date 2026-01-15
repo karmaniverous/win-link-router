@@ -95,6 +95,7 @@ out/
 .stan/output/
 .stan/diff/
 .stan/dist/
+.stan/imports/
 .stan/patch/
 .stan/system/facet.state.json
 .stan/system/.docs.meta.json

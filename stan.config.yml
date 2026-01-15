@@ -5,6 +5,10 @@ stan-core:
     - '**/*.tsbuildinfo'
     - CHANGELOG.md
     - package-lock.json
+  imports:
+    '@karmaniverous/karmanivero.us':
+      - ../karmanivero.us/collections/_posts/2024-11-17-using-two-whatsapp-accounts-on-the-same-desktop.md
+      - ../karmanivero.us/collections/_posts/2025-06-29-directing-tel-links-to-whatsapp-desktop-in-windows.md
 stan-cli:
   cliDefaults:
     run:
