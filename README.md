@@ -176,7 +176,7 @@ Redacted mode is recommended: it avoids storing raw URIs and full targets (which
 
 ---
 
-<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/log-tab?raw=true"><img src="./assets/log-tab" width="400" /><br /><i>Log tab – redacted mode and entries (click to expand)</i></a></p>
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/log-tab.png?raw=true"><img src="./assets/log-tab.png" width="400" /><br /><i>Log tab – redacted mode and entries (click to expand)</i></a></p>
 
 ---
 
@@ -193,7 +193,7 @@ This is the fastest way to debug regex and template issues before relying on Win
 
 ---
 
-<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/test-tab?raw=true"><img src="./assets/test-tab" width="400" /><br /><i>Test tab – match groups and rendered targets (click to expand)</i></a></p>
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/test-tab.png?raw=true"><img src="./assets/test-tab.png" width="400" /><br /><i>Test tab – match groups and rendered targets (click to expand)</i></a></p>
 
 ---
 
@@ -214,7 +214,7 @@ If some enabled + registered schemes are not set as default in Windows, the app 
 
 ---
 
-<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/tray-menu?raw=true"><img src="./assets/tray-menu" width="400" /><br /><i>System tray menu (click to expand)</i></a></p>
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/tray-menu.png?raw=true"><img src="./assets/tray-menu.png" width="400" /><br /><i>System tray menu (click to expand)</i></a></p>
 
 ---
 
@@ -248,7 +248,7 @@ Open **Help → About** to:
 
 ---
 
-<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/about-window?raw=true"><img src="./assets/about-window" width="400" /><br /><i>About – update status and controls (click to expand)</i></a></p>
+<p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/about-window.png?raw=true"><img src="./assets/about-window.png" width="400" /><br /><i>About – update status and controls (click to expand)</i></a></p>
 
 ---
 
