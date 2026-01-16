@@ -195,6 +195,7 @@ Paste a URI and the app will:
 
 - Infer the scheme from the URI
 - Compute `decodedUri` (decoded payload after the first `:`)
+- Show the decoded URI under the input (this is what the extractor matches)
 - Run the extractor against `decodedUri`
 - Show match groups
 - Show each template’s rendered output (or render error)

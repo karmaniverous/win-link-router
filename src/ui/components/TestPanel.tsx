@@ -4,6 +4,7 @@
  * - Disabled schemes can still be evaluated, but show a clear banner.
  * - Test panel is full-width and avoids extra boxed chrome (tab already names it).
  * - Avoid accordions in Test output; render diagnostics directly.
+ * - Show the decoded URI (used for extraction) directly under the raw input.
  */
 import {
   Alert,
@@ -20,6 +21,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import type { AppConfig } from '../../core/config/appConfig';
 import { normalizeScheme } from '../../core/config/appConfig';
+import { normalizeIncomingUri } from '../../core/routing/normalizeIncomingUri';
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 
@@ -63,6 +65,11 @@ export function TestPanel(props: {
   const debouncedUri = useDebouncedValue(testUri, 300);
   const inferredScheme = useMemo(() => inferSchemeFromUri(testUri), [testUri]);
   const debouncedScheme = useDebouncedValue(inferredScheme, 300);
+
+  const decodedUri = useMemo(() => {
+    if (!testUri.trim()) return '';
+    return normalizeIncomingUri(testUri).decodedUri;
+  }, [testUri]);
 
   const schemeConfig = useMemo(() => {
     return findScheme(config, inferredScheme);
@@ -140,6 +147,15 @@ export function TestPanel(props: {
           }}
           placeholder="e.g. tel:+1 (555) 123-4567"
         />
+
+        {testUri.trim() ? (
+          <Text size="sm" c="dimmed">
+            Decoded URI (used for extraction):{' '}
+            <Code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+              {decodedUri}
+            </Code>
+          </Text>
+        ) : null}
 
         {!testUri.trim() ? (
           <Text size="sm" c="dimmed">

@@ -237,6 +237,7 @@ Durable project requirements (desired end-state).
   - User can paste a URI to evaluate.
   - The app auto-runs evaluation on debounce (no explicit Run button).
 - The Test tab must infer the scheme from the URI (no scheme selector required).
+- The Test tab must display the decoded URI (`decodedUri`) just below the raw Incoming URI field so users can see what the extractor matches against.
 - The test output must show:
   - Extracted capture groups (and/or match metadata).
   - For each template in order:

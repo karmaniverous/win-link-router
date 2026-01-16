@@ -107,5 +107,6 @@ describe('TestPanel', () => {
 
     expect(html).toContain('Incoming URI');
     expect(html).toContain('Scheme:');
+    expect(html).toContain('Decoded URI');
   });
 });
