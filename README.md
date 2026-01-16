@@ -65,13 +65,19 @@ I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and
 
 For each scheme you configure:
 
-1. **Extractor (regex)** is applied to the _entire incoming URI_.
-2. If it matches, **named capture groups** become variables for templates.
-3. **Templates** are evaluated in order:
+1. **Incoming URI normalization**:
+   - The app preserves the original raw OS argument as `uri`.
+   - It also computes a decoded form, `decodedUri`, by percent-decoding the URI payload (everything after the first `:`).
+     - Example: `tel:+62%20816...` becomes `tel:+62 816...`
+2. **Extractor (regex)** is applied to `decodedUri` (not `uri`).
+3. If it matches, **named capture groups** become variables for templates.
+4. **Templates** are evaluated in order:
    - Render a target string (Handlebars)
    - Try to open it via Windows
    - If opening fails, try the next enabled template (fallback)
-4. If routing fails, the app opens the UI and shows diagnostics (and pre-fills the Test tab with the failing URI).
+5. If routing fails, the app opens the UI and shows diagnostics (and pre-fills the Test tab with the failing URI).
+
+Why this matters: many apps generate protocol links by URL-encoding user-visible field content (spaces, `+`, etc.). Decoding before extraction avoids corruption (for example, `%20` turning into digits via helpers like `digits()`).
 
 ### Key concepts
 
@@ -161,8 +167,9 @@ whatsapp://send?phone={{digits number}}
 Advanced note: the template context includes:
 
 - top-level variables for each named capture group
-- `uri` (the full incoming URI)
-- `match` (regex match info, including `match.groups.*`)
+- `uri` (the full original incoming URI, as received)
+- `decodedUri` (the decoded URI used for extractor matching)
+- `match` (regex match info from running the extractor against `decodedUri`, including `match.groups.*`)
 
 ### Log tab (routing history)
 
@@ -173,6 +180,8 @@ The Log tab is for debugging. You can:
 - Toggle **Redacted** vs **Full** logging for new entries
 
 Redacted mode is recommended: it avoids storing raw URIs and full targets (which may contain sensitive payloads).
+
+Full mode may include both `uri` (raw) and `decodedUri` (decoded) in each entry.
 
 ---
 
@@ -185,7 +194,8 @@ Redacted mode is recommended: it avoids storing raw URIs and full targets (which
 Paste a URI and the app will:
 
 - Infer the scheme from the URI
-- Run the extractor
+- Compute `decodedUri` (decoded payload after the first `:`)
+- Run the extractor against `decodedUri`
 - Show match groups
 - Show each template’s rendered output (or render error)
 
@@ -264,6 +274,7 @@ Open **Help → About** to:
 
 - Go to the **Test** tab.
 - Paste the exact URI you clicked.
+- Remember: the extractor runs against the decoded URI payload (percent-decoded after the first `:`).
 - Fix the extractor pattern/flags until match groups appear.
 
 ### Routing failed: template render error

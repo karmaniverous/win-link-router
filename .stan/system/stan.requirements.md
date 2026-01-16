@@ -75,7 +75,7 @@ Durable project requirements (desired end-state).
   - If the default cannot be determined reliably, the app must report “Unknown”, not guess.
   - On newer Windows builds, prefer reading the effective ProgId from:
     - `...UrlAssociations\<scheme>\UserChoiceLatest\ProgId`
-    and fall back to `...UserChoice` for compatibility.
+      and fall back to `...UserChoice` for compatibility.
 - On startup and when the UI is opened, the app must compare:
   - user-configured protocols that are enabled and registered, vs
   - the current Windows default handler for those protocols,
@@ -104,27 +104,27 @@ Durable project requirements (desired end-state).
 - Invariant:
   - Registered implies enabled (a scheme must not be registered while disabled).
 
-### Extractor (single regex per scheme)
-
-- For an incoming URI, the app must apply the configured extractor regex to a normalized, decoded form of the URI (see “Incoming URI normalization”).
-- The extractor must use named capture groups to produce tag values.
-- Regex flags are configurable, but the app must reject global matching (`g`) to avoid stateful/non-deterministic behavior; extraction uses the first match.
-- Extractor failure:
-  - If the extractor does not match, routing is considered failed due to configuration/input mismatch and the app must open the UI with diagnostics (see Error handling & feedback).
-
-### Templates (Handlebars)
-
 ### Incoming URI normalization
 
 - There is no reliable way to know which application produced a protocol link.
-  Many apps generate protocol links by URL-encoding user-visible field content
-  (for example, encoding spaces in a `tel:` number).
+  Many apps generate protocol links by URL-encoding user-visible field content (for example, encoding spaces and `+` signs in a `tel:` number).
 - The app must normalize the incoming URI for consistent extraction/routing:
   - Preserve the original raw URI (exact OS argument) as `uri` for logging and diagnostics.
   - Compute a decoded URI as `decodedUri` by:
     - splitting at the first `:`, and
     - decoding only the remainder (payload) using a tolerant decoder.
   - Run the extractor against `decodedUri` (not `uri`).
+  - Route results must include both `uri` (raw) and `decodedUri` (decoded) for diagnostics.
+
+### Extractor (single regex per scheme)
+
+- For an incoming URI, the app must apply the configured extractor regex to a normalized, decoded form of the URI (`decodedUri`).
+- The extractor must use named capture groups to produce tag values.
+- Regex flags are configurable, but the app must reject global matching (`g`) to avoid stateful/non-deterministic behavior; extraction uses the first match.
+- Extractor failure:
+  - If the extractor does not match, routing is considered failed due to configuration/input mismatch and the app must open the UI with diagnostics (see Error handling & feedback).
+
+### Templates (Handlebars)
 
 - Templates are Handlebars strings rendered using the extracted capture groups.
 - Templates are evaluated in configured order; only enabled templates participate in routing attempts.
@@ -305,9 +305,10 @@ Durable project requirements (desired end-state).
 ## Logging
 
 - The app must maintain a minimal routing log for debugging:
-  - Timestamp, raw incoming URI, decoded incoming URI, scheme, extracted groups (redacted if needed), attempted targets, and result.
+  - Timestamp, raw incoming URI (`uri`), decoded incoming URI (`decodedUri`), scheme, extracted groups (redacted if needed), attempted targets, and result.
   - By default, persisted logs must avoid storing sensitive payloads:
     - Do not persist raw incoming URIs.
+    - Do not persist decoded incoming URIs.
     - Do not persist fully rendered target URLs (which may include payloads).
     - Persist only scheme-level information (e.g. `tel:[redacted]`, `whatsapp:[redacted]`) plus template ids/labels and error/result metadata.
   - The app must provide a user setting to enable full (unredacted) logging, which is OFF by default.

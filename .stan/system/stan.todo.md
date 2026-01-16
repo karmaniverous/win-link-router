@@ -154,4 +154,6 @@
 - Release: make release-it the only GitHub release publisher (assets + notes).
 - Fix: apply RIB at runtime; harden scheme status IPC.
 - Fix: remove invalid void union in IPC callback typing.
-- Updated package.json description and npm keywords.- Normalized incoming URIs by decoding payload before extraction; logged both raw and decoded URIs and included decodedUri on all RouteUriResult variants.
+- Updated package.json description and npm keywords.
+- Normalized incoming URIs by decoding payload before extraction; logged both raw and decoded URIs and included decodedUri on all RouteUriResult variants.
+- Docs: documented incoming URI normalization (uri vs decodedUri) and extractor/logging semantics.
