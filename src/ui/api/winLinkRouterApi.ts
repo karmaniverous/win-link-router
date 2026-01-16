@@ -5,6 +5,7 @@
  * - UI can open external links (e.g., GitHub repo) via preload + IPC.
  * - About window uses preload APIs to check/install updates.
  * - Main window can be visually dimmed when other modal windows are open.
+ * - Tests can construct partial/dummy WinLinkRouterApi objects without `ui`.
  */
 import type { AppConfig, PresetsFile } from '../../core/config/appConfig';
 import type { RouteUriResult } from '../../core/routing/routeUri';
@@ -120,7 +121,7 @@ export interface WinLinkRouterApi {
     shareX: () => Promise<{ ok: true }>;
     shareLinkedIn: () => Promise<{ ok: true }>;
   };
-  ui: {
+  ui?: {
     onModalOverlayChanged: (
       handler: (evt: ModalOverlayEvent) => void,
     ) => () => void;

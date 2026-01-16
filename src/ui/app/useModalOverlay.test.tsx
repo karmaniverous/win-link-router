@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { WinLinkRouterApi } from '../api/winLinkRouterApi';
@@ -35,17 +35,25 @@ describe('useModalOverlay', () => {
 
     expect(screen.getByText('overlay-off')).toBeTruthy();
 
-    handlerRef.fn?.({ owner: 'about', active: true });
+    act(() => {
+      handlerRef.fn?.({ owner: 'about', active: true });
+    });
     expect(screen.getByText('overlay-on')).toBeTruthy();
 
     // Multiple owners should keep overlay on until all are cleared.
-    handlerRef.fn?.({ owner: 'share', active: true });
+    act(() => {
+      handlerRef.fn?.({ owner: 'share', active: true });
+    });
     expect(screen.getByText('overlay-on')).toBeTruthy();
 
-    handlerRef.fn?.({ owner: 'about', active: false });
+    act(() => {
+      handlerRef.fn?.({ owner: 'about', active: false });
+    });
     expect(screen.getByText('overlay-on')).toBeTruthy();
 
-    handlerRef.fn?.({ owner: 'share', active: false });
+    act(() => {
+      handlerRef.fn?.({ owner: 'share', active: false });
+    });
     expect(screen.getByText('overlay-off')).toBeTruthy();
   });
 });
