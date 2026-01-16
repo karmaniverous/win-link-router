@@ -2,7 +2,15 @@
  * Requirements addressed:
  * - Determine scheme from the incoming URI and route using per-scheme config.
  * - Apply a single extractor regex per scheme to produce named capture groups.
- * - Template context includes top-level capture groups + `uri` + `match`.
+ * - Normalize incoming URIs before extraction:
+ *   - Preserve `uri` (raw) for logging/diagnostics.
+ *   - Compute `decodedUri` by decoding only the payload after the first ':'.
+ *   - Run extractor matching against `decodedUri` (not `uri`).
+ * - Template context includes:
+ *   - top-level capture groups,
+ *   - `uri` (raw),
+ *   - `decodedUri`,
+ *   - `match` (from extractor exec against decodedUri).
  * - Render failures are configuration errors (open UI; do not fallback).
  * - openExternal failures attempt next enabled template (best-effort fallback).
  * - Route results include extractor match groups for diagnostics/logging.
@@ -10,6 +18,7 @@
  *   render error for a given test URI.
  */
 import type { SchemeConfig, TemplateConfig } from '../config/appConfig';
+import { normalizeIncomingUri } from './normalizeIncomingUri';
 import type { TemplateRenderer } from './templateRenderer';
 
 export interface OpenExternalPort {
@@ -24,20 +33,32 @@ interface TemplateAttempt {
 }
 
 export type RouteUriResult =
-  | { type: 'noScheme'; uri: string }
-  | { type: 'schemeNotConfigured'; scheme: string; uri: string }
-  | { type: 'schemeDisabled'; scheme: string; uri: string }
-  | { type: 'extractorNoMatch'; scheme: string; uri: string }
+  | { type: 'noScheme'; uri: string; decodedUri: string }
+  | {
+      type: 'schemeNotConfigured';
+      scheme: string;
+      uri: string;
+      decodedUri: string;
+    }
+  | { type: 'schemeDisabled'; scheme: string; uri: string; decodedUri: string }
+  | {
+      type: 'extractorNoMatch';
+      scheme: string;
+      uri: string;
+      decodedUri: string;
+    }
   | {
       type: 'noEnabledTemplates';
       scheme: string;
       uri: string;
+      decodedUri: string;
       matchGroups?: Record<string, string>;
     }
   | {
       type: 'templateRenderError';
       scheme: string;
       uri: string;
+      decodedUri: string;
       templateId: string;
       message: string;
       attempts: TemplateAttempt[];
@@ -47,6 +68,7 @@ export type RouteUriResult =
       type: 'openFailed';
       scheme: string;
       uri: string;
+      decodedUri: string;
       attempts: TemplateAttempt[];
       matchGroups?: Record<string, string>;
     }
@@ -54,6 +76,7 @@ export type RouteUriResult =
       type: 'routed';
       scheme: string;
       uri: string;
+      decodedUri: string;
       target: string;
       templateId: string;
       attempts: TemplateAttempt[];
@@ -80,13 +103,15 @@ function buildExtractor(schemeConfig: SchemeConfig): RegExp {
 }
 
 function buildTemplateContext(
-  uri: string,
+  rawUri: string,
+  decodedUri: string,
   match: RegExpExecArray,
 ): Record<string, unknown> {
   const groups = match.groups ?? {};
   return {
     ...groups,
-    uri,
+    uri: rawUri,
+    decodedUri,
     match,
   };
 }
@@ -100,8 +125,10 @@ export function evaluateTemplatesForTest(
   uri: string,
   schemeConfig: SchemeConfig,
 ): { match: RegExpExecArray | null; evaluations: TemplateEvaluation[] } {
+  const normalized = normalizeIncomingUri(uri);
+
   const extractor = buildExtractor(schemeConfig);
-  const match = extractor.exec(uri);
+  const match = extractor.exec(normalized.decodedUri);
 
   const evaluations = schemeConfig.templates.map((t) => {
     if (!match) {
@@ -113,7 +140,7 @@ export function evaluateTemplatesForTest(
       };
     }
 
-    const context = buildTemplateContext(uri, match);
+    const context = buildTemplateContext(uri, normalized.decodedUri, match);
     try {
       const renderedTarget = renderer.render(t.template, context);
       return {
@@ -141,14 +168,26 @@ export async function routeUriWithSchemeConfig(
   uri: string,
   schemeConfig: SchemeConfig,
 ): Promise<RouteUriResult> {
+  const normalized = normalizeIncomingUri(uri);
+
   if (!schemeConfig.enabled) {
-    return { type: 'schemeDisabled', scheme: schemeConfig.scheme, uri };
+    return {
+      type: 'schemeDisabled',
+      scheme: schemeConfig.scheme,
+      uri,
+      decodedUri: normalized.decodedUri,
+    };
   }
 
   const extractor = buildExtractor(schemeConfig);
-  const match = extractor.exec(uri);
+  const match = extractor.exec(normalized.decodedUri);
   if (!match) {
-    return { type: 'extractorNoMatch', scheme: schemeConfig.scheme, uri };
+    return {
+      type: 'extractorNoMatch',
+      scheme: schemeConfig.scheme,
+      uri,
+      decodedUri: normalized.decodedUri,
+    };
   }
   const matchGroups = match.groups ? { ...match.groups } : undefined;
 
@@ -158,11 +197,12 @@ export async function routeUriWithSchemeConfig(
       type: 'noEnabledTemplates',
       scheme: schemeConfig.scheme,
       uri,
+      decodedUri: normalized.decodedUri,
       matchGroups,
     };
   }
 
-  const context = buildTemplateContext(uri, match);
+  const context = buildTemplateContext(uri, normalized.decodedUri, match);
 
   const attempts: TemplateAttempt[] = [];
 
@@ -175,6 +215,7 @@ export async function routeUriWithSchemeConfig(
         type: 'templateRenderError',
         scheme: schemeConfig.scheme,
         uri,
+        decodedUri: normalized.decodedUri,
         templateId: t.id,
         message: (err as Error).message,
         attempts,
@@ -193,6 +234,7 @@ export async function routeUriWithSchemeConfig(
         type: 'routed',
         scheme: schemeConfig.scheme,
         uri,
+        decodedUri: normalized.decodedUri,
         target,
         templateId: t.id,
         attempts,
@@ -212,6 +254,7 @@ export async function routeUriWithSchemeConfig(
     type: 'openFailed',
     scheme: schemeConfig.scheme,
     uri,
+    decodedUri: normalized.decodedUri,
     attempts,
     matchGroups,
   };
@@ -224,10 +267,19 @@ export async function routeUriOrFail(
   schemeConfig: SchemeConfig | undefined,
 ): Promise<RouteUriResult> {
   const scheme = parseSchemeFromUri(uri);
-  if (!scheme) return { type: 'noScheme', uri };
+  const normalized = normalizeIncomingUri(uri);
+
+  if (!scheme) {
+    return { type: 'noScheme', uri, decodedUri: normalized.decodedUri };
+  }
 
   if (!schemeConfig) {
-    return { type: 'schemeNotConfigured', scheme, uri };
+    return {
+      type: 'schemeNotConfigured',
+      scheme,
+      uri,
+      decodedUri: normalized.decodedUri,
+    };
   }
 
   return routeUriWithSchemeConfig(

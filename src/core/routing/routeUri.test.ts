@@ -4,6 +4,7 @@
  * - openExternal failures try the next enabled template (best-effort fallback).
  * - Template context supports top-level groups and match.groups.*
  * - The context does not provide a `groups` convenience object.
+ * - Extractor matching runs against a decoded URI payload (raw URI preserved).
  */
 import { describe, expect, it, vi } from 'vitest';
 
@@ -51,6 +52,8 @@ describe('routeUriWithSchemeConfig', () => {
     if (result.type !== 'routed') return;
 
     expect(result.target).toBe('https://wa.me/17737500338');
+    expect(result.uri).toBe('tel:1 (773) 750-0338');
+    expect(result.decodedUri).toBe('tel:1 (773) 750-0338');
     expect(openExternal).toHaveBeenCalledTimes(2);
     expect(openExternal.mock.calls[0]?.[0]).toBe(
       'whatsapp://send?phone=17737500338',
@@ -154,5 +157,41 @@ describe('routeUriWithSchemeConfig', () => {
     expect(openExternal).toHaveBeenCalledWith(
       'whatsapp://send?phone=17737500338',
     );
+  });
+
+  it('decodes the URI payload before extractor matching', async () => {
+    const renderer = createTemplateRenderer();
+    const openExternal = vi.fn().mockResolvedValue(undefined);
+
+    const schemeConfig = {
+      scheme: 'TEL',
+      enabled: true,
+      registered: true,
+      extractor: { pattern: '^tel:(?<number>.*)$', flags: 'i' },
+      templates: [
+        {
+          id: 't1',
+          label: 'WhatsApp Web',
+          template: 'https://wa.me/{{digits number}}',
+          enabled: true,
+        },
+      ],
+    };
+
+    const raw = 'tel:%2B62%20816%2017880550';
+    const result = await routeUriWithSchemeConfig(
+      renderer,
+      { openExternal: openExternal as OpenExternalPort['openExternal'] },
+      raw,
+      schemeConfig,
+    );
+
+    expect(result.type).toBe('routed');
+    if (result.type !== 'routed') return;
+
+    expect(result.uri).toBe(raw);
+    expect(result.decodedUri).toBe('tel:+62 816 17880550');
+    expect(result.matchGroups?.number).toBe('+62 816 17880550');
+    expect(result.target).toBe('https://wa.me/6281617880550');
   });
 });

@@ -106,7 +106,7 @@ Durable project requirements (desired end-state).
 
 ### Extractor (single regex per scheme)
 
-- For an incoming URI, the app must apply the configured extractor regex to the full original URI string.
+- For an incoming URI, the app must apply the configured extractor regex to a normalized, decoded form of the URI (see “Incoming URI normalization”).
 - The extractor must use named capture groups to produce tag values.
 - Regex flags are configurable, but the app must reject global matching (`g`) to avoid stateful/non-deterministic behavior; extraction uses the first match.
 - Extractor failure:
@@ -114,12 +114,25 @@ Durable project requirements (desired end-state).
 
 ### Templates (Handlebars)
 
+### Incoming URI normalization
+
+- There is no reliable way to know which application produced a protocol link.
+  Many apps generate protocol links by URL-encoding user-visible field content
+  (for example, encoding spaces in a `tel:` number).
+- The app must normalize the incoming URI for consistent extraction/routing:
+  - Preserve the original raw URI (exact OS argument) as `uri` for logging and diagnostics.
+  - Compute a decoded URI as `decodedUri` by:
+    - splitting at the first `:`, and
+    - decoding only the remainder (payload) using a tolerant decoder.
+  - Run the extractor against `decodedUri` (not `uri`).
+
 - Templates are Handlebars strings rendered using the extracted capture groups.
 - Templates are evaluated in configured order; only enabled templates participate in routing attempts.
 - Template rendering context must include:
   - Top-level keys for each named capture group (spread to the root context).
-  - `uri`: the full original incoming URI string.
-  - `match`: a debug object that includes at least `groups` for advanced templates (e.g. `match.groups.number` is acceptable).
+  - `uri`: the full original incoming URI string (raw).
+  - `decodedUri`: the decoded/normalized incoming URI used for extraction.
+  - `match`: a debug object based on extractor execution against `decodedUri`, and includes at least `groups` for advanced templates (e.g. `match.groups.number` is acceptable).
   - The context must NOT include a `groups` convenience object (i.e. `groups.*` is not a supported access path).
 - The app must provide a small set of generic Handlebars helpers to support target-agnostic transformations. Minimum helpers:
   - `digits(value)`: strip non-digits; throws if input is missing/empty or output is empty.
@@ -140,7 +153,7 @@ Durable project requirements (desired end-state).
 - Scheme-level enablement:
   - If the scheme exists in configuration but is disabled, routing must fail with an actionable error (and open the UI; see Test UI requirements).
 - Routing attempt sequence:
-  - Apply extractor once to build the template context.
+  - Apply extractor once to `decodedUri` to build the template context.
   - Evaluate enabled templates in configured order:
     - Render the template.
     - If render fails: stop routing, open UI with diagnostics.
@@ -292,7 +305,7 @@ Durable project requirements (desired end-state).
 ## Logging
 
 - The app must maintain a minimal routing log for debugging:
-  - Timestamp, incoming URI, scheme, extracted groups (redacted if needed), attempted targets, and result.
+  - Timestamp, raw incoming URI, decoded incoming URI, scheme, extracted groups (redacted if needed), attempted targets, and result.
   - By default, persisted logs must avoid storing sensitive payloads:
     - Do not persist raw incoming URIs.
     - Do not persist fully rendered target URLs (which may include payloads).

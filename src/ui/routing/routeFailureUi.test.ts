@@ -12,6 +12,7 @@ describe('routeFailureUi', () => {
       type: 'schemeNotConfigured',
       scheme: 'tel',
       uri: 'tel:+15551234567',
+      decodedUri: 'tel:+15551234567',
     };
     expect(inferSchemeForRouteFailure({ uri: result.uri, result })).toBe('TEL');
   });
@@ -20,6 +21,7 @@ describe('routeFailureUi', () => {
     const result: RouteUriResult = {
       type: 'noScheme',
       uri: 'not-a-uri',
+      decodedUri: 'not-a-uri',
     };
     expect(
       inferSchemeForRouteFailure({ uri: 'mailto:test@example.com', result }),
@@ -31,6 +33,7 @@ describe('routeFailureUi', () => {
       type: 'noEnabledTemplates',
       scheme: 'TEL',
       uri: 'tel:+15551234567',
+      decodedUri: 'tel:+15551234567',
       matchGroups: { number: '+15551234567' },
     };
     expect(formatRouteFailureBanner(result)).toBe(

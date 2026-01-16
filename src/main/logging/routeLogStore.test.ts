@@ -33,6 +33,7 @@ describe('RouteLogStore', () => {
       const result: RouteUriResult = {
         type: 'noScheme',
         uri: `uri-${String(i)}`,
+        decodedUri: `uri-${String(i)}`,
       };
       await store.append(result);
     }
@@ -53,7 +54,11 @@ describe('RouteLogStore', () => {
     });
 
     const longUri = `tel:${'1'.repeat(600)}`;
-    const result: RouteUriResult = { type: 'noScheme', uri: longUri };
+    const result: RouteUriResult = {
+      type: 'noScheme',
+      uri: longUri,
+      decodedUri: longUri,
+    };
 
     await store.append(result);
     await store.append(result);
@@ -78,10 +83,12 @@ describe('RouteLogStore', () => {
       type: 'schemeNotConfigured',
       scheme: 'TEL',
       uri: 'tel:+1 (555) 123-4567',
+      decodedUri: 'tel:+1 (555) 123-4567',
     };
 
     await store.append(result);
     const entries = await store.read();
     expect(entries[0]?.result.uri).toBe('tel:+1 (555) 123-4567');
+    expect(entries[0]?.result.decodedUri).toBe('tel:+1 (555) 123-4567');
   });
 });

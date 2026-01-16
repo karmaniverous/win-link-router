@@ -4,6 +4,7 @@
  * - Keep filesystem side effects in main-process code (ports/adapters boundary).
  * - Enforce a simple size cap/retention policy to avoid unbounded growth.
  * - Avoid persisting raw URIs/targets by default (redaction for sensitive data).
+ * - Persist both raw and decoded URIs; redact both by default.
  */
 import path from 'node:path';
 
@@ -69,6 +70,7 @@ function redactRouteUriResult(result: RouteUriResult): RouteUriResult {
   // scheme-level information and errors for debugging.
   const clone = structuredClone(result) as {
     uri?: unknown;
+    decodedUri?: unknown;
     scheme?: unknown;
     target?: unknown;
     attempts?: unknown;
@@ -80,6 +82,10 @@ function redactRouteUriResult(result: RouteUriResult): RouteUriResult {
 
   if (typeof clone.uri === 'string') {
     clone.uri = redactIncomingUri(clone.uri, schemeOverride);
+  }
+
+  if (typeof clone.decodedUri === 'string') {
+    clone.decodedUri = redactIncomingUri(clone.decodedUri, schemeOverride);
   }
 
   if (typeof clone.target === 'string') {
