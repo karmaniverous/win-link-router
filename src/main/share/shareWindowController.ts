@@ -6,7 +6,8 @@
  * - Ensure external http/https links open in the default browser and that the
  *   share interstitial closes before opening external so the browser is on top.
  * - Share window must not display an application menu bar.
- * - Only dim/disable the main window when it is visible.
+ * - When Share is open and the main window is visible, the main window is dimmed/disabled.
+ * - Dimming uses a true renderer overlay, not just window disabling.
  */
 import path from 'node:path';
 
@@ -77,6 +78,14 @@ export class ShareWindowController {
       } catch {
         // best-effort only
       }
+      try {
+        effectiveParent.webContents.send('ui:modalOverlay', {
+          owner: 'share',
+          active: true,
+        });
+      } catch {
+        // best-effort only
+      }
     }
 
     applyExternalLinkHandling(win, {
@@ -96,6 +105,14 @@ export class ShareWindowController {
       this.shareWindow = null;
 
       if (this.parentToReenable) {
+        try {
+          this.parentToReenable.webContents.send('ui:modalOverlay', {
+            owner: 'share',
+            active: false,
+          });
+        } catch {
+          // best-effort only
+        }
         try {
           this.parentToReenable.setEnabled(true);
         } catch {

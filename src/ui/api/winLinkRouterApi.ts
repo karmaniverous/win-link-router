@@ -4,6 +4,7 @@
  * - UI needs config/presets/status/test + routing-failure prefill plumbing.
  * - UI can open external links (e.g., GitHub repo) via preload + IPC.
  * - About window uses preload APIs to check/install updates.
+ * - Main window can be visually dimmed when other modal windows are open.
  */
 import type { AppConfig, PresetsFile } from '../../core/config/appConfig';
 import type { RouteUriResult } from '../../core/routing/routeUri';
@@ -21,6 +22,11 @@ interface LastRouteErrorDto {
   when: string;
   uri: string;
   result: RouteUriResult;
+}
+
+export interface ModalOverlayEvent {
+  owner: string;
+  active: boolean;
 }
 
 export interface WinLinkRouterApi {
@@ -113,6 +119,11 @@ export interface WinLinkRouterApi {
     stopNagging: () => Promise<{ ok: true }>;
     shareX: () => Promise<{ ok: true }>;
     shareLinkedIn: () => Promise<{ ok: true }>;
+  };
+  ui: {
+    onModalOverlayChanged: (
+      handler: (evt: ModalOverlayEvent) => void,
+    ) => () => void;
   };
 }
 

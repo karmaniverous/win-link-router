@@ -3,6 +3,7 @@
  * - About window is a separate modal window opened from Help → About.
  * - About window must not display an application menu bar.
  * - When About is open and the main window is visible, the main window is dimmed/disabled.
+ * - Dimming uses a true renderer overlay, not just window disabling.
  */
 import path from 'node:path';
 
@@ -57,6 +58,14 @@ export class AboutWindowController {
       } catch {
         // best-effort only
       }
+      try {
+        effectiveParent.webContents.send('ui:modalOverlay', {
+          owner: 'about',
+          active: true,
+        });
+      } catch {
+        // best-effort only
+      }
     }
 
     applyExternalLinkHandling(win, {
@@ -66,6 +75,14 @@ export class AboutWindowController {
     win.on('closed', () => {
       this.win = null;
       if (this.parentToReenable) {
+        try {
+          this.parentToReenable.webContents.send('ui:modalOverlay', {
+            owner: 'about',
+            active: false,
+          });
+        } catch {
+          // best-effort only
+        }
         try {
           this.parentToReenable.setEnabled(true);
         } catch {

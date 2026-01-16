@@ -157,4 +157,4 @@
 - Updated package.json description and npm keywords.
 - Normalized incoming URIs by decoding payload before extraction; logged both raw and decoded URIs and included decodedUri on all RouteUriResult variants.
 - Docs: documented incoming URI normalization (uri vs decodedUri) and extractor/logging semantics.
-- UI: show decodedUri directly under the Test tab input field.
+- UI: show decodedUri directly under the Test tab input field.- Updates/UI: coalesced update checks, fixed About button gating, and added true overlay dimming under About/Share modals.

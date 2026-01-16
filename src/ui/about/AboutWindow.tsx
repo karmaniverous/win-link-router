@@ -5,6 +5,7 @@
  *   - Check for updates
  *   - Update Now (download if needed, then install immediately)
  * - Auto-updates checkbox (default ON) persists to per-user settings.
+ * - About controls must enable/disable appropriately as update status changes.
  */
 import {
   Alert,
@@ -17,7 +18,7 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { APP_TAGLINE, APP_TITLE } from '../../core/app/branding';
 import { getWinLinkRouterApi } from '../api/winLinkRouterApi';
@@ -45,29 +46,54 @@ function formatStatusLine(status: UpdateStatus): string {
   return status.message ?? '';
 }
 
+function canCheckForUpdates(stage: string): boolean {
+  // Enabled states: idle, upToDate, error.
+  if (stage === 'idle') return true;
+  if (stage === 'upToDate') return true;
+  if (stage === 'error') return true;
+
+  // Disabled while in-progress or irrelevant.
+  if (stage === 'checking') return false;
+  if (stage === 'available') return false;
+  if (stage === 'downloading') return false;
+  if (stage === 'downloaded') return false;
+  if (stage === 'disabled') return false;
+
+  // Default: conservative.
+  return false;
+}
+
+function canUpdateNow(stage: string): boolean {
+  // Enabled only when it makes sense to install/download.
+  if (stage === 'available') return true;
+  if (stage === 'downloaded') return true;
+
+  // Explicitly disabled per UX decision.
+  if (stage === 'error') return false;
+  if (stage === 'checking') return false;
+  if (stage === 'downloading') return false;
+  if (stage === 'upToDate') return false;
+  if (stage === 'disabled') return false;
+  if (stage === 'idle') return false;
+
+  return false;
+}
+
 export function AboutWindow() {
   const api = getWinLinkRouterApi();
   const [status, setStatus] = useState<UpdateStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [checking, setChecking] = useState(false);
 
   const currentVersion = status?.currentVersion ?? '(unknown)';
 
   const pollMs = 1000;
 
-  const canShowUpdateNow = useMemo(() => {
-    if (!status) return false;
-    if (status.stage === 'disabled') return false;
-    if (status.stage === 'checking') return true;
-    if (status.stage === 'available') return true;
-    if (status.stage === 'downloading') return true;
-    if (status.stage === 'downloaded') return true;
-    if (status.stage === 'upToDate') return false;
-    if (status.stage === 'idle') return true;
-    if (status.stage === 'error') return true;
-    return true;
-  }, [status]);
+  const refreshStatus = useCallback(async () => {
+    if (!api) return;
+    const res = await api.updates.getStatus();
+    setStatus(res.status as UpdateStatus);
+  }, [api]);
 
   useEffect(() => {
     if (!api) return;
@@ -101,15 +127,12 @@ export function AboutWindow() {
   // Check for updates when opened.
   useEffect(() => {
     if (!api) return;
-    setChecking(true);
     void api.updates
       .checkNow()
       .catch((err: unknown) => {
         setError((err as Error).message);
       })
-      .finally(() => {
-        setChecking(false);
-      });
+      .finally(() => void refreshStatus());
   }, [api]);
 
   if (!api) {
@@ -127,6 +150,9 @@ export function AboutWindow() {
   const newVersion =
     status?.availableVersion ?? status?.downloadedVersion ?? null;
   const autoUpdatesEnabled = status?.autoUpdatesEnabled ?? true;
+  const stage = status?.stage ?? 'idle';
+  const allowCheck = canCheckForUpdates(stage);
+  const allowUpdateNow = canUpdateNow(stage);
 
   return (
     <Stack gap="sm" p="md" style={{ height: '100%' }}>
@@ -205,17 +231,14 @@ export function AboutWindow() {
         <Button
           variant="default"
           onClick={() => {
-            setChecking(true);
             void api.updates
               .checkNow()
               .catch((err: unknown) => {
                 setError((err as Error).message);
               })
-              .finally(() => {
-                setChecking(false);
-              });
+              .finally(() => void refreshStatus());
           }}
-          disabled={busy || checking}
+          disabled={busy || !allowCheck}
         >
           Check for updates
         </Button>
@@ -230,9 +253,10 @@ export function AboutWindow() {
               })
               .finally(() => {
                 setBusy(false);
+                void refreshStatus();
               });
           }}
-          disabled={busy || checking || !canShowUpdateNow}
+          disabled={busy || !allowUpdateNow}
         >
           Update Now!
         </Button>

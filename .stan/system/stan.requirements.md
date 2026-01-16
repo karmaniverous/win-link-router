@@ -57,6 +57,9 @@ Durable project requirements (desired end-state).
   - When automatic updates are disabled:
     - The app must not run scheduled background update checks.
     - Manual update checks must still be available via the About window.
+- Coalescing:
+  - Update checks must be coalesced so repeated “check now” requests while a check/download is already in progress do not surface as user-visible errors.
+  - Opening the About window must not cause transient updater errors; it must display the current update status (including “downloading” when applicable).
 - Install semantics:
   - Default behavior is install-on-quit:
     - If an update has been downloaded, it will be applied the next time the user quits the application.
@@ -359,6 +362,7 @@ Durable project requirements (desired end-state).
 - The app must provide an About window accessible via Help → About.
 - The About window must be a separate window and modal to the main window.
 - When the About window is open and the main window is visible, the main window must be dimmed/disabled.
+- Dimming must use a true overlay in the main renderer (not only window disabling or opacity changes).
 - The About window must not display an application menu bar.
 - About content must include:
   - Title + subtitle using `APP_TITLE` and `APP_TAGLINE`.
@@ -370,6 +374,13 @@ Durable project requirements (desired end-state).
     - “Update Now” button that downloads (if needed) and installs immediately.
     - Checkbox “Enable automatic updates” (enabled by default).
   - About must automatically check for updates when opened (best-effort; debounce/coalesce in main).
+- About controls must enable/disable based on the current update status:
+  - “Check for updates”:
+    - enabled when the app is `idle`, `upToDate`, or in `error`.
+    - disabled while `checking`, `available`, `downloading`, `downloaded`, or when updates are `disabled`.
+  - “Update Now”:
+    - enabled only when the update is `available` or `downloaded`.
+    - disabled when `upToDate`, `idle`, `checking`, `downloading`, in `error`, or when updates are `disabled`.
 
 ## External link handling
 
@@ -389,6 +400,7 @@ Durable project requirements (desired end-state).
   - The Share window is an interstitial experience; when opened manually, it should prevent drifting into the main window (modal/disabled parent behavior).
 - The Share window must not display an application menu bar.
 - When the Share window is open and the main window is visible, the main window must be dimmed/disabled.
+- Dimming must use a true overlay in the main renderer (not only window disabling or opacity changes).
 - Share page content (minimal):
   - Like win-link-router? Tell your friends!
     - X share button

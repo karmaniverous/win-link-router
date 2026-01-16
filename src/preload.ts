@@ -7,6 +7,8 @@
  * - UI must be able to prefill test input after routing failures.
  * - UI must be able to open external links (e.g., GitHub repo) via main.
  * - About window UI must be able to check/install updates and toggle auto-updates.
+ * - Main window UI must be able to show a visual dimming overlay when modal
+ *   windows (About/Share) are open.
  */
 import { contextBridge, ipcRenderer } from 'electron';
 
@@ -58,5 +60,21 @@ contextBridge.exposeInMainWorld('winLinkRouter', {
     stopNagging: () => ipcRenderer.invoke('share:stopNagging'),
     shareX: () => ipcRenderer.invoke('share:share', 'x'),
     shareLinkedIn: () => ipcRenderer.invoke('share:share', 'linkedin'),
+  },
+  ui: {
+    onModalOverlayChanged: (
+      handler: (evt: { owner: string; active: boolean }) => void,
+    ) => {
+      const listener = (
+        _event: unknown,
+        payload: { owner: string; active: boolean },
+      ) => {
+        handler(payload);
+      };
+      ipcRenderer.on('ui:modalOverlay', listener);
+      return () => {
+        ipcRenderer.removeListener('ui:modalOverlay', listener);
+      };
+    },
   },
 });

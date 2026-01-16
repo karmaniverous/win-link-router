@@ -5,6 +5,9 @@
  * - Manual checks remain available when disabled (About window).
  * - Install-on-quit default; "Update Now" downloads (if needed) then installs.
  * - Keep side effects behind a small runtime; expose status and actions via IPC.
+ * - Coalesce update checks to avoid "already in progress" collisions and do not
+ *   surface those collisions as user-visible errors.
+ * - Status must reflect in-flight work immediately (optimistic checking stage).
  */
 import type { IpcMain } from 'electron';
 import { autoUpdater } from 'electron';
@@ -21,6 +24,16 @@ function toErrorMessage(err: unknown): string {
   return String(err);
 }
 
+function isAlreadyInProgressError(err: unknown): boolean {
+  const msg = toErrorMessage(err).toLowerCase();
+  // Electron/autoUpdater error strings vary; treat any "in progress" collision
+  // as a benign no-op so UI continues to reflect actual update state.
+  return (
+    msg.includes('in progress') &&
+    (msg.includes('update') || msg.includes('check'))
+  );
+}
+
 function extractVersionLike(value: unknown): string | undefined {
   if (typeof value === 'string' && value.trim()) return value.trim();
   if (typeof value !== 'object' || value === null) return undefined;
@@ -35,6 +48,7 @@ export class UpdateRuntime {
   private feedConfigured = false;
   private interval: NodeJS.Timeout | null = null;
   private updateNowRequested = false;
+  private checkInFlight = false;
 
   private status: UpdateStatus;
 
@@ -147,6 +161,7 @@ export class UpdateRuntime {
     emitter.on('checking-for-update', () => {
       this.status.stage = 'checking';
       this.status.message = undefined;
+      this.checkInFlight = true;
     });
 
     emitter.on('update-available', (info: unknown) => {
@@ -163,6 +178,7 @@ export class UpdateRuntime {
       this.status.message = undefined;
       this.status.lastCheckedAt = new Date().toISOString();
       this.updateNowRequested = false;
+      this.checkInFlight = false;
     });
 
     emitter.on('download-progress', (progressObj: unknown) => {
@@ -188,6 +204,7 @@ export class UpdateRuntime {
         this.status.stage = 'downloaded';
         this.status.downloadedVersion = downloaded;
         this.status.lastCheckedAt = new Date().toISOString();
+        this.checkInFlight = false;
 
         if (this.updateNowRequested) {
           this.updateNowRequested = false;
@@ -202,10 +219,16 @@ export class UpdateRuntime {
     );
 
     emitter.on('error', (err: unknown) => {
+      if (isAlreadyInProgressError(err)) {
+        // Benign collision; keep current stage and let the in-flight events win.
+        this.checkInFlight = true;
+        return;
+      }
       this.status.stage = 'error';
       this.status.message = toErrorMessage(err);
       this.status.lastCheckedAt = new Date().toISOString();
       this.updateNowRequested = false;
+      this.checkInFlight = false;
     });
   }
 
@@ -234,13 +257,32 @@ export class UpdateRuntime {
       return;
     }
 
+    // Coalesce repeated check requests.
+    if (this.checkInFlight) return;
+    if (this.status.stage === 'checking') return;
+    if (this.status.stage === 'downloading') return;
+    if (this.status.stage === 'available') return;
+    if (this.status.stage === 'downloaded') return;
+
+    // Optimistically reflect the in-flight check immediately so UI opened
+    // during startup sees the correct state without waiting for events.
+    this.status.stage = 'checking';
+    this.status.message = undefined;
+    this.checkInFlight = true;
+
     try {
       autoUpdater.checkForUpdates();
     } catch (err) {
+      if (isAlreadyInProgressError(err)) {
+        // Treat as a benign no-op; updater is already doing work.
+        this.checkInFlight = true;
+        return;
+      }
       this.status.stage = 'error';
       this.status.message = toErrorMessage(err);
       this.status.lastCheckedAt = new Date().toISOString();
       this.updateNowRequested = false;
+      this.checkInFlight = false;
     }
   }
 
@@ -260,6 +302,21 @@ export class UpdateRuntime {
         this.status.stage = 'error';
         this.status.message = `Failed to install update: ${toErrorMessage(err)}`;
       }
+      return;
+    }
+
+    // If an update is already in progress, do not attempt another check.
+    if (
+      this.status.stage === 'downloading' ||
+      this.status.stage === 'available'
+    ) {
+      this.updateNowRequested = true;
+      this.status.message = 'Updating now…';
+      return;
+    }
+
+    if (this.status.stage === 'checking') {
+      // About UI disables Update Now during checking; treat as a no-op here too.
       return;
     }
 
