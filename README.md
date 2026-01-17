@@ -28,13 +28,14 @@ I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and
 
 ## Install
 
-### Recommended: download a release
-
 1. Go to **GitHub Releases**: https://github.com/karmaniverous/win-link-router/releases
 2. Download and install the latest Windows build.
 3. Launch **win-link-router** from the Start Menu.
 
-> Note: Windows protocol registration and Default Apps integration only work in packaged builds. Development runs are intentionally limited here.
+## Quick start (TEL → WhatsApp)
+
+1. Open **win-link-router**.
+2. On first run, choose the **TEL WhatsApp** preset (or add `TEL` later).
 
 ---
 
@@ -42,22 +43,19 @@ I built this because I lived the pain: I had `TEL` links mapped to WhatsApp, and
 
 ---
 
-## Quick start (TEL → WhatsApp)
-
-1. Open **win-link-router**.
-2. On first run, choose the **TEL WhatsApp** preset (or add `TEL` later).
 3. In **Settings → Schemes**, ensure `TEL` is:
    - **Enabled** (power icon)
    - **Registered** (registration icon)
 4. Click **Set default…** for `TEL` (or use **Default Apps…** in the header) and set **win-link-router** as the default handler for `tel:` links in Windows.
-5. Paste a test link like `tel:+1 (555) 123-4567` into the **Test** tab to confirm the rendered targets look correct.
-6. Click a `tel:` link anywhere (browser, email, chat) and the router will forward it.
 
 ---
 
 <p align="center"><a href="https://github.com/karmaniverous/win-link-router/blob/main/assets/windows-default-apps-tel.png?raw=true"><img src="./assets/windows-default-apps-tel.png" width="400" /><br /><i>Windows Default Apps – choosing defaults by link type (click to expand)</i></a></p>
 
 ---
+
+5. Paste a test link like `tel:+1 (555) 123-4567` into the **Test** tab to confirm the rendered targets look correct.
+6. Click a `tel:` link anywhere (browser, email, chat) and the router will forward it.
 
 ## How routing works (mental model)
 
