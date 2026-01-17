@@ -160,3 +160,4 @@
 - UI: show decodedUri directly under the Test tab input field.
 - Updates/UI: coalesced update checks, fixed About button gating, and added true overlay dimming under About/Share modals.
 - Fix: make WinLinkRouterApi.ui optional and stabilize overlay hook test.
+- Made a trivial change to test update-it detection of new version (bump patch).
